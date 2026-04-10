@@ -78,6 +78,99 @@ SWA CLI will prompt for your deployment token (found under the Static Web App re
 **Option C — GitHub Actions (already scaffolded by the portal flow):**
 Pushing to `main` triggers the `Azure/static-web-apps-deploy@v1` action and ships `index.html` automatically. No build command needed.
 
+**Option D — Deploy into a different Azure tenant (copy-paste scripts):**
+
+Use these if you need to stand this up in a *separate* Azure tenant/subscription (for example, a customer tenant or a sandbox). Both scripts (1) sign in to the target tenant, (2) create the resource group + Static Web App on the Free tier, (3) retrieve the deployment token, and (4) push `index.html` with the SWA CLI.
+
+Prereqs (one time): `az` CLI *or* `Az` PowerShell module, Node.js ≥ 18, and the SWA CLI (`npm i -g @azure/static-web-apps-cli`).
+
+**Bash / Azure CLI**
+```bash
+# --- edit these four values ---
+TENANT_ID="00000000-0000-0000-0000-000000000000"
+SUBSCRIPTION_ID="00000000-0000-0000-0000-000000000000"
+RG="rg-sales-play-activator"
+APP="sales-play-activator"
+LOCATION="eastus2"   # SWA Free tier regions: westus2, centralus, eastus2, westeurope, eastasia
+
+az login --tenant "$TENANT_ID"
+az account set --subscription "$SUBSCRIPTION_ID"
+
+az group create -n "$RG" -l "$LOCATION"
+
+az staticwebapp create \
+  -n "$APP" -g "$RG" -l "$LOCATION" \
+  --sku Free
+
+TOKEN=$(az staticwebapp secrets list -n "$APP" -g "$RG" \
+  --query "properties.apiKey" -o tsv)
+
+npx -y @azure/static-web-apps-cli deploy ./ \
+  --deployment-token "$TOKEN" \
+  --env production
+
+az staticwebapp show -n "$APP" -g "$RG" \
+  --query "defaultHostname" -o tsv
+```
+
+**PowerShell / Azure CLI** (works on Windows, cross-tenant friendly)
+```powershell
+# --- edit these four values ---
+$TenantId       = "00000000-0000-0000-0000-000000000000"
+$SubscriptionId = "00000000-0000-0000-0000-000000000000"
+$Rg             = "rg-sales-play-activator"
+$App            = "sales-play-activator"
+$Location       = "eastus2"
+
+az login --tenant $TenantId | Out-Null
+az account set --subscription $SubscriptionId
+
+az group create -n $Rg -l $Location | Out-Null
+
+az staticwebapp create `
+  -n $App -g $Rg -l $Location `
+  --sku Free | Out-Null
+
+$Token = az staticwebapp secrets list -n $App -g $Rg `
+  --query "properties.apiKey" -o tsv
+
+npx -y @azure/static-web-apps-cli deploy ./ `
+  --deployment-token $Token `
+  --env production
+
+az staticwebapp show -n $App -g $Rg --query "defaultHostname" -o tsv
+```
+
+**PowerShell / Az module** (no Azure CLI required)
+```powershell
+# --- edit these four values ---
+$TenantId       = "00000000-0000-0000-0000-000000000000"
+$SubscriptionId = "00000000-0000-0000-0000-000000000000"
+$Rg             = "rg-sales-play-activator"
+$App            = "sales-play-activator"
+$Location       = "eastus2"
+
+# One-time: Install-Module Az -Scope CurrentUser -Repository PSGallery -Force
+Connect-AzAccount -Tenant $TenantId -Subscription $SubscriptionId | Out-Null
+
+if (-not (Get-AzResourceGroup -Name $Rg -ErrorAction SilentlyContinue)) {
+    New-AzResourceGroup -Name $Rg -Location $Location | Out-Null
+}
+
+New-AzStaticWebApp -ResourceGroupName $Rg -Name $App `
+  -Location $Location -SkuName Free | Out-Null
+
+$Token = (Get-AzStaticWebAppSecret -ResourceGroupName $Rg -Name $App).Property.ApiKey
+
+npx -y @azure/static-web-apps-cli deploy ./ `
+  --deployment-token $Token `
+  --env production
+
+(Get-AzStaticWebApp -ResourceGroupName $Rg -Name $App).DefaultHostname
+```
+
+Run any of these from the repo root (where `index.html` lives). The final command prints the `*.azurestaticapps.net` URL of the new deployment. To tear it down: `az group delete -n $RG --yes --no-wait` (or `Remove-AzResourceGroup -Name $Rg -Force`).
+
 ### 2. GitHub Pages (free, tied to this repo)
 
 ```bash
