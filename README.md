@@ -58,7 +58,82 @@ python -m http.server 8080
 
 ## Deployment
 
-The live version is hosted on **Azure Static Web Apps**. To redeploy a new version, replace `index.html` and push — Azure's default static build picks up the root `index.html` with no build configuration needed.
+The live version is hosted on **Azure Static Web Apps**. Because the entire app is a single static `index.html` with no build step, it can be deployed to virtually any static host in under a minute. Pick whichever option fits your workflow.
+
+### 1. Azure Static Web Apps (current production host)
+
+**Option A — Azure Portal (fastest, no CLI):**
+1. Azure Portal → **Create a resource** → **Static Web App**.
+2. Source: **Other** (skip GitHub Actions) for a one-off upload, or **GitHub** to wire CI.
+3. Build preset: **Custom**. App location: `/`. Output location: *(leave blank)*. API location: *(leave blank)*.
+4. If using GitHub, point it at this repo / `main` branch — Azure commits a workflow file and deploys on push.
+
+**Option B — SWA CLI (one command):**
+```bash
+npm install -g @azure/static-web-apps-cli
+swa deploy ./ --env production
+```
+SWA CLI will prompt for your deployment token (found under the Static Web App resource → **Manage deployment token**).
+
+**Option C — GitHub Actions (already scaffolded by the portal flow):**
+Pushing to `main` triggers the `Azure/static-web-apps-deploy@v1` action and ships `index.html` automatically. No build command needed.
+
+### 2. GitHub Pages (free, tied to this repo)
+
+```bash
+gh repo edit jlynch160/sales-play-activator --visibility public   # Pages requires public OR GitHub Pro/Enterprise
+gh api -X POST repos/jlynch160/sales-play-activator/pages -f source[branch]=main -f source[path]=/
+```
+Or via UI: **Settings → Pages → Source: `main` / root → Save**. Live at `https://jlynch160.github.io/sales-play-activator/` within ~60 seconds.
+
+### 3. Netlify (drag-and-drop or CLI)
+
+**Drag-and-drop:** go to https://app.netlify.com/drop and drop `index.html`. Done — you get a live URL instantly.
+
+**CLI:**
+```bash
+npm install -g netlify-cli
+netlify deploy --dir=. --prod
+```
+
+### 4. Vercel
+
+```bash
+npm install -g vercel
+vercel --prod
+```
+Accept the defaults — Vercel auto-detects the static site and serves `index.html` from the root.
+
+### 5. Cloudflare Pages
+
+```bash
+npm install -g wrangler
+wrangler pages deploy . --project-name sales-play-activator
+```
+Or connect the GitHub repo in the Cloudflare dashboard → **Workers & Pages → Create → Pages → Connect to Git**. Framework preset: **None**. Build command: *(leave blank)*. Build output directory: `/`.
+
+### 6. AWS S3 + CloudFront (enterprise / custom domain)
+
+```bash
+aws s3 mb s3://sales-play-activator
+aws s3 website s3://sales-play-activator --index-document index.html
+aws s3 cp index.html s3://sales-play-activator/ --acl public-read
+```
+Front with CloudFront for HTTPS and a custom domain.
+
+### 7. Any web server / intranet share
+
+It's a single static file. Drop `index.html` onto IIS, nginx, Apache, a SharePoint document library, or an internal file share and open it. No server-side runtime is required.
+
+### 8. Run entirely offline
+
+Double-click `index.html` — it runs from `file://`. The only external dependency is Google Fonts; the page still works without them (fonts just fall back to system defaults).
+
+### Redeploy checklist
+
+1. Edit `index.html` locally.
+2. `git add index.html && git commit -m "..." && git push`
+3. Your chosen host picks up the change (instant for Netlify/Vercel/Cloudflare, ~30–60 s for Azure SWA and GitHub Pages).
 
 ## Repository contents
 
