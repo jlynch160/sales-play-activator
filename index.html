@@ -2963,36 +2963,30 @@ function openContentByType(category) {
     return;
   }
 
-  // Terms too generic for an IAM company's blog library — they match everything
-  var STOP_TERMS = ['identity','access','security','cloud','management','iam',
-    'solution','service','data','compliance','risk','cost','user','system',
-    'deploy','modern','platform','tool','application','enterprise','digital',
-    'implement','strategy','integration','assessment','governance','automation',
-    'monitor','protect','secure','manage','admin','license','licence','e5','m365',
-    'dr','it','ai','sso','mfa','aws','gcp','new','key','app','old'];
+  // Only block truly useless single words that match almost every file
+  var STOP_TERMS = {'the':1,'and':1,'for':1,'with':1,'from':1,'that':1,'this':1,
+    'are':1,'has':1,'was':1,'will':1,'can':1,'how':1,'what':1,'why':1,'your':1,
+    'new':1,'key':1,'old':1,'app':1,'use':1,'get':1,'set':1,'our':1,'its':1};
 
-  var stopSet = {};
-  STOP_TERMS.forEach(function(s){ stopSet[s] = true; });
-
-  // Build search terms: prefer multi-word phrases (problems) and specific keywords
+  // Build search terms from offering data
   var phraseTerms = []; // multi-word, high value
-  var wordTerms = [];   // single-word, lower value
+  var wordTerms = [];   // single-word
 
-  // Add offering name and short name as phrases (high value)
+  // Offering name and short name as phrases
   if(selOff.name) phraseTerms.push(selOff.name.toLowerCase());
   if(selOff.short) phraseTerms.push(selOff.short.toLowerCase());
 
-  // Problems are usually multi-word phrases — very specific
+  // Problems — multi-word phrases, very specific
   (selOff.problems || []).forEach(function(p) {
     var pl = p.toLowerCase().trim();
-    if(pl.length >= 6) phraseTerms.push(pl);
+    if(pl.length >= 4) phraseTerms.push(pl);
   });
 
-  // Keywords: filter out stop terms and very short words
+  // Keywords — include all except tiny stop words
   (selOff.keywords || []).forEach(function(k) {
     var kl = k.toLowerCase().trim();
-    if(kl.length < 4 || stopSet[kl]) return;
-    if(kl.indexOf(' ') !== -1) phraseTerms.push(kl); // multi-word keyword
+    if(kl.length < 3 || STOP_TERMS[kl]) return;
+    if(kl.indexOf(' ') !== -1) phraseTerms.push(kl);
     else wordTerms.push(kl);
   });
 
@@ -3007,38 +3001,31 @@ function openContentByType(category) {
     var score = 0;
     var matched = [];
 
-    // Phrase matches (multi-word) — high confidence, score 5 each
+    // Phrase matches — high confidence
     phraseTerms.forEach(function(phrase) {
       if(hay.indexOf(phrase) !== -1) {
-        score += 5;
-        if(matched.length < 4) matched.push(phrase);
+        score += phrase.split(' ').length > 1 ? 5 : 3;
+        if(matched.length < 5) matched.push(phrase);
       }
     });
 
-    // Word matches — use word boundary check to avoid substring false positives
+    // Single word matches — use indexOf (simpler, catches more)
     wordTerms.forEach(function(word) {
-      // Build regex with word boundaries
-      try {
-        var re = new RegExp('(?:^|[\\s\\-_\\.\\(\\)/])' + word.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + '(?:$|[\\s\\-_\\.\\(\\)/,;:!])', 'i');
-        if(re.test(hay)) {
-          score += word.length > 8 ? 3 : 2;
-          if(matched.length < 4) matched.push(word);
-        }
-      } catch(e) {}
+      if(hay.indexOf(word) !== -1) {
+        score += word.length > 6 ? 3 : 2;
+        if(matched.length < 5) matched.push(word);
+      }
     });
 
     return { file: f, score: score, matched: matched };
   });
 
-  // Require minimum score of 4 to be considered a real match
-  // (prevents single short-word accidental matches)
-  var MIN_MATCH_SCORE = 4;
-
-  var matched = scored.filter(function(s){ return s.score >= MIN_MATCH_SCORE; })
+  // Any match counts — score > 0
+  var matched = scored.filter(function(s){ return s.score > 0; })
     .sort(function(a,b){ return b.score - a.score; })
     .map(function(s){ return Object.assign({}, s.file, { _score: s.score, _matched: s.matched }); });
 
-  var unmatched = scored.filter(function(s){ return s.score < MIN_MATCH_SCORE; })
+  var unmatched = scored.filter(function(s){ return s.score === 0; })
     .map(function(s){ return s.file; });
 
   showContentBrowser(selOff.name, catLabel, category, matched, unmatched);
@@ -5097,24 +5084,17 @@ function tpLi(t,n){const li=mk('li','tp-li');li.innerHTML=`<span class="tp-n">0$
 
 function countContentMatches(off, files) {
   if(!off || !files || !files.length) return files ? files.length : 0;
-  var STOP = {'identity':1,'access':1,'security':1,'cloud':1,'management':1,'iam':1,'solution':1,'service':1,'data':1,'compliance':1,'risk':1,'cost':1,'user':1,'system':1,'governance':1,'automation':1,'enterprise':1,'digital':1,'e5':1,'m365':1,'dr':1,'it':1,'ai':1,'sso':1,'mfa':1,'aws':1,'gcp':1,'app':1};
-  var phrases = [];
-  var words = [];
-  if(off.name) phrases.push(off.name.toLowerCase());
-  if(off.short) phrases.push(off.short.toLowerCase());
-  (off.problems||[]).forEach(function(p){ var pl=p.toLowerCase().trim(); if(pl.length>=6) phrases.push(pl); });
-  (off.keywords||[]).forEach(function(k){ var kl=k.toLowerCase().trim(); if(kl.length<4||STOP[kl]) return; if(kl.indexOf(' ')!==-1) phrases.push(kl); else words.push(kl); });
-  var seen={}; phrases=phrases.filter(function(t){if(seen[t])return false;seen[t]=true;return true;});
-  words=words.filter(function(t){if(seen[t])return false;seen[t]=true;return true;});
+  var STOP = {'the':1,'and':1,'for':1,'with':1,'from':1,'new':1,'key':1,'old':1,'app':1,'use':1,'get':1,'set':1,'our':1};
+  var terms = [];
+  if(off.name) terms.push(off.name.toLowerCase());
+  if(off.short) terms.push(off.short.toLowerCase());
+  (off.problems||[]).forEach(function(p){ var pl=p.toLowerCase().trim(); if(pl.length>=4) terms.push(pl); });
+  (off.keywords||[]).forEach(function(k){ var kl=k.toLowerCase().trim(); if(kl.length>=3 && !STOP[kl]) terms.push(kl); });
+  var seen={}; terms=terms.filter(function(t){if(seen[t])return false;seen[t]=true;return true;});
 
   return files.filter(function(f){
     var hay=(f.title+' '+f.file).toLowerCase();
-    var score=0;
-    phrases.forEach(function(p){ if(hay.indexOf(p)!==-1) score+=5; });
-    words.forEach(function(w){
-      try{ var re=new RegExp('(?:^|[\\s\\-_\\.\\/])'+w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'(?:$|[\\s\\-_\\.\\/,;:!])','i'); if(re.test(hay)) score+=2; }catch(e){}
-    });
-    return score >= 4;
+    return terms.some(function(t){ return hay.indexOf(t)!==-1; });
   }).length;
 }
 
