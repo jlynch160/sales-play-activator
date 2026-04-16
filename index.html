@@ -2875,12 +2875,17 @@ function openContentByType(category) {
       }
     });
 
-    // Single word matches — use indexOf (simpler, catches more)
+    // Single word matches — use word boundary regex to prevent false positives
+    // (e.g. "entities" matching inside "identities")
     wordTerms.forEach(function(word) {
-      if(hay.indexOf(word) !== -1) {
-        score += word.length > 6 ? 3 : 2;
-        if(matched.length < 5) matched.push(word);
-      }
+      try {
+        var escaped = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        var re = new RegExp('(?:^|[\\s\\-_\\./,;:!()])' + escaped + '(?:$|[\\s\\-_\\./,;:!()s])', 'i');
+        if(re.test(' ' + hay + ' ')) {
+          score += word.length > 6 ? 3 : 2;
+          if(matched.length < 5) matched.push(word);
+        }
+      } catch(e) {}
     });
 
     return { file: f, score: score, matched: matched };
@@ -4989,16 +4994,27 @@ function tpLi(t,n){const li=mk('li','tp-li');li.innerHTML=`<span class="tp-n">0$
 function countContentMatches(off, files) {
   if(!off || !files || !files.length) return files ? files.length : 0;
   var STOP = {'the':1,'and':1,'for':1,'with':1,'from':1,'new':1,'key':1,'old':1,'app':1,'use':1,'get':1,'set':1,'our':1};
-  var terms = [];
-  if(off.name) terms.push(off.name.toLowerCase());
-  if(off.short) terms.push(off.short.toLowerCase());
-  (off.problems||[]).forEach(function(p){ var pl=p.toLowerCase().trim(); if(pl.length>=4) terms.push(pl); });
-  (off.keywords||[]).forEach(function(k){ var kl=k.toLowerCase().trim(); if(kl.length>=3 && !STOP[kl]) terms.push(kl); });
-  var seen={}; terms=terms.filter(function(t){if(seen[t])return false;seen[t]=true;return true;});
+  var phrases = [];
+  var words = [];
+  if(off.name) phrases.push(off.name.toLowerCase());
+  if(off.short) phrases.push(off.short.toLowerCase());
+  (off.problems||[]).forEach(function(p){ var pl=p.toLowerCase().trim(); if(pl.length>=4) phrases.push(pl); });
+  (off.keywords||[]).forEach(function(k){ var kl=k.toLowerCase().trim(); if(kl.length>=3 && !STOP[kl]){ if(kl.indexOf(' ')!==-1) phrases.push(kl); else words.push(kl); } });
+  var seen={}; phrases=phrases.filter(function(t){if(seen[t])return false;seen[t]=true;return true;});
+  words=words.filter(function(t){if(seen[t])return false;seen[t]=true;return true;});
 
   return files.filter(function(f){
     var hay=(f.title+' '+f.file).toLowerCase();
-    return terms.some(function(t){ return hay.indexOf(t)!==-1; });
+    // Multi-word phrases: indexOf is fine (already specific)
+    if(phrases.some(function(p){ return hay.indexOf(p)!==-1; })) return true;
+    // Single words: word boundary check
+    return words.some(function(w){
+      try {
+        var esc=w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+        var re=new RegExp('(?:^|[\\s\\-_\\./,;:!()])'+esc+'(?:$|[\\s\\-_\\./,;:!()s])','i');
+        return re.test(' '+hay+' ');
+      } catch(e){ return false; }
+    });
   }).length;
 }
 
