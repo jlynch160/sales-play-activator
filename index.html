@@ -91,7 +91,7 @@ body{background:var(--bg);color:var(--t1);font-family:var(--body);min-height:100
 
 /* ── SCREEN 1: DISCOVERY ── */
 .s1-eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:0.12em;color:var(--teal);margin-bottom:16px;opacity:0.85;}
-.s1-h1{font-family:var(--display);font-size:clamp(26px,4vw,40px);font-weight:800;line-height:1.4;letter-spacing:-0.03em;margin-bottom:24px;padding-bottom:12px;color:var(--t1);word-wrap:break-word;overflow-wrap:break-word;overflow:visible;}
+.s1-h1{font-family:var(--display);font-size:clamp(26px,4vw,40px);font-weight:800;line-height:1.45;letter-spacing:-0.03em;margin-bottom:28px;padding-bottom:16px;color:var(--t1);word-wrap:break-word;overflow-wrap:break-word;overflow:visible;position:relative;}
 .h1-line1{display:inline;color:var(--t1);}
 .h1-line2{display:inline;}
 .h1-accent{
@@ -106,7 +106,7 @@ body{background:var(--bg);color:var(--t1);font-family:var(--body);min-height:100
 .h1-accent::after{
   content:'right problem.';
   position:absolute;
-  left:0;top:0;
+  left:0;top:-2px;
   background:linear-gradient(90deg,#6900FF,#A366FF,#20F593);
   background-size:200% auto;
   -webkit-background-clip:text;
@@ -116,7 +116,9 @@ body{background:var(--bg);color:var(--t1);font-family:var(--body);min-height:100
   opacity:0.4;
   animation:shimmer 4s linear infinite;
   z-index:-1;
+  pointer-events:none;
 }
+.h1-line2{display:inline;padding-bottom:8px;}
 @keyframes shimmer{0%{background-position:0% center}100%{background-position:200% center}}
 .s1-sub{font-size:14px;color:var(--t2);line-height:1.7;margin-bottom:24px;max-width:580px;font-weight:300;}
 @keyframes ta-idle-glow{
