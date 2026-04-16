@@ -2262,14 +2262,29 @@ body{background:var(--bg);color:var(--t1);font-family:var(--body);min-height:100
   </div>
 
   <!-- CONTENT & TOOLS BAR -->
-  <div class="toolkit-bar">
-    <span class="toolkit-lbl">Content Library</span>
-    <div class="toolkit-btns">
-      <button class="tk-btn" onclick="openContentByType('pdfs')" style="border-color:rgba(105,0,255,0.3);"><span class="tk-ico">📕</span> Datasheets</button>
-      <button class="tk-btn" onclick="openContentByType('blogs')" style="border-color:rgba(32,245,147,0.3);"><span class="tk-ico">📝</span> Blogs</button>
-      <button class="tk-btn" onclick="openContentByType('success-stories')" style="border-color:rgba(255,184,48,0.3);"><span class="tk-ico">⭐</span> Success Stories</button>
-      <button class="tk-btn email" onclick="openEmailModal()"><span class="tk-ico">✉</span> Email Templates</button>
-      <button class="tk-btn copy" onclick="doCopy()"><span class="tk-ico">⎘</span> Copy Play</button>
+  <div style="margin:24px 0;background:linear-gradient(135deg,rgba(105,0,255,0.08),rgba(32,245,147,0.05));border:1px solid rgba(105,0,255,0.2);border-radius:16px;padding:18px 22px;position:relative;overflow:hidden;">
+    <div style="position:absolute;top:-30px;right:-30px;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,rgba(105,0,255,0.12) 0%,transparent 70%);pointer-events:none;"></div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
+      <div style="width:3px;height:16px;border-radius:2px;background:linear-gradient(180deg,var(--purple),var(--teal));"></div>
+      <span style="font-family:var(--mono);font-size:9px;letter-spacing:0.14em;color:var(--teal2);text-transform:uppercase;">Content Library</span>
+      <span id="cnt-total" style="font-family:var(--mono);font-size:8px;color:var(--t3);margin-left:4px;"></span>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:10px;">
+      <button onclick="openContentByType('pdfs')" style="display:flex;align-items:center;gap:8px;background:linear-gradient(135deg,rgba(105,0,255,0.12),rgba(105,0,255,0.05));border:1px solid rgba(105,0,255,0.3);border-radius:12px;padding:10px 16px;cursor:pointer;color:var(--purple2);font-family:var(--body);font-size:12px;font-weight:600;transition:all 0.25s;position:relative;overflow:hidden;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 20px rgba(105,0,255,0.2)';this.style.borderColor='var(--purple)'" onmouseout="this.style.transform='';this.style.boxShadow='';this.style.borderColor='rgba(105,0,255,0.3)'">
+        <span style="font-size:16px;">📕</span> Datasheets
+        <span id="cnt-pdfs" style="font-family:var(--mono);font-size:9px;background:rgba(105,0,255,0.25);padding:2px 7px;border-radius:10px;color:var(--purple3);min-width:22px;text-align:center;"></span>
+      </button>
+      <button onclick="openContentByType('blogs')" style="display:flex;align-items:center;gap:8px;background:linear-gradient(135deg,rgba(32,245,147,0.1),rgba(32,245,147,0.03));border:1px solid rgba(32,245,147,0.3);border-radius:12px;padding:10px 16px;cursor:pointer;color:var(--teal2);font-family:var(--body);font-size:12px;font-weight:600;transition:all 0.25s;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 20px rgba(32,245,147,0.15)';this.style.borderColor='var(--teal)'" onmouseout="this.style.transform='';this.style.boxShadow='';this.style.borderColor='rgba(32,245,147,0.3)'">
+        <span style="font-size:16px;">📝</span> Blogs
+        <span id="cnt-blogs" style="font-family:var(--mono);font-size:9px;background:rgba(32,245,147,0.2);padding:2px 7px;border-radius:10px;color:var(--teal2);min-width:22px;text-align:center;"></span>
+      </button>
+      <button onclick="openContentByType('success-stories')" style="display:flex;align-items:center;gap:8px;background:linear-gradient(135deg,rgba(255,184,48,0.1),rgba(255,184,48,0.03));border:1px solid rgba(255,184,48,0.3);border-radius:12px;padding:10px 16px;cursor:pointer;color:var(--amber);font-family:var(--body);font-size:12px;font-weight:600;transition:all 0.25s;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 20px rgba(255,184,48,0.15)';this.style.borderColor='var(--amber)'" onmouseout="this.style.transform='';this.style.boxShadow='';this.style.borderColor='rgba(255,184,48,0.3)'">
+        <span style="font-size:16px;">⭐</span> Success Stories
+        <span id="cnt-ss" style="font-family:var(--mono);font-size:9px;background:rgba(255,184,48,0.2);padding:2px 7px;border-radius:10px;color:var(--amber);min-width:22px;text-align:center;"></span>
+      </button>
+      <div style="flex:1;"></div>
+      <button class="tk-btn email" onclick="openEmailModal()" style="border-radius:12px;padding:10px 16px;"><span class="tk-ico">✉</span> Email Templates</button>
+      <button class="tk-btn copy" onclick="doCopy()" style="border-radius:12px;padding:10px 16px;"><span class="tk-ico">⎘</span> Copy Play</button>
     </div>
   </div>
 
@@ -2931,120 +2946,8 @@ function onTaBlur(){
   if(hint && ta && ta.value.trim().length === 0) hint.classList.remove('visible');
 }
 
-// GLOBAL POPUP FUNCTION - called directly from onclick
-window.openPacket = function(id) {
-  var existing = document.getElementById('sp-popup');
-  if(existing) existing.parentNode.removeChild(existing);
-  
-  var overlay = document.createElement('div');
-  overlay.id = 'sp-popup';
-  var isMob = window.innerWidth < 600;
-  overlay.style.cssText = 'position:fixed;inset:0;top:0;left:0;right:0;bottom:0;width:100%;height:100%;background:rgba(0,0,0,0.85);z-index:999999;display:flex;align-items:'+(isMob?'flex-end':'center')+';justify-content:center;padding:'+(isMob?'0':'20px')+';';
-  if(isMob){ box.style.borderRadius='14px 14px 0 0'; box.style.maxHeight='92vh'; }
-  
-  var box = document.createElement('div');
-  var isMobile = window.innerWidth < 600;
-  box.style.cssText = 'background:#2D1466;border:2px solid #7C3AED;border-radius:14px;width:100%;max-width:680px;max-height:'+(isMobile?'92':'85')+'vh;overflow:hidden;display:flex;flex-direction:column;position:relative;';
-  
-  var off = (window.OFFERINGS||[]).find(function(o){return o.id===id;});
-  var pkt = (window.SELLER_PACKETS||{})[id];
-  
-  var title = off ? off.name : id;
-  var icon = off ? off.icon : '';
-  
-  // Header
-  var hdr = document.createElement('div');
-  hdr.style.cssText = 'padding:20px 24px 0;flex-shrink:0;';
-  hdr.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span style="font-size:20px;font-weight:800;color:white">'+icon+' '+title+'</span><button id="sp-close" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:white;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;">&#10005;</button></div>';
-  box.appendChild(hdr);
-  
-  // Tabs
-  var tabBar = document.createElement('div');
-  tabBar.style.cssText = 'display:flex;border-bottom:1px solid rgba(255,255,255,0.1);padding:0 24px;flex-shrink:0;overflow-x:auto;';
-  
-  // Body
-  var body = document.createElement('div');
-  body.style.cssText = 'padding:20px 24px;overflow-y:auto;flex:1;color:rgba(255,255,255,0.7);font-size:13px;line-height:1.7;';
-  
-  var activeTab = null;
-
-  function setActiveTab(tb, content) {
-    tabBar.querySelectorAll('button').forEach(function(b){
-      b.style.borderBottom='2px solid transparent';
-      b.style.color='rgba(255,255,255,0.4)';
-    });
-    tb.style.borderBottom='2px solid #10B981';
-    tb.style.color='#10B981';
-    activeTab = tb.dataset.tab;
-    if(content !== undefined) {
-      body.innerHTML = content;
-    }
-  }
-
-  var hasPkt = pkt && pkt.tabs && pkt.tabs.length > 0;
-
-  if(hasPkt) {
-    pkt.tabs.forEach(function(t, i) {
-      var tb = document.createElement('button');
-      tb.textContent = t;
-      tb.style.cssText = 'background:transparent;border:none;border-bottom:'+(i===0?'2px solid #10B981':'2px solid transparent')+';color:'+(i===0?'#10B981':'rgba(255,255,255,0.4)')+';padding:10px 14px;cursor:pointer;white-space:nowrap;font-size:11px;font-weight:600;';
-      tb.dataset.tab = t;
-      tabBar.appendChild(tb);
-      tb.addEventListener('click', function(){
-        setActiveTab(tb, pkt.panels[t] || '<p>Content coming soon.</p>');
-      });
-    });
-    body.innerHTML = pkt.panels[pkt.tabs[0]] || '<p>Content coming soon.</p>';
-    activeTab = pkt.tabs[0];
-  }
-
-  // ── LIVE INTEL TAB ──
-  var liTab = document.createElement('button');
-  liTab.textContent = '🌐 Live Intel';
-  liTab.dataset.tab = '__liveintel__';
-  liTab.style.cssText = 'background:transparent;border:none;border-bottom:2px solid transparent;color:rgba(255,255,255,0.4);padding:10px 14px;cursor:pointer;white-space:nowrap;font-size:11px;font-weight:600;';
-  tabBar.appendChild(liTab);
-  var liLoaded = false;
-  liTab.addEventListener('click', function(){
-    setActiveTab(liTab);
-    if(!liLoaded) {
-      liLoaded = true;
-      fetchLiveIntel(off ? off.name : id, id, body);
-    } else {
-      var cached = overlay.querySelector('#li-cached-result');
-      if(cached) body.innerHTML = cached.outerHTML;
-    }
-  });
-
-  // Auto-load Live Intel if no seller packet defined
-  if(!hasPkt) {
-    setActiveTab(liTab);
-    liLoaded = true;
-    setTimeout(function(){ fetchLiveIntel(off ? off.name : id, id, body); }, 100);
-  }
-
-  box.appendChild(tabBar);
-  box.appendChild(body);
-  overlay.appendChild(box);
-  document.body.appendChild(overlay);
-
-  document.getElementById('sp-close').addEventListener('click', function(){
-    var p = document.getElementById('sp-popup');
-    if(p) p.parentNode.removeChild(p);
-  });
-  overlay.addEventListener('click', function(e){
-    if(e.target===overlay){
-      var p = document.getElementById('sp-popup');
-      if(p) p.parentNode.removeChild(p);
-    }
-  });
-};
-
 // ── LIVE INTEL FETCH ──────────────────────────────────────────────────────────
 var LIVE_INTEL_PA_URL = 'https://default5132dc45769d4b38a3a7635a520ea3.cd.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/994db058632e4f4eb5e8c616d201a859/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=1WsHKH0Fco9i5wXuWe4DD_LXdFKQlQzgbttVGaVJb9A';
-
-// ── FILE FETCH PA FLOW ───────────────────────────────────────────────────────
-// Fetches actual file content as base64 from SharePoint
 var LIVE_FILE_PA_URL = 'YOUR_FILE_FETCH_PA_URL_HERE';
 
 // ── CONTENT LIBRARY (hardcoded from SharePoint scrape) ───────────────────────
@@ -3396,35 +3299,6 @@ function getFileIcon(path) {
   if(p.indexOf('/blogs/') !== -1) return '📝';
   if(p.indexOf('/success-stories/') !== -1) return '⭐';
   return '📄';
-}
-
-function buildSpEmbedUrl(filePath) {
-  if(!filePath) return '';
-  try {
-    var lower = filePath.toLowerCase();
-    var isNativeRender = /\.(pdf|html?|txt|jpe?g|png|gif|svg|webp)($|\?)/.test(lower);
-
-    // PDFs, HTML, images: browsers render these natively — use direct URL (SP session auth)
-    if(isNativeRender) {
-      return encodeURI(filePath);
-    }
-
-    var u = new URL(filePath);
-    var origin = u.origin;
-    var serverRel = u.pathname;
-    var siteMatch = serverRel.match(/^(\/sites\/[^\/]+|\/personal\/[^\/]+)/);
-
-    // Office docs (pptx/docx/xlsx): use Doc.aspx embedview
-    if(siteMatch && /\.(pptx?|docx?|xlsx?)($|\?)/.test(lower)) {
-      var siteRoot = siteMatch[1];
-      return origin + siteRoot + '/_layouts/15/Doc.aspx?sourcedoc=' + encodeURIComponent(serverRel) + '&action=embedview';
-    }
-
-    // Folders / document sets / unknown: open in SharePoint
-    return encodeURI(filePath) + (filePath.indexOf('?') === -1 ? '?' : '&') + 'web=1';
-  } catch(e) {
-    return filePath;
-  }
 }
 
 // Only include files whose Path starts with one of these URL prefixes.
@@ -4389,6 +4263,10 @@ function escHtml(s){
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
+function cleanAiText(s){
+  return String(s).replace(/\u2014/g, ' - ').replace(/\u2013/g, '-').replace(/\u2018|\u2019/g,"'").replace(/\u201C|\u201D/g,'"');
+}
+
 function normTitle(t){
   return String(t).toLowerCase()
     .replace(/^\s*\d+[.)]\s*/, '')
@@ -4530,6 +4408,7 @@ function addMockBanner(el, label){
 
 function parseAndRenderAIResponse(text){
   if(!text) return;
+  text = cleanAiText(text);
   const sections = parseAiSections(text);
 
   if(Object.keys(sections).length === 0){
@@ -5172,15 +5051,43 @@ function getOfferingFallback(o, ind, comp){
 function mk(t,c,h){const e=document.createElement(t);if(c)e.className=c;if(h)e.innerHTML=h;return e;}
 function tpLi(t,n){const li=mk('li','tp-li');li.innerHTML=`<span class="tp-n">0${n}.</span><span class="tp-t">${t}</span>`;return li;}
 
+function updateContentCounts() {
+  if(!window.CONTENT_LIBRARY) return;
+  var cats = ['pdfs','blogs','success-stories'];
+  var ids = ['cnt-pdfs','cnt-blogs','cnt-ss'];
+  var total = 0;
+  cats.forEach(function(cat, i) {
+    var all = window.CONTENT_LIBRARY[cat] || [];
+    var count = all.length;
+    if(selOff) {
+      var terms = [].concat(selOff.keywords||[], selOff.problems||[]);
+      terms.push(selOff.name.toLowerCase());
+      if(selOff.short) terms.push(selOff.short.toLowerCase());
+      var seen = {};
+      terms = terms.filter(function(t){ t=t.toLowerCase().trim(); if(t.length<3||seen[t])return false; seen[t]=true; return true; });
+      count = all.filter(function(f){
+        var hay = (f.title+' '+f.file).toLowerCase();
+        return terms.some(function(t){ return hay.indexOf(t)!==-1; });
+      }).length;
+    }
+    var el = document.getElementById(ids[i]);
+    if(el) el.textContent = count;
+    total += count;
+  });
+  var totalEl = document.getElementById('cnt-total');
+  if(totalEl) totalEl.textContent = selOff ? total + ' matched' : (window.CONTENT_LIBRARY['blogs']||[]).length + (window.CONTENT_LIBRARY['pdfs']||[]).length + (window.CONTENT_LIBRARY['success-stories']||[]).length + ' total';
+}
+
 function render(){
   const p=gp();
   const ge=id=>document.getElementById(id);
   const st=(id,val)=>{const el=ge(id);if(el)el.textContent=val||'';};
   st('r-off',selOff?selOff.icon+' '+selOff.name:'');
   st('r-name',p.name);
-  st('r-win','65–75% win rate');
-  st('r-dur','4–6 month deal');
-  st('r-cost','$200K–$600K ACV');
+  st('r-win','65-75% win rate');
+  st('r-dur','4-6 month deal');
+  st('r-cost','$200K-$600K ACV');
+  updateContentCounts();
   st('r-buyer',p.buyer);
   st('r-why',p.why);
   const ws=ge('r-why-short');
@@ -5203,9 +5110,9 @@ function render(){
     const playRingPct = ge('play-ring-pct'); if(playRingPct) playRingPct.textContent = pct + '%';
     const playRing = ge('play-ring'); if(playRing) playRing.style.setProperty('--pct', pct + '%');
   }
-  st('snap-win',   '65–75%');
-  st('snap-cost',  '$200K–$600K');
-  st('snap-dur',   '4–6 months');
+  st('snap-win',   '65-75%');
+  st('snap-cost',  '$200K-$600K');
+  st('snap-dur',   '4-6 months');
   st('snap-buyer', p.buyer || '—');
   const sCtx = ge('snap-context');
   if(sCtx){
@@ -5831,71 +5738,6 @@ ITDR fills the gap — real-time identity threat detection that correlates behav
   }
 };
 
-function openPacket(offeringId) {
-  const off = OFFERINGS.find(o => o.id === offeringId);
-  const pkt = SELLER_PACKETS[offeringId];
-  if (!off || !pkt) return;
-
-  // Remove any existing popup
-  const existing = document.getElementById('sp-popup');
-  if (existing) existing.remove();
-
-  // Build tabs HTML
-  const tabsHTML = pkt.tabs.map((t,i) =>
-    `<button class="popup-tab${i===0?' on':''}" data-tab="${t}">${t}</button>`
-  ).join('');
-
-  // Build panels HTML
-  const panelsHTML = pkt.tabs.map((t,i) =>
-    `<div class="popup-panel${i===0?' on':''}" id="spp-${t.replace(/[^a-z]/gi,'')}">${pkt.panels[t]||''}</div>`
-  ).join('');
-
-  // Create popup element and inject directly into body
-  const overlay = document.createElement('div');
-  overlay.id = 'sp-popup';
-  overlay.className = 'popup-overlay';
-  overlay.innerHTML = `
-    <div class="popup-box">
-      <div class="popup-hdr">
-        <div class="popup-title-row">
-          <span class="popup-ico">${off.icon}</span>
-          <span class="popup-title">${off.name}</span>
-          <button class="popup-close" id="sp-close-btn">&#10005;</button>
-        </div>
-        <div class="popup-tagline">${off.tagline}</div>
-      </div>
-      <div class="popup-tabs">${tabsHTML}</div>
-      <div class="popup-body">${panelsHTML}</div>
-    </div>`;
-
-  document.body.appendChild(overlay);
-  document.body.style.overflow = 'hidden';
-
-  // Tab click handlers
-  overlay.querySelectorAll('.popup-tab').forEach(btn => {
-    btn.addEventListener('click', () => {
-      overlay.querySelectorAll('.popup-tab').forEach(t => t.classList.remove('on'));
-      overlay.querySelectorAll('.popup-panel').forEach(p => p.classList.remove('on'));
-      btn.classList.add('on');
-      const id = 'spp-' + btn.dataset.tab.replace(/[^a-z]/gi,'');
-      const panel = overlay.querySelector('#'+id);
-      if(panel) panel.classList.add('on');
-    });
-  });
-
-  // Close handlers
-  document.getElementById('sp-close-btn').addEventListener('click', closePopupBtn);
-  overlay.addEventListener('click', function(e){ if(e.target===overlay) closePopupBtn(); });
-}
-
-
-
-function closePopupBtn() {
-  const p = document.getElementById('sp-popup');
-  if(p) p.remove();
-  document.body.style.overflow = '';
-}
-
 // ── NOTES DRAWER ─────────────────────────────────────────────────────────
 const NOTE_FIELDS = ['nf-discovery','nf-tech','nf-urgency','nf-dm-name','nf-dm-title','nf-dm-notes','nf-eb-name','nf-eb-title','nf-eb-notes','nf-champ','nf-blocker','nf-nextstep','nf-myactions','nf-theiractions','nf-closedate','nf-obj-heard','nf-obj-handled','nf-obj-open','nf-goal','nf-questions','nf-materials','nf-opener-prep'];
 
@@ -6216,34 +6058,6 @@ function copyEmailTemplate(){
   try{navigator.clipboard.writeText(text).then(function(){var btn=document.querySelector('.em-copy-btn');if(btn){btn.textContent='Copied!';setTimeout(function(){btn.textContent='Copy to clipboard';},2000);}}).catch(function(){fallbackCopy(text,null);});}catch(e){fallbackCopy(text,null);}
 }
 
-function openPacketFromPlay(){
-  if(selOff) window.openPacket(selOff.id);
-}
-
-function openLinkedIn(){
-  const p = gp();
-  const msg = `Hi [First Name] — I noticed [Company] is in the ${sI||'industry'} space and wanted to reach out. We've been helping similar teams with ${p.tps && p.tps[0] ? p.tps[0].split('—')[0].trim().toLowerCase() : 'identity security'} — thought it might be worth a quick conversation. Would you be open to connecting?`;
-  const existing = document.getElementById('linkedin-popup');
-  if(existing) existing.remove();
-  const overlay = document.createElement('div');
-  overlay.id='linkedin-popup';
-  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:999;display:flex;align-items:center;justify-content:center;padding:20px;';
-  overlay.innerHTML=`<div style="background:var(--card2);border:1px solid var(--b1);border-radius:16px;width:100%;max-width:480px;padding:24px;position:relative;">
-    <div style="font-family:var(--display);font-size:15px;font-weight:700;color:var(--t1);margin-bottom:14px;">💬 LinkedIn Message</div>
-    <div style="font-size:13px;color:var(--t1);background:var(--bg2);border:1px solid var(--b3);border-radius:10px;padding:14px 16px;line-height:1.75;margin-bottom:0;">${msg}</div>
-    <div style="display:flex;align-items:flex-start;gap:10px;background:rgba(255,184,48,0.07);border:1px solid rgba(255,184,48,0.25);border-radius:8px;padding:10px 14px;margin-top:10px;margin-bottom:14px;">
-      <span style="font-size:15px;flex-shrink:0;">⚠️</span>
-      <span style="font-size:11px;color:#FFD580;line-height:1.55;"><strong style="display:block;margin-bottom:2px;">AI Generated — review before sending</strong>Double-check names and specific claims before sending to a client.</span>
-    </div>
-    <div style="display:flex;gap:8px;">
-      <button onclick="copyLinkedIn(this)" style="flex:1;padding:10px;border-radius:8px;background:rgba(108,142,255,0.15);border:1px solid rgba(108,142,255,0.35);color:#6C8EFF;font-family:var(--display);font-size:12px;font-weight:600;cursor:pointer;">Copy message</button>
-      <button onclick="document.getElementById('linkedin-popup').remove();document.body.style.overflow=''" style="padding:10px 18px;border-radius:8px;border:1px solid var(--b3);background:transparent;color:var(--t2);font-size:12px;cursor:pointer;">Close</button>
-    </div>
-  </div>`;
-  overlay.addEventListener('click',function(e){if(e.target===overlay){overlay.remove();document.body.style.overflow='';}});
-  document.body.appendChild(overlay);
-  document.body.style.overflow='hidden';
-}
 
 function openHelp(){
   document.getElementById('help-modal').style.display='flex';
@@ -7277,9 +7091,37 @@ function admRenderGrid() {
         '</div>' +
         '<span class="adm-card-id">'+escHtml(o.id)+'</span>' +
       '</div>' +
-      // Website content pull section
+      // Matched content section
       '<div class="adm-card-div"></div>' +
-      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">' +
+      (function(){
+        var terms = [].concat(o.keywords||[], o.problems||[]);
+        terms.push(o.name.toLowerCase());
+        if(o.short) terms.push(o.short.toLowerCase());
+        var seen2 = {};
+        terms = terms.filter(function(t){ t=t.toLowerCase().trim(); if(t.length<3||seen2[t])return false; seen2[t]=true; return true; });
+        var cats2 = [{key:'pdfs',icon:'📕',label:'Datasheets',color:'var(--purple2)'},{key:'blogs',icon:'📝',label:'Blogs',color:'var(--teal2)'},{key:'success-stories',icon:'⭐',label:'Success Stories',color:'var(--amber)'}];
+        var contentHtml = '<div style="margin-bottom:8px;"><div style="font-family:var(--mono);font-size:8px;letter-spacing:0.12em;color:var(--teal2);text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:6px;">📚 Matched Content</div>';
+        contentHtml += '<div style="display:flex;gap:8px;flex-wrap:wrap;">';
+        cats2.forEach(function(cat2){
+          var files2 = (window.CONTENT_LIBRARY && window.CONTENT_LIBRARY[cat2.key]) || [];
+          var matchCount = files2.filter(function(f2){
+            var hay2 = (f2.title+' '+f2.file).toLowerCase();
+            return terms.some(function(t2){ return hay2.indexOf(t2)!==-1; });
+          }).length;
+          var bg = matchCount > 0 ? 'rgba(32,245,147,0.08)' : 'rgba(255,255,255,0.03)';
+          var border = matchCount > 0 ? 'rgba(32,245,147,0.2)' : 'rgba(255,255,255,0.08)';
+          var numColor = matchCount > 0 ? 'var(--teal2)' : 'var(--t3)';
+          contentHtml += '<div style="display:flex;align-items:center;gap:6px;background:'+bg+';border:1px solid '+border+';border-radius:8px;padding:5px 10px;font-size:10px;">';
+          contentHtml += '<span>'+cat2.icon+'</span>';
+          contentHtml += '<span style="color:var(--t2);">'+cat2.label+'</span>';
+          contentHtml += '<span style="font-family:var(--mono);font-weight:700;color:'+numColor+';font-size:11px;">'+matchCount+'</span>';
+          contentHtml += '</div>';
+        });
+        contentHtml += '</div></div>';
+        return contentHtml;
+      })() +
+      // Website content pull section
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;margin-top:10px;">' +
         '<div style="font-family:var(--mono);font-size:8px;letter-spacing:0.12em;color:var(--teal2);text-transform:uppercase;display:flex;align-items:center;gap:6px;">' +
           '🌐 <span>Website Content</span>' +
         '</div>' +
