@@ -84,8 +84,6 @@ body{background:var(--bg);color:var(--t1);font-family:var(--body);min-height:100
 ::-webkit-scrollbar-thumb{background:rgba(105,0,255,0.3);border-radius:3px;}
 ::-webkit-scrollbar-thumb:hover{background:rgba(105,0,255,0.5);}
 
-/* ── ONBOARDING ── */
-.onboard-highlight{position:relative;z-index:99999;box-shadow:0 0 0 4px rgba(105,0,255,0.5),0 0 30px rgba(105,0,255,0.3);border-radius:12px;}
 
 /* ── SCREENS ── */
 .screen{display:none;}
@@ -5515,70 +5513,62 @@ document.addEventListener('DOMContentLoaded', function(){
 // ── ONBOARDING TOUR ────────────────────────────────────────────────────────
 function startOnboarding() {
   var steps = [
-    { target: '.s1-ta', title: 'Paste Your Discovery Notes', desc: 'Drop in your meeting notes, call summary, or any details about the prospect. The more context you give, the better the play.', pos: 'bottom' },
-    { target: '#btn-analyse', title: 'Analyze & Match', desc: 'The AI reads your notes and matches them to the most relevant MajorKey offerings based on keywords and pain signals.', pos: 'top' },
-    { target: '.progress', title: 'Three Simple Steps', desc: 'Discovery notes, match an offering, get your play. Each step builds on the last.', pos: 'bottom' }
+    { icon: '📝', title: 'Paste Your Discovery Notes', desc: 'Drop in your meeting notes, call summary, or any details about the prospect. The more context you give, the better the play.' },
+    { icon: '🔍', title: 'Analyze & Match Offerings', desc: 'The AI reads your notes and matches them to the most relevant MajorKey offerings based on keywords and pain signals.' },
+    { icon: '🎯', title: 'Get Your Play', desc: 'Review your personalized solution play with talk tracks, objection handling, qualification criteria, and content library — all tailored to your deal.' }
   ];
   var idx = 0;
 
+  function dismiss() {
+    localStorage.setItem('spa_toured', '1');
+    var el = document.getElementById('onboard-modal');
+    if(el) el.remove();
+  }
+
   function show() {
-    var old = document.getElementById('onboard-tooltip');
+    var old = document.getElementById('onboard-modal');
     if(old) old.remove();
-    var oldHL = document.querySelector('.onboard-highlight');
-    if(oldHL) oldHL.classList.remove('onboard-highlight');
 
-    if(idx >= steps.length) {
-      localStorage.setItem('spa_toured', '1');
-      var oldOverlay = document.getElementById('onboard-overlay');
-      if(oldOverlay) oldOverlay.remove();
-      return;
-    }
-
+    if(idx >= steps.length) { dismiss(); return; }
     var step = steps[idx];
-    var el = document.querySelector(step.target);
-    if(!el) { idx++; show(); return; }
 
-    // Overlay
-    if(!document.getElementById('onboard-overlay')) {
-      var ov = document.createElement('div');
-      ov.id = 'onboard-overlay';
-      ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:99998;transition:opacity 0.3s;';
-      document.body.appendChild(ov);
-    }
+    var overlay = document.createElement('div');
+    overlay.id = 'onboard-modal';
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(5,2,20,0.85);backdrop-filter:blur(12px);z-index:999999;display:flex;align-items:center;justify-content:center;padding:24px;animation:adm-popup-in 0.25s ease;';
+    overlay.addEventListener('click', function(e){ if(e.target===overlay) dismiss(); });
 
-    // Highlight target
-    el.classList.add('onboard-highlight');
-    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    var card = document.createElement('div');
+    card.style.cssText = 'background:linear-gradient(145deg,#1A0D40,#0D0025);border:1px solid rgba(105,0,255,0.35);border-radius:20px;padding:36px 40px;max-width:480px;width:100%;box-shadow:0 32px 80px rgba(0,0,0,0.7),0 0 60px rgba(105,0,255,0.15);position:relative;';
 
-    var rect = el.getBoundingClientRect();
-    var tip = document.createElement('div');
-    tip.id = 'onboard-tooltip';
-    tip.style.cssText = 'position:fixed;z-index:99999;max-width:340px;background:linear-gradient(145deg,#1A0D40,#0D0025);border:1px solid rgba(105,0,255,0.4);border-radius:16px;padding:22px 24px;box-shadow:0 20px 60px rgba(0,0,0,0.7),0 0 40px rgba(105,0,255,0.15);animation:adm-popup-in 0.25s ease;';
+    card.innerHTML =
+      '<button id="onboard-close" style="position:absolute;top:16px;right:16px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:var(--t1);width:32px;height:32px;border-radius:10px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;">&#10005;</button>' +
 
-    if(step.pos === 'bottom') {
-      tip.style.top = (rect.bottom + 14) + 'px';
-      tip.style.left = Math.max(16, Math.min(window.innerWidth - 360, rect.left)) + 'px';
-    } else {
-      tip.style.top = (rect.top - 170) + 'px';
-      tip.style.left = Math.max(16, Math.min(window.innerWidth - 360, rect.left)) + 'px';
-    }
-
-    tip.innerHTML =
-      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">' +
-        '<div style="font-family:var(--mono);font-size:9px;letter-spacing:0.12em;color:var(--teal2);text-transform:uppercase;">Step ' + (idx+1) + ' of ' + steps.length + '</div>' +
-        '<div style="flex:1;height:1px;background:rgba(255,255,255,0.06);"></div>' +
-        '<button id="onboard-skip" style="font-size:10px;color:var(--t3);background:none;border:none;cursor:pointer;font-family:var(--body);">Skip tour</button>' +
+      '<div style="text-align:center;margin-bottom:24px;">' +
+        '<div style="font-size:48px;margin-bottom:16px;">' + step.icon + '</div>' +
+        '<div style="font-family:var(--mono);font-size:9px;letter-spacing:0.14em;color:var(--teal2);text-transform:uppercase;margin-bottom:10px;">Step ' + (idx+1) + ' of ' + steps.length + '</div>' +
+        '<div style="font-size:22px;font-weight:800;color:var(--t1);margin-bottom:12px;">' + step.title + '</div>' +
+        '<div style="font-size:14px;color:var(--t2);line-height:1.7;max-width:380px;margin:0 auto;">' + step.desc + '</div>' +
       '</div>' +
-      '<div style="font-size:16px;font-weight:700;color:var(--t1);margin-bottom:8px;">' + step.title + '</div>' +
-      '<div style="font-size:13px;color:var(--t2);line-height:1.6;margin-bottom:16px;">' + step.desc + '</div>' +
-      '<div style="display:flex;gap:8px;align-items:center;">' +
-        '<div style="display:flex;gap:4px;flex:1;">' + steps.map(function(_,i){ return '<div style="width:'+(i===idx?'20px':'6px')+';height:5px;border-radius:3px;background:'+(i===idx?'var(--purple)':'rgba(255,255,255,0.15)')+';transition:all 0.3s;"></div>'; }).join('') + '</div>' +
-        '<button id="onboard-next" style="display:flex;align-items:center;gap:6px;padding:8px 18px;border-radius:10px;background:linear-gradient(135deg,var(--purple),#4B00B3);border:none;color:white;font-family:var(--body);font-size:12px;font-weight:600;cursor:pointer;">' + (idx < steps.length - 1 ? 'Next →' : 'Got it ✓') + '</button>' +
+
+      '<div style="display:flex;align-items:center;gap:12px;">' +
+        '<div style="display:flex;gap:6px;flex:1;justify-content:center;">' +
+          steps.map(function(_,i){
+            return '<div style="width:'+(i===idx?'24px':'8px')+';height:8px;border-radius:4px;background:'+(i===idx?'linear-gradient(90deg,var(--purple),var(--teal))':'rgba(255,255,255,0.12)')+';transition:all 0.3s;"></div>';
+          }).join('') +
+        '</div>' +
+      '</div>' +
+
+      '<div style="display:flex;gap:10px;margin-top:20px;">' +
+        '<button id="onboard-skip" style="flex:1;padding:12px;border-radius:12px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);color:var(--t3);font-family:var(--body);font-size:13px;font-weight:500;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.borderColor=\'rgba(255,255,255,0.2)\'" onmouseout="this.style.borderColor=\'rgba(255,255,255,0.1)\'">Skip tour</button>' +
+        '<button id="onboard-next" style="flex:2;padding:12px;border-radius:12px;background:linear-gradient(135deg,var(--purple),#4B00B3);border:none;color:white;font-family:var(--body);font-size:14px;font-weight:700;cursor:pointer;transition:all 0.2s;box-shadow:0 4px 16px rgba(105,0,255,0.3);" onmouseover="this.style.transform=\'translateY(-1px)\'" onmouseout="this.style.transform=\'\'">' + (idx < steps.length - 1 ? 'Next →' : 'Get Started ✓') + '</button>' +
       '</div>';
 
-    document.body.appendChild(tip);
+    overlay.appendChild(card);
+    document.body.appendChild(overlay);
+
     document.getElementById('onboard-next').addEventListener('click', function(){ idx++; show(); });
-    document.getElementById('onboard-skip').addEventListener('click', function(){ idx = steps.length; show(); });
+    document.getElementById('onboard-skip').addEventListener('click', dismiss);
+    document.getElementById('onboard-close').addEventListener('click', dismiss);
   }
 
   show();
