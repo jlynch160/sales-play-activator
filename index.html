@@ -2261,13 +2261,14 @@ body{background:var(--bg);color:var(--t1);font-family:var(--body);min-height:100
     </button>
   </div>
 
-  <!-- SELLER TOOLKIT BAR -->
+  <!-- CONTENT & TOOLS BAR -->
   <div class="toolkit-bar">
-    <span class="toolkit-lbl">Seller Toolkit</span>
+    <span class="toolkit-lbl">Content Library</span>
     <div class="toolkit-btns">
+      <button class="tk-btn" onclick="openContentByType('pdfs')" style="border-color:rgba(105,0,255,0.3);"><span class="tk-ico">📕</span> Datasheets</button>
+      <button class="tk-btn" onclick="openContentByType('blogs')" style="border-color:rgba(32,245,147,0.3);"><span class="tk-ico">📝</span> Blogs</button>
+      <button class="tk-btn" onclick="openContentByType('success-stories')" style="border-color:rgba(255,184,48,0.3);"><span class="tk-ico">⭐</span> Success Stories</button>
       <button class="tk-btn email" onclick="openEmailModal()"><span class="tk-ico">✉</span> Email Templates</button>
-      <button class="tk-btn packet" onclick="openPacketFromPlay()"><span class="tk-ico">📋</span> Seller Packet</button>
-      <button class="tk-btn linkedin" onclick="openLinkedIn()"><span class="tk-ico">💬</span> LinkedIn Message</button>
       <button class="tk-btn copy" onclick="doCopy()"><span class="tk-ico">⎘</span> Copy Play</button>
     </div>
   </div>
@@ -3040,8 +3041,228 @@ window.openPacket = function(id) {
 };
 
 // ── LIVE INTEL FETCH ──────────────────────────────────────────────────────────
-// Replace this URL with your Power Automate HTTP trigger endpoint
 var LIVE_INTEL_PA_URL = 'https://default5132dc45769d4b38a3a7635a520ea3.cd.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/994db058632e4f4eb5e8c616d201a859/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=1WsHKH0Fco9i5wXuWe4DD_LXdFKQlQzgbttVGaVJb9A';
+
+// ── FILE FETCH PA FLOW ───────────────────────────────────────────────────────
+// Fetches actual file content as base64 from SharePoint
+var LIVE_FILE_PA_URL = 'YOUR_FILE_FETCH_PA_URL_HERE';
+
+// ── CONTENT LIBRARY (per-category file browser) ──────────────────────────────
+var __contentCache = {};
+
+function openContentByType(category) {
+  var off = window.selOff;
+  if(!off) { alert('Select an offering first.'); return; }
+
+  var catLabels = { 'pdfs': '📕 Datasheets & PDFs', 'blogs': '📝 Blog Posts', 'success-stories': '⭐ Success Stories' };
+  var catLabel = catLabels[category] || category;
+
+  // Check if we already have Live Intel data cached for this offering
+  var cacheKey = off.id + '__' + category;
+  if(__contentCache[cacheKey]) {
+    showContentBrowser(off.name, catLabel, category, __contentCache[cacheKey]);
+    return;
+  }
+
+  // Need to fetch from PA flow
+  var paConfigured = LIVE_INTEL_PA_URL && LIVE_INTEL_PA_URL.indexOf('YOUR_POWER_AUTOMATE') !== 0;
+  if(!paConfigured) {
+    alert('Live Intel PA flow not configured yet.');
+    return;
+  }
+
+  // Create loading popup
+  var existing = document.getElementById('content-browser');
+  if(existing) existing.remove();
+  var overlay = document.createElement('div');
+  overlay.id = 'content-browser';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(5,2,20,0.92);backdrop-filter:blur(8px);z-index:999999;display:flex;align-items:center;justify-content:center;padding:24px;';
+  overlay.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;gap:14px;color:var(--t2);"><div class="li-spinner"></div><div style="font-family:var(--mono);font-size:11px;">Loading '+escHtml(catLabel)+'…</div></div>';
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', function(e){ if(e.target===overlay){ overlay.remove(); } });
+
+  fetch(LIVE_INTEL_PA_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ offering: off.name, offering_id: off.id, url: 'https://www.majorkeytech.com/' })
+  })
+  .then(function(res){ if(!res.ok) throw new Error('HTTP '+res.status); return res.json(); })
+  .then(function(data){
+    var files = extractSpFiles(data.sources || data.rawSearch);
+    var catFiles = files.filter(function(f){ return f.category === category; });
+    __contentCache[cacheKey] = catFiles;
+    overlay.remove();
+    showContentBrowser(off.name, catLabel, category, catFiles);
+  })
+  .catch(function(err){
+    overlay.remove();
+    alert('Error fetching content: ' + err.message);
+  });
+}
+
+function showContentBrowser(offeringName, catLabel, category, files) {
+  var existing = document.getElementById('content-browser');
+  if(existing) existing.remove();
+
+  var overlay = document.createElement('div');
+  overlay.id = 'content-browser';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(5,2,20,0.92);backdrop-filter:blur(8px);z-index:999999;display:flex;align-items:center;justify-content:center;padding:24px;animation:adm-popup-in 0.25s ease;';
+
+  var box = document.createElement('div');
+  box.style.cssText = 'background:linear-gradient(145deg,#1A0D40,#0A0118);border:1px solid rgba(105,0,255,0.3);border-radius:18px;max-width:900px;width:100%;max-height:90vh;display:flex;flex-direction:column;box-shadow:0 32px 100px rgba(0,0,0,0.7),0 0 60px rgba(105,0,255,0.12);overflow:hidden;';
+
+  // Header
+  var hdr = '<div style="padding:22px 28px 18px;border-bottom:1px solid rgba(255,255,255,0.08);flex-shrink:0;background:linear-gradient(135deg,rgba(105,0,255,0.1),transparent 70%);">' +
+    '<div style="display:flex;align-items:center;justify-content:space-between;gap:14px;">' +
+      '<div><div style="font-family:var(--mono);font-size:9px;letter-spacing:0.14em;color:var(--teal2);text-transform:uppercase;margin-bottom:6px;">'+escHtml(catLabel)+'</div>' +
+      '<div style="font-size:18px;font-weight:700;color:var(--t1);">'+escHtml(offeringName)+'</div>' +
+      '<div style="font-size:11px;color:var(--t3);margin-top:4px;">'+files.length+' items found</div></div>' +
+      '<button id="cb-close" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:var(--t1);width:36px;height:36px;border-radius:10px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;">&#10005;</button>' +
+    '</div></div>';
+
+  // Body
+  var bodyHtml = '<div style="padding:20px 28px;overflow-y:auto;flex:1;">';
+  if(!files.length) {
+    bodyHtml += '<div style="text-align:center;padding:40px 20px;color:var(--t3);">' +
+      '<div style="font-size:36px;margin-bottom:12px;opacity:0.4;">🔍</div>' +
+      '<div style="font-size:14px;">No '+escHtml(catLabel)+' found for this offering.</div>' +
+      '<div style="font-size:11px;margin-top:8px;color:var(--t3);">Make sure your SharePoint library has content in the correct folder.</div>' +
+    '</div>';
+  } else {
+    bodyHtml += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;">';
+    files.forEach(function(f, idx) {
+      var icon = getFileIcon(f.path);
+      var fileName = f.title || decodeURIComponent((f.path||'').split('/').pop().replace(/\+/g,' '));
+      var fileExt = (fileName.match(/\.([a-z0-9]+)$/i) || [,''])[1].toUpperCase() || '';
+      bodyHtml += '<div class="cb-file-card" onclick="openFileViewer(\''+escHtml(f.path).replace(/'/g,"\\'")+'\',\''+escHtml(f.title||fileName).replace(/'/g,"\\'")+'\',\''+category+'\')" style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:18px;cursor:pointer;transition:all 0.2s;position:relative;" onmouseover="this.style.borderColor=\'rgba(105,0,255,0.4)\';this.style.transform=\'translateY(-2px)\';this.style.boxShadow=\'0 8px 24px rgba(105,0,255,0.12)\'" onmouseout="this.style.borderColor=\'rgba(255,255,255,0.08)\';this.style.transform=\'\';this.style.boxShadow=\'\'">' +
+        '<div style="font-size:36px;margin-bottom:12px;">'+icon+'</div>' +
+        '<div style="font-size:13px;font-weight:600;color:var(--t1);line-height:1.4;margin-bottom:6px;word-break:break-word;">'+escHtml(f.title||fileName)+'</div>' +
+        (fileExt ? '<div style="display:inline-block;font-family:var(--mono);font-size:8px;letter-spacing:0.1em;padding:2px 7px;border-radius:4px;background:rgba(105,0,255,0.15);color:var(--purple2);text-transform:uppercase;">'+fileExt+'</div>' : '') +
+        (f.snippet ? '<div style="font-size:10px;color:var(--t3);margin-top:8px;line-height:1.5;">'+escHtml(f.snippet.slice(0,100))+(f.snippet.length>100?'…':'')+'</div>' : '') +
+        '<div style="position:absolute;top:14px;right:14px;font-size:10px;color:rgba(105,0,255,0.5);">↗</div>' +
+      '</div>';
+    });
+    bodyHtml += '</div>';
+  }
+  bodyHtml += '</div>';
+
+  box.innerHTML = hdr + bodyHtml;
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
+
+  document.getElementById('cb-close').addEventListener('click', function(){ overlay.remove(); });
+  overlay.addEventListener('click', function(e){ if(e.target===overlay) overlay.remove(); });
+}
+
+// ── INLINE FILE VIEWER ──────────────────────────────────────────────────────
+var __fileViewerBlobUrl = null;
+
+function openFileViewer(filePath, fileTitle, category) {
+  var existing = document.getElementById('file-viewer');
+  if(existing) existing.remove();
+
+  var icon = getFileIcon(filePath);
+  var fileName = fileTitle || decodeURIComponent((filePath||'').split('/').pop().replace(/\+/g,' '));
+  var fileExt = (fileName.match(/\.([a-z0-9]+)$/i) || [,''])[1].toUpperCase() || 'FILE';
+  var isViewable = /\.(pdf|html?|txt|jpe?g|png|gif|svg|webp)$/i.test(filePath);
+
+  var overlay = document.createElement('div');
+  overlay.id = 'file-viewer';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(5,2,20,0.95);backdrop-filter:blur(12px);z-index:9999999;display:flex;flex-direction:column;animation:adm-popup-in 0.2s ease;';
+
+  // Toolbar
+  overlay.innerHTML =
+    '<div style="display:flex;align-items:center;gap:12px;padding:14px 24px;border-bottom:1px solid rgba(255,255,255,0.08);background:rgba(0,0,0,0.3);flex-shrink:0;">' +
+      '<span style="font-size:22px;">'+icon+'</span>' +
+      '<div style="flex:1;min-width:0;">' +
+        '<div style="font-size:14px;font-weight:700;color:var(--t1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+escHtml(fileName)+'</div>' +
+        '<div style="font-family:var(--mono);font-size:9px;color:var(--t3);margin-top:2px;">'+escHtml(fileExt)+' · SharePoint</div>' +
+      '</div>' +
+      '<a href="'+escHtml(filePath)+'" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;background:rgba(105,0,255,0.1);border:1px solid rgba(105,0,255,0.3);color:var(--purple2);border-radius:8px;padding:8px 14px;text-decoration:none;font-family:var(--mono);font-size:10px;letter-spacing:0.06em;white-space:nowrap;">Open in SharePoint ↗</a>' +
+      '<button id="fv-close" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:var(--t1);width:36px;height:36px;border-radius:10px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;">&#10005;</button>' +
+    '</div>' +
+    '<div id="fv-content" style="flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;background:rgba(0,0,0,0.2);">' +
+      '<div style="display:flex;flex-direction:column;align-items:center;gap:14px;color:var(--t2);"><div class="li-spinner"></div><div style="font-family:var(--mono);font-size:11px;">Loading document…</div></div>' +
+    '</div>';
+
+  document.body.appendChild(overlay);
+  document.getElementById('fv-close').addEventListener('click', closeFileViewer);
+  document.addEventListener('keydown', fvEscHandler);
+
+  var fileConfigured = LIVE_FILE_PA_URL && LIVE_FILE_PA_URL.indexOf('YOUR_FILE_FETCH') !== 0;
+
+  if(!isViewable || !fileConfigured) {
+    // Not viewable inline — show a nice fallback card
+    var contentEl = document.getElementById('fv-content');
+    var msg = !fileConfigured ? 'File viewer PA flow not configured yet. Set LIVE_FILE_PA_URL.' : 'This file type cannot be previewed inline.';
+    contentEl.innerHTML =
+      '<div style="text-align:center;padding:40px;">' +
+        '<div style="font-size:72px;margin-bottom:20px;">'+icon+'</div>' +
+        '<div style="font-size:18px;font-weight:700;color:var(--t1);margin-bottom:10px;">'+escHtml(fileName)+'</div>' +
+        '<div style="font-size:12px;color:var(--t3);margin-bottom:24px;">'+escHtml(msg)+'</div>' +
+        '<a href="'+escHtml(filePath)+'" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:10px;background:linear-gradient(135deg,var(--purple),var(--teal));color:#0a0620;border-radius:12px;padding:14px 28px;text-decoration:none;font-weight:700;font-size:14px;">Open in SharePoint ↗</a>' +
+      '</div>';
+    return;
+  }
+
+  // Fetch file content via PA flow
+  var serverRelPath;
+  try { serverRelPath = decodeURIComponent(new URL(filePath).pathname); }
+  catch(e) { serverRelPath = filePath; }
+
+  fetch(LIVE_FILE_PA_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ filePath: serverRelPath })
+  })
+  .then(function(res){ if(!res.ok) throw new Error('HTTP '+res.status); return res.json(); })
+  .then(function(data) {
+    var b64 = data.content;
+    var ct = data.contentType || 'application/octet-stream';
+    if(!b64) throw new Error('Empty file content returned');
+
+    var blob = base64ToBlob(b64, ct);
+    if(__fileViewerBlobUrl) URL.revokeObjectURL(__fileViewerBlobUrl);
+    __fileViewerBlobUrl = URL.createObjectURL(blob);
+
+    var contentEl = document.getElementById('fv-content');
+    if(!contentEl) return;
+
+    if(/^image\//.test(ct)) {
+      contentEl.innerHTML = '<img src="'+__fileViewerBlobUrl+'" style="max-width:100%;max-height:100%;object-fit:contain;border-radius:8px;">';
+    } else {
+      var sandbox = /html/i.test(ct) ? ' sandbox="allow-same-origin"' : '';
+      contentEl.innerHTML = '<iframe src="'+__fileViewerBlobUrl+'"'+sandbox+' style="width:100%;height:100%;border:none;border-radius:0;background:#fff;"></iframe>';
+    }
+  })
+  .catch(function(err) {
+    var contentEl = document.getElementById('fv-content');
+    if(!contentEl) return;
+    contentEl.innerHTML =
+      '<div style="text-align:center;padding:40px;">' +
+        '<div style="font-size:48px;margin-bottom:16px;">⚠️</div>' +
+        '<div style="font-size:14px;color:#FF8A8A;margin-bottom:8px;">Could not load file</div>' +
+        '<div style="font-size:11px;color:var(--t3);margin-bottom:24px;">'+escHtml(String(err))+'</div>' +
+        '<a href="'+escHtml(filePath)+'" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:10px;background:linear-gradient(135deg,var(--purple),var(--teal));color:#0a0620;border-radius:12px;padding:14px 28px;text-decoration:none;font-weight:700;font-size:14px;">Open in SharePoint instead ↗</a>' +
+      '</div>';
+  });
+}
+
+function closeFileViewer() {
+  var p = document.getElementById('file-viewer');
+  if(p) p.remove();
+  if(__fileViewerBlobUrl) { URL.revokeObjectURL(__fileViewerBlobUrl); __fileViewerBlobUrl = null; }
+  document.removeEventListener('keydown', fvEscHandler);
+}
+
+function fvEscHandler(e) { if(e.key === 'Escape') closeFileViewer(); }
+
+function base64ToBlob(b64, contentType) {
+  var binary = atob(b64);
+  var bytes = new Uint8Array(binary.length);
+  for(var i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return new Blob([bytes], { type: contentType || 'application/octet-stream' });
+}
 
 function fetchLiveIntel(offeringName, offeringId, bodyEl) {
   // Show loading spinner
