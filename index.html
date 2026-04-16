@@ -2267,51 +2267,47 @@ body{background:var(--bg);color:var(--t1);font-family:var(--body);min-height:100
   </div>
 
   <!-- CONTENT & TOOLS BAR -->
-  <div style="margin:20px 0;display:flex;align-items:stretch;gap:8px;">
+  <div style="margin:20px 0;background:linear-gradient(135deg,rgba(10,1,24,0.8),rgba(26,13,64,0.4));border:1px solid rgba(105,0,255,0.15);border-radius:14px;padding:4px;display:flex;align-items:center;gap:2px;position:relative;overflow:hidden;">
+    <div style="position:absolute;inset:0;background:linear-gradient(90deg,rgba(105,0,255,0.04),rgba(32,245,147,0.03),rgba(255,184,48,0.02),rgba(255,92,92,0.02));pointer-events:none;"></div>
 
-    <!-- Content pills -->
-    <div style="flex:1;display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:6px 8px;">
-
-      <div onclick="openContentByType('pdfs')" style="cursor:pointer;display:flex;align-items:center;gap:7px;padding:8px 14px;border-radius:10px;border-left:3px solid var(--purple);background:linear-gradient(90deg,rgba(105,0,255,0.08),transparent);transition:all 0.2s;" onmouseover="this.style.background='rgba(105,0,255,0.15)';this.style.transform='scale(1.02)'" onmouseout="this.style.background='linear-gradient(90deg,rgba(105,0,255,0.08),transparent)';this.style.transform=''">
-        <span style="font-size:14px;">📕</span>
-        <span style="font-size:11px;font-weight:600;color:var(--t1);">Datasheets</span>
-        <span id="cnt-pdfs" style="font-family:var(--mono);font-size:11px;font-weight:800;color:var(--purple2);min-width:16px;text-align:center;"></span>
-      </div>
-
-      <div style="width:1px;height:20px;background:rgba(255,255,255,0.06);flex-shrink:0;"></div>
-
-      <div onclick="openContentByType('blogs')" style="cursor:pointer;display:flex;align-items:center;gap:7px;padding:8px 14px;border-radius:10px;border-left:3px solid var(--teal);background:linear-gradient(90deg,rgba(32,245,147,0.06),transparent);transition:all 0.2s;" onmouseover="this.style.background='rgba(32,245,147,0.12)';this.style.transform='scale(1.02)'" onmouseout="this.style.background='linear-gradient(90deg,rgba(32,245,147,0.06),transparent)';this.style.transform=''">
-        <span style="font-size:14px;">📝</span>
-        <span style="font-size:11px;font-weight:600;color:var(--t1);">Blogs</span>
-        <span id="cnt-blogs" style="font-family:var(--mono);font-size:11px;font-weight:800;color:var(--teal2);min-width:16px;text-align:center;"></span>
-      </div>
-
-      <div style="width:1px;height:20px;background:rgba(255,255,255,0.06);flex-shrink:0;"></div>
-
-      <div onclick="openContentByType('success-stories')" style="cursor:pointer;display:flex;align-items:center;gap:7px;padding:8px 14px;border-radius:10px;border-left:3px solid var(--amber);background:linear-gradient(90deg,rgba(255,184,48,0.06),transparent);transition:all 0.2s;" onmouseover="this.style.background='rgba(255,184,48,0.12)';this.style.transform='scale(1.02)'" onmouseout="this.style.background='linear-gradient(90deg,rgba(255,184,48,0.06),transparent)';this.style.transform=''">
-        <span style="font-size:14px;">⭐</span>
-        <span style="font-size:11px;font-weight:600;color:var(--t1);">Stories</span>
-        <span id="cnt-ss" style="font-family:var(--mono);font-size:11px;font-weight:800;color:var(--amber);min-width:16px;text-align:center;"></span>
-      </div>
-
-      <div style="width:1px;height:20px;background:rgba(255,255,255,0.06);flex-shrink:0;"></div>
-
-      <div onclick="openContentByType('webinars')" style="cursor:pointer;display:flex;align-items:center;gap:7px;padding:8px 14px;border-radius:10px;border-left:3px solid #FF5C5C;background:linear-gradient(90deg,rgba(255,92,92,0.06),transparent);transition:all 0.2s;" onmouseover="this.style.background='rgba(255,92,92,0.12)';this.style.transform='scale(1.02)'" onmouseout="this.style.background='linear-gradient(90deg,rgba(255,92,92,0.06),transparent)';this.style.transform=''">
-        <span style="font-size:14px;">🎥</span>
-        <span style="font-size:11px;font-weight:600;color:var(--t1);">Webinars</span>
-        <span id="cnt-web" style="font-family:var(--mono);font-size:11px;font-weight:800;color:#FF8A8A;min-width:16px;text-align:center;"></span>
-      </div>
-
-      <div style="width:1px;height:20px;background:rgba(255,255,255,0.06);flex-shrink:0;"></div>
-
-      <span id="cnt-total" style="font-family:var(--mono);font-size:8px;color:var(--t3);padding:0 6px;white-space:nowrap;"></span>
-
+    <div onclick="openContentByType('pdfs')" style="cursor:pointer;flex:1;display:flex;align-items:center;justify-content:center;gap:8px;padding:12px 8px;border-radius:12px;transition:all 0.25s;position:relative;z-index:1;" onmouseover="this.style.background='rgba(105,0,255,0.15)'" onmouseout="this.style.background=''">
+      <span style="font-size:15px;">📕</span>
+      <span style="font-size:12px;font-weight:600;color:var(--t1);">Datasheets</span>
+      <span id="cnt-pdfs" style="font-family:var(--mono);font-size:10px;font-weight:700;background:rgba(105,0,255,0.3);color:var(--purple3);padding:2px 8px;border-radius:20px;min-width:20px;text-align:center;"></span>
     </div>
 
-    <!-- Tools -->
-    <button onclick="openEmailModal()" style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:8px 14px;cursor:pointer;font-family:var(--body);font-size:11px;font-weight:600;color:var(--t3);transition:all 0.2s;white-space:nowrap;" onmouseover="this.style.borderColor='rgba(105,0,255,0.3)';this.style.color='var(--t1)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.06)';this.style.color='var(--t3)'"><span style="font-size:12px;">✉</span> Email</button>
-    <button onclick="doCopy()" style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:8px 14px;cursor:pointer;font-family:var(--body);font-size:11px;font-weight:600;color:var(--t3);transition:all 0.2s;white-space:nowrap;" onmouseover="this.style.borderColor='rgba(105,0,255,0.3)';this.style.color='var(--t1)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.06)';this.style.color='var(--t3)'"><span style="font-size:12px;">⎘</span> Copy</button>
+    <div style="width:1px;height:24px;background:linear-gradient(180deg,transparent,rgba(255,255,255,0.08),transparent);flex-shrink:0;z-index:1;"></div>
 
+    <div onclick="openContentByType('blogs')" style="cursor:pointer;flex:1;display:flex;align-items:center;justify-content:center;gap:8px;padding:12px 8px;border-radius:12px;transition:all 0.25s;position:relative;z-index:1;" onmouseover="this.style.background='rgba(32,245,147,0.12)'" onmouseout="this.style.background=''">
+      <span style="font-size:15px;">📝</span>
+      <span style="font-size:12px;font-weight:600;color:var(--t1);">Blogs</span>
+      <span id="cnt-blogs" style="font-family:var(--mono);font-size:10px;font-weight:700;background:rgba(32,245,147,0.25);color:var(--teal2);padding:2px 8px;border-radius:20px;min-width:20px;text-align:center;"></span>
+    </div>
+
+    <div style="width:1px;height:24px;background:linear-gradient(180deg,transparent,rgba(255,255,255,0.08),transparent);flex-shrink:0;z-index:1;"></div>
+
+    <div onclick="openContentByType('success-stories')" style="cursor:pointer;flex:1;display:flex;align-items:center;justify-content:center;gap:8px;padding:12px 8px;border-radius:12px;transition:all 0.25s;position:relative;z-index:1;" onmouseover="this.style.background='rgba(255,184,48,0.1)'" onmouseout="this.style.background=''">
+      <span style="font-size:15px;">⭐</span>
+      <span style="font-size:12px;font-weight:600;color:var(--t1);">Stories</span>
+      <span id="cnt-ss" style="font-family:var(--mono);font-size:10px;font-weight:700;background:rgba(255,184,48,0.25);color:var(--amber);padding:2px 8px;border-radius:20px;min-width:20px;text-align:center;"></span>
+    </div>
+
+    <div style="width:1px;height:24px;background:linear-gradient(180deg,transparent,rgba(255,255,255,0.08),transparent);flex-shrink:0;z-index:1;"></div>
+
+    <div onclick="openContentByType('webinars')" style="cursor:pointer;flex:1;display:flex;align-items:center;justify-content:center;gap:8px;padding:12px 8px;border-radius:12px;transition:all 0.25s;position:relative;z-index:1;" onmouseover="this.style.background='rgba(255,92,92,0.1)'" onmouseout="this.style.background=''">
+      <span style="font-size:15px;">🎥</span>
+      <span style="font-size:12px;font-weight:600;color:var(--t1);">Webinars</span>
+      <span id="cnt-web" style="font-family:var(--mono);font-size:10px;font-weight:700;background:rgba(255,92,92,0.25);color:#FF8A8A;padding:2px 8px;border-radius:20px;min-width:20px;text-align:center;"></span>
+    </div>
+
+    <div style="width:1px;height:24px;background:linear-gradient(180deg,transparent,rgba(255,255,255,0.08),transparent);flex-shrink:0;z-index:1;"></div>
+
+    <div onclick="openEmailModal()" style="cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;padding:12px 16px;border-radius:12px;transition:all 0.25s;position:relative;z-index:1;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background=''">
+      <span style="font-size:14px;">✉</span>
+      <span style="font-size:11px;font-weight:500;color:var(--t2);">Email</span>
+    </div>
+
+    <span id="cnt-total" style="display:none;"></span>
   </div>
 
   <!-- TABS -->
@@ -2326,30 +2322,28 @@ body{background:var(--bg);color:var(--t1);font-family:var(--body);min-height:100
   <div class="panels">
 
     <!-- THE PLAY -->
-    <!-- ═══ TAB 1: THE PLAY (play + why) ═══ -->
+    <!-- ═══ TAB 1: THE PLAY (why + next move) ═══ -->
     <div class="panel on" id="p-play">
-      <div class="play-layout">
-        <div>
-          <div class="sec-lbl" style="margin-bottom:12px">What to say</div>
-          <ul class="tp-ul" id="r-tps"></ul>
 
-          <div class="sec-lbl" style="margin-top:24px;margin-bottom:12px">Your next move</div>
-          <ul class="tp-ul" id="r-next-list"></ul>
-          <div id="r-next" style="display:none"></div>
-
-          <div id="r-csec" style="margin-top:18px;display:none">
-            <div class="sec-lbl" style="margin-bottom:8px">If they mention a partner</div>
-            <div class="cbadge" id="r-cbadge"></div>
-            <div class="sec-txt" id="r-ctxt"></div>
-          </div>
-        </div>
-      </div>
-
-      <div style="margin-top:24px;padding-top:20px;border-top:1px solid rgba(255,255,255,0.06);">
+      <div style="margin-bottom:24px;">
         <div class="sec-lbl" style="margin-bottom:14px">Why this play wins</div>
         <div id="r-why-full" class="ai-rendered"></div>
       </div>
+
+      <div style="padding-top:20px;border-top:1px solid rgba(255,255,255,0.06);">
+        <div class="sec-lbl" style="margin-bottom:12px">Your next move</div>
+        <ul class="tp-ul" id="r-next-list"></ul>
+        <div id="r-next" style="display:none"></div>
+      </div>
+
+      <div id="r-csec" style="margin-top:18px;display:none;padding-top:16px;border-top:1px solid rgba(255,255,255,0.06);">
+        <div class="sec-lbl" style="margin-bottom:8px">If they mention a partner</div>
+        <div class="cbadge" id="r-cbadge"></div>
+        <div class="sec-txt" id="r-ctxt"></div>
+      </div>
+
       <div id="r-why" style="display:none"></div>
+      <ul class="tp-ul" id="r-tps" style="display:none"></ul>
     </div>
 
     <!-- ═══ TAB 2: TALK TRACK (open the call + objections) ═══ -->
@@ -2742,155 +2736,6 @@ body{background:var(--bg);color:var(--t1);font-family:var(--body);min-height:100
   </div>
 </div>
 
-<!-- NOTES TOGGLE BUTTON -->
-<button class="notes-toggle" id="notes-toggle-btn" onclick="openNotes()">
-  <div class="nt-dot"></div>
-  My Notes
-  <span class="nt-count" id="notes-count">0</span>
-</button>
-
-<!-- OVERLAY -->
-<div class="nd-overlay" id="nd-overlay" onclick="closeNotes()"></div>
-
-<!-- NOTES DRAWER -->
-<div class="notes-drawer" id="notes-drawer">
-  <div class="nd-header">
-    <div>
-      <div class="nd-title">My Deal Notes</div>
-      <div class="nd-subtitle">Available on every page &mdash; auto-saves as you type</div>
-    </div>
-    <button class="nd-close" onclick="closeNotes()">&#10005;</button>
-  </div>
-
-  <div class="nd-context" id="nd-context" style="display:none">
-    <div class="nd-ctx-row">
-      <span class="nd-ctx-label">Industry</span>
-      <span class="nd-ctx-val" id="nd-ctx-ind">—</span>
-      <span class="nd-ctx-label" style="margin-left:10px">Partner</span>
-      <span class="nd-ctx-val" id="nd-ctx-comp">—</span>
-    </div>
-  </div>
-
-  <div class="nd-tabs">
-    <div class="nd-tab on" onclick="ndTab(this,'discovery')">Discovery</div>
-    <div class="nd-tab" onclick="ndTab(this,'contacts')">Contacts</div>
-    <div class="nd-tab" onclick="ndTab(this,'next')">Next Steps</div>
-    <div class="nd-tab" onclick="ndTab(this,'objections')">Objections</div>
-    <div class="nd-tab" onclick="ndTab(this,'prep')">Call Prep</div>
-  </div>
-
-  <div class="nd-body">
-
-    <!-- DISCOVERY NOTES -->
-    <div class="nd-panel on" id="ndp-discovery">
-      <div class="nd-page-indicator">
-        <div class="nd-page-dot active"></div>
-        <div class="nd-page-dot"></div>
-        <div class="nd-page-dot"></div>
-        <span>Available on all 3 steps</span>
-      </div>
-      <div class="nd-section">
-        <div class="nd-sec-label">What they told me</div>
-        <textarea class="nd-textarea" id="nf-discovery" placeholder="Pain points, problems, what they said in their own words..." oninput="saveNotes()"></textarea>
-      </div>
-      <div class="nd-section">
-        <div class="nd-sec-label">Tools & technology mentioned</div>
-        <textarea class="nd-textarea short" id="nf-tech" placeholder="e.g. Using Okta but frustrated, looking at Azure, hate their current PAM..." oninput="saveNotes()"></textarea>
-      </div>
-      <div class="nd-section">
-        <div class="nd-sec-label">Why they need to act now</div>
-        <textarea class="nd-textarea short" id="nf-urgency" placeholder="Deadline, budget cycle, incident, renewal, board pressure..." oninput="saveNotes()"></textarea>
-      </div>
-    </div>
-
-    <!-- CONTACTS -->
-    <div class="nd-panel" id="ndp-contacts">
-      <div class="nd-section">
-        <div class="nd-sec-label">Decision maker</div>
-        <div class="nd-field-row">
-          <div class="nd-field"><div class="nd-field-lbl">Name</div><input class="nd-input" id="nf-dm-name" placeholder="Sarah Chen" oninput="saveNotes()"></div>
-          <div class="nd-field"><div class="nd-field-lbl">Title</div><input class="nd-input" id="nf-dm-title" placeholder="CISO" oninput="saveNotes()"></div>
-        </div>
-        <textarea class="nd-textarea short" id="nf-dm-notes" placeholder="What they care about most, their win condition..." oninput="saveNotes()"></textarea>
-      </div>
-      <div class="nd-section">
-        <div class="nd-sec-label">Economic buyer</div>
-        <div class="nd-field-row">
-          <div class="nd-field"><div class="nd-field-lbl">Name</div><input class="nd-input" id="nf-eb-name" placeholder="James Park" oninput="saveNotes()"></div>
-          <div class="nd-field"><div class="nd-field-lbl">Title</div><input class="nd-input" id="nf-eb-title" placeholder="CFO" oninput="saveNotes()"></div>
-        </div>
-        <textarea class="nd-textarea short" id="nf-eb-notes" placeholder="Budget authority, ROI focus, what will make them sign..." oninput="saveNotes()"></textarea>
-      </div>
-      <div class="nd-section">
-        <div class="nd-sec-label">Champion / internal ally</div>
-        <textarea class="nd-textarea short" id="nf-champ" placeholder="Who is selling this internally for you and why they want it..." oninput="saveNotes()"></textarea>
-      </div>
-      <div class="nd-section">
-        <div class="nd-sec-label">Who might block this?</div>
-        <textarea class="nd-textarea short" id="nf-blocker" placeholder="Procurement, IT lead, partner relationship, politics..." oninput="saveNotes()"></textarea>
-      </div>
-    </div>
-
-    <!-- NEXT STEPS -->
-    <div class="nd-panel" id="ndp-next">
-      <div class="nd-section">
-        <div class="nd-sec-label">Agreed next step</div>
-        <textarea class="nd-textarea short" id="nf-nextstep" placeholder="What both sides agreed to do by when..." oninput="saveNotes()"></textarea>
-      </div>
-      <div class="nd-section">
-        <div class="nd-sec-label">My actions</div>
-        <textarea class="nd-textarea" id="nf-myactions" placeholder="What I need to send, find, prepare or follow up on..." oninput="saveNotes()"></textarea>
-      </div>
-      <div class="nd-section">
-        <div class="nd-sec-label">Their actions</div>
-        <textarea class="nd-textarea short" id="nf-theiractions" placeholder="What they committed to on their side..." oninput="saveNotes()"></textarea>
-      </div>
-      <div class="nd-section">
-        <div class="nd-sec-label">Proposed close date</div>
-        <input class="nd-input" id="nf-closedate" placeholder="e.g. End of Q2, before insurance renewal in August..." oninput="saveNotes()" style="width:100%;margin-bottom:8px;">
-      </div>
-      <button class="nd-copy-btn" onclick="copyAllNotes()">Copy all notes to clipboard</button>
-      <div class="nd-save-indicator" id="nd-saved">Copied!</div>
-    </div>
-
-    <!-- OBJECTIONS HEARD -->
-    <div class="nd-panel" id="ndp-objections">
-      <div class="nd-section">
-        <div class="nd-sec-label">Objections they raised</div>
-        <textarea class="nd-textarea" id="nf-obj-heard" placeholder="What pushback or hesitation came up in the call..." oninput="saveNotes()"></textarea>
-      </div>
-      <div class="nd-section">
-        <div class="nd-sec-label">How I handled it</div>
-        <textarea class="nd-textarea" id="nf-obj-handled" placeholder="What I said, what landed, what I need to come back to..." oninput="saveNotes()"></textarea>
-      </div>
-      <div class="nd-section">
-        <div class="nd-sec-label">Still unresolved</div>
-        <textarea class="nd-textarea short" id="nf-obj-open" placeholder="Questions or concerns I haven't addressed yet..." oninput="saveNotes()"></textarea>
-      </div>
-    </div>
-
-    <!-- CALL PREP -->
-    <div class="nd-panel" id="ndp-prep">
-      <div class="nd-section">
-        <div class="nd-sec-label">Goal for next call</div>
-        <textarea class="nd-textarea short" id="nf-goal" placeholder="What does success look like at the end of the next meeting..." oninput="saveNotes()"></textarea>
-      </div>
-      <div class="nd-section">
-        <div class="nd-sec-label">Questions I want to ask</div>
-        <textarea class="nd-textarea" id="nf-questions" placeholder="What do I still need to find out to move this forward..." oninput="saveNotes()"></textarea>
-      </div>
-      <div class="nd-section">
-        <div class="nd-sec-label">What I want to show or send</div>
-        <textarea class="nd-textarea short" id="nf-materials" placeholder="Demo, case study, ROI calc, reference customer..." oninput="saveNotes()"></textarea>
-      </div>
-      <div class="nd-section">
-        <div class="nd-sec-label">My opening line</div>
-        <textarea class="nd-textarea short" id="nf-opener-prep" placeholder="How I plan to open the next conversation..." oninput="saveNotes()"></textarea>
-      </div>
-    </div>
-
-  </div>
-</div>
 
 
 <footer class="footer">
@@ -5265,11 +5110,6 @@ function tabReset(){
   if(pp) pp.classList.add('on');
 }
 
-function doCopy(){
-  const p=gp();
-  const t='SOLUTION PLAY\nOFFERING: '+(selOff?selOff.name:'')+'\nINDUSTRY: '+sI+' | PARTNER: '+sC+'\nWIN RATE: '+p.win+' | DEAL SIZE: '+p.cost+'\n\nWHY THIS PLAY:\n'+p.why+'\n\nTALKING POINTS:\n'+p.tps.map((t,i)=>(i+1)+'. '+t).join('\n')+'\n\nNEXT MOVE:\n'+p.next;
-  try{navigator.clipboard.writeText(t).then(function(){var b=document.getElementById('copy-btn');if(b){b.textContent='Copied!';setTimeout(function(){b.textContent='Copy Play';},2000);}}).catch(function(){fallbackCopy(t,null);});}catch(e){fallbackCopy(t,null);}
-}
 
 function fullReset(){
   sI=null;sC=null;selOff=null;matches=[];
