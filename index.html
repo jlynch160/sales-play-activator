@@ -91,7 +91,7 @@ body{background:var(--bg);color:var(--t1);font-family:var(--body);min-height:100
 
 /* ── SCREEN 1: DISCOVERY ── */
 .s1-eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:0.12em;color:var(--teal);margin-bottom:16px;opacity:0.85;}
-.s1-h1{font-family:var(--display);font-size:clamp(32px,5vw,52px);font-weight:800;line-height:1.1;letter-spacing:-0.03em;margin-bottom:20px;color:var(--t1);word-wrap:break-word;overflow-wrap:break-word;}
+.s1-h1{font-family:var(--display);font-size:clamp(28px,4.5vw,46px);font-weight:800;line-height:1.2;letter-spacing:-0.03em;margin-bottom:20px;color:var(--t1);word-wrap:break-word;overflow-wrap:break-word;}
 .h1-line1{display:inline;color:var(--t1);}
 .h1-line2{display:inline;}
 .h1-accent{
@@ -3916,45 +3916,45 @@ function scoreOfferings(text){
     let kHits = 0, pHits = 0;
     const matchedKeywords = new Set();
 
-    // Keyword matches (3 each, +1 if longer phrase)
+    // Keyword matches (5 each, +2 if multi-word phrase)
     o.keywords.forEach(k => {
       const kl = k.toLowerCase();
       if(low.includes(kl)){
-        raw += 3 + (kl.split(/\s+/).length > 1 ? 1 : 0);
+        raw += 5 + (kl.split(/\s+/).length > 1 ? 2 : 0);
         kHits++;
         matchedKeywords.add(kl);
       }
     });
 
-    // Problem matches (heavier — they're pain phrases)
+    // Problem matches (heavier - pain phrases are strong signals)
     o.problems.forEach(p => {
       const pl = p.toLowerCase();
       if(low.includes(pl)){
-        raw += 5;
+        raw += 8;
         pHits++;
       }
     });
 
     // Name matches (huge signal)
-    if(low.includes(o.short.toLowerCase())) raw += 8;
-    if(low.includes(o.name.toLowerCase()))  raw += 12;
+    if(low.includes(o.short.toLowerCase())) raw += 12;
+    if(low.includes(o.name.toLowerCase()))  raw += 15;
 
-    // Density bonus — reward broad keyword coverage
+    // Density bonus - reward broad keyword coverage
     const kDensity = kHits / Math.max(1, o.keywords.length);
     const pDensity = pHits / Math.max(1, o.problems.length);
-    raw += Math.round(kDensity * 18);
-    raw += Math.round(pDensity * 12);
+    raw += Math.round(kDensity * 25);
+    raw += Math.round(pDensity * 20);
 
-    // Detail bonus — longer notes that mention the offering at all are stronger signal
-    if(raw > 0 && wordCount > 40) raw += 3;
-    if(raw > 0 && wordCount > 80) raw += 4;
+    // Detail bonus - longer notes with any match are stronger signal
+    if(raw > 0 && wordCount > 30) raw += 4;
+    if(raw > 0 && wordCount > 60) raw += 5;
+    if(raw > 0 && wordCount > 100) raw += 4;
 
-    // Convert raw to a 0-100 percentage on a curve so values spread out
-    // (no offering shares an identical pct unless their raw scores tie exactly)
+    // Convert raw to 0-100 percentage on a curve
     let pct;
-    if(raw === 0) pct = Math.max(3, Math.min(12, Math.round(wordCount / 6))); // floor for visibility
-    else if(raw >= 45) pct = 100;
-    else pct = Math.round(15 + (raw / 45) * 85);
+    if(raw === 0) pct = Math.max(3, Math.min(12, Math.round(wordCount / 6)));
+    else if(raw >= 30) pct = Math.min(100, 75 + Math.round((raw - 30) / 20 * 25));
+    else pct = Math.round(25 + (raw / 30) * 50);
 
     return Object.assign({}, o, { score: raw, pct: pct, kHits: kHits, pHits: pHits });
   }).sort((a,b) => b.score - a.score);
