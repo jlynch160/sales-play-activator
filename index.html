@@ -3052,11 +3052,53 @@ var LIVE_FILE_PA_URL = 'YOUR_FILE_FETCH_PA_URL_HERE';
 function openContentByType(category) {
   var catLabels = { 'pdfs': '📕 Datasheets & PDFs', 'blogs': '📝 Blog Posts', 'success-stories': '⭐ Success Stories' };
   var catLabel = catLabels[category] || category;
-  var files = (window.CONTENT_LIBRARY && window.CONTENT_LIBRARY[category]) || [];
-  showContentBrowser(selOff ? selOff.name : 'All Offerings', catLabel, category, files);
+  var allFiles = (window.CONTENT_LIBRARY && window.CONTENT_LIBRARY[category]) || [];
+
+  if(!selOff) {
+    showContentBrowser('All Offerings', catLabel, category, allFiles, []);
+    return;
+  }
+
+  // Build search terms from offering keywords + problems + name
+  var terms = [].concat(selOff.keywords || [], selOff.problems || []);
+  terms.push(selOff.name.toLowerCase());
+  terms.push(selOff.short ? selOff.short.toLowerCase() : '');
+  // Deduplicate and filter short terms
+  var seen = {};
+  terms = terms.filter(function(t) {
+    t = t.toLowerCase().trim();
+    if(t.length < 3 || seen[t]) return false;
+    seen[t] = true;
+    return true;
+  });
+
+  // Score each file by keyword match count
+  var scored = allFiles.map(function(f) {
+    var hay = (f.title + ' ' + f.file).toLowerCase();
+    var score = 0;
+    var matched = [];
+    terms.forEach(function(term) {
+      if(hay.indexOf(term) !== -1) {
+        score += term.length > 6 ? 3 : (term.length > 3 ? 2 : 1);
+        if(matched.length < 4) matched.push(term);
+      }
+    });
+    return { file: f, score: score, matched: matched };
+  });
+
+  // Split into matched and unmatched, sort matched by score desc
+  var matched = scored.filter(function(s){ return s.score > 0; })
+    .sort(function(a,b){ return b.score - a.score; })
+    .map(function(s){ return Object.assign({}, s.file, { _score: s.score, _matched: s.matched }); });
+
+  var unmatched = scored.filter(function(s){ return s.score === 0; })
+    .map(function(s){ return s.file; });
+
+  showContentBrowser(selOff.name, catLabel, category, matched, unmatched);
 }
 
-function showContentBrowser(offeringName, catLabel, category, files) {
+function showContentBrowser(offeringName, catLabel, category, files, otherFiles) {
+  otherFiles = otherFiles || [];
   var existing = document.getElementById('content-browser');
   if(existing) existing.remove();
 
@@ -3072,33 +3114,53 @@ function showContentBrowser(offeringName, catLabel, category, files) {
     '<div style="display:flex;align-items:center;justify-content:space-between;gap:14px;">' +
       '<div><div style="font-family:var(--mono);font-size:9px;letter-spacing:0.14em;color:var(--teal2);text-transform:uppercase;margin-bottom:6px;">'+escHtml(catLabel)+'</div>' +
       '<div style="font-size:18px;font-weight:700;color:var(--t1);">'+escHtml(offeringName)+'</div>' +
-      '<div style="font-size:11px;color:var(--t3);margin-top:4px;">'+files.length+' items found</div></div>' +
+      '<div style="font-size:11px;color:var(--t3);margin-top:4px;">'+files.length+' matched'+(otherFiles.length ? ' · '+otherFiles.length+' other' : '')+'</div></div>' +
       '<button id="cb-close" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:var(--t1);width:36px;height:36px;border-radius:10px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;">&#10005;</button>' +
     '</div></div>';
 
   // Body
   var bodyHtml = '<div style="padding:20px 28px;overflow-y:auto;flex:1;">';
-  if(!files.length) {
+
+  function renderFileCard(f, cat) {
+    var icon = getFileIcon(f.path);
+    var fileName = f.title || decodeURIComponent((f.path||'').split('/').pop().replace(/\+/g,' '));
+    var fileExt = (fileName.match(/\.([a-z0-9]+)$/i) || [,''])[1].toUpperCase() || '';
+    var matchedPills = '';
+    if(f._matched && f._matched.length) {
+      matchedPills = '<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:8px;">' +
+        f._matched.map(function(m){ return '<span style="font-size:8px;padding:2px 6px;border-radius:10px;background:rgba(32,245,147,0.12);border:1px solid rgba(32,245,147,0.25);color:var(--teal2);font-family:var(--mono);letter-spacing:0.04em;">'+escHtml(m)+'</span>'; }).join('') +
+      '</div>';
+    }
+    return '<div onclick="openFileViewer(\''+escHtml(f.path).replace(/'/g,"\\'")+'\',\''+escHtml(f.title||fileName).replace(/'/g,"\\'")+'\',\''+cat+'\')" style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:18px;cursor:pointer;transition:all 0.2s;position:relative;" onmouseover="this.style.borderColor=\'rgba(105,0,255,0.4)\';this.style.transform=\'translateY(-2px)\';this.style.boxShadow=\'0 8px 24px rgba(105,0,255,0.12)\'" onmouseout="this.style.borderColor=\'rgba(255,255,255,0.08)\';this.style.transform=\'\';this.style.boxShadow=\'\'">' +
+      '<div style="font-size:32px;margin-bottom:10px;">'+icon+'</div>' +
+      '<div style="font-size:13px;font-weight:600;color:var(--t1);line-height:1.4;margin-bottom:6px;word-break:break-word;">'+escHtml(f.title||fileName)+'</div>' +
+      (fileExt ? '<span style="font-family:var(--mono);font-size:8px;letter-spacing:0.1em;padding:2px 7px;border-radius:4px;background:rgba(105,0,255,0.15);color:var(--purple2);text-transform:uppercase;">'+fileExt+'</span>' : '') +
+      matchedPills +
+      '<div style="position:absolute;top:14px;right:14px;font-size:10px;color:rgba(105,0,255,0.5);">↗</div>' +
+    '</div>';
+  }
+
+  if(!files.length && !otherFiles.length) {
     bodyHtml += '<div style="text-align:center;padding:40px 20px;color:var(--t3);">' +
       '<div style="font-size:36px;margin-bottom:12px;opacity:0.4;">🔍</div>' +
-      '<div style="font-size:14px;">No '+escHtml(catLabel)+' found for this offering.</div>' +
-      '<div style="font-size:11px;margin-top:8px;color:var(--t3);">Make sure your SharePoint library has content in the correct folder.</div>' +
+      '<div style="font-size:14px;">No '+escHtml(catLabel)+' found.</div>' +
     '</div>';
   } else {
-    bodyHtml += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;">';
-    files.forEach(function(f, idx) {
-      var icon = getFileIcon(f.path);
-      var fileName = f.title || decodeURIComponent((f.path||'').split('/').pop().replace(/\+/g,' '));
-      var fileExt = (fileName.match(/\.([a-z0-9]+)$/i) || [,''])[1].toUpperCase() || '';
-      bodyHtml += '<div class="cb-file-card" onclick="openFileViewer(\''+escHtml(f.path).replace(/'/g,"\\'")+'\',\''+escHtml(f.title||fileName).replace(/'/g,"\\'")+'\',\''+category+'\')" style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:18px;cursor:pointer;transition:all 0.2s;position:relative;" onmouseover="this.style.borderColor=\'rgba(105,0,255,0.4)\';this.style.transform=\'translateY(-2px)\';this.style.boxShadow=\'0 8px 24px rgba(105,0,255,0.12)\'" onmouseout="this.style.borderColor=\'rgba(255,255,255,0.08)\';this.style.transform=\'\';this.style.boxShadow=\'\'">' +
-        '<div style="font-size:36px;margin-bottom:12px;">'+icon+'</div>' +
-        '<div style="font-size:13px;font-weight:600;color:var(--t1);line-height:1.4;margin-bottom:6px;word-break:break-word;">'+escHtml(f.title||fileName)+'</div>' +
-        (fileExt ? '<div style="display:inline-block;font-family:var(--mono);font-size:8px;letter-spacing:0.1em;padding:2px 7px;border-radius:4px;background:rgba(105,0,255,0.15);color:var(--purple2);text-transform:uppercase;">'+fileExt+'</div>' : '') +
-        (f.snippet ? '<div style="font-size:10px;color:var(--t3);margin-top:8px;line-height:1.5;">'+escHtml(f.snippet.slice(0,100))+(f.snippet.length>100?'…':'')+'</div>' : '') +
-        '<div style="position:absolute;top:14px;right:14px;font-size:10px;color:rgba(105,0,255,0.5);">↗</div>' +
-      '</div>';
-    });
-    bodyHtml += '</div>';
+    // Matched files
+    if(files.length) {
+      bodyHtml += '<div style="font-family:var(--mono);font-size:9px;letter-spacing:0.12em;color:var(--teal2);text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:8px;">✓ Relevant to '+escHtml(offeringName)+' <span style="font-size:8px;color:var(--t3);">('+files.length+')</span></div>';
+      bodyHtml += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;margin-bottom:24px;">';
+      files.forEach(function(f){ bodyHtml += renderFileCard(f, category); });
+      bodyHtml += '</div>';
+    }
+
+    // Other files
+    if(otherFiles.length) {
+      bodyHtml += '<div id="cb-other-toggle" style="font-family:var(--mono);font-size:9px;letter-spacing:0.12em;color:var(--t3);text-transform:uppercase;margin-bottom:14px;cursor:pointer;display:flex;align-items:center;gap:8px;" onclick="var el=document.getElementById(\'cb-other-grid\');var chev=document.getElementById(\'cb-other-chev\');if(el.style.display===\'none\'){el.style.display=\'grid\';chev.textContent=\'▾\';}else{el.style.display=\'none\';chev.textContent=\'▸\';}">Other content <span style="font-size:8px;">('+otherFiles.length+')</span> <span id="cb-other-chev">▸</span></div>';
+      bodyHtml += '<div id="cb-other-grid" style="display:none;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;">';
+      otherFiles.forEach(function(f){ bodyHtml += renderFileCard(f, category); });
+      bodyHtml += '</div>';
+    }
   }
   bodyHtml += '</div>';
 
