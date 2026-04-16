@@ -95,30 +95,21 @@ body{background:var(--bg);color:var(--t1);font-family:var(--body);min-height:100
 .h1-line1{display:inline;color:var(--t1);}
 .h1-line2{display:inline;}
 .h1-accent{
-  background:linear-gradient(90deg,#6900FF,#A366FF,#20F593);
-  background-size:200% auto;
-  -webkit-background-clip:text;
-  -webkit-text-fill-color:transparent;
-  background-clip:text;
-  animation:shimmer 4s linear infinite;
+  color:var(--purple);
   position:relative;
+  display:inline-block;
+  padding-bottom:6px;
 }
 .h1-accent::after{
   content:'right problem.';
   position:absolute;
-  left:0;top:-2px;
-  background:linear-gradient(90deg,#6900FF,#A366FF,#20F593);
-  background-size:200% auto;
-  -webkit-background-clip:text;
-  -webkit-text-fill-color:transparent;
-  background-clip:text;
-  filter:blur(18px);
-  opacity:0.4;
-  animation:shimmer 4s linear infinite;
+  left:0;top:0;
+  color:var(--purple);
+  filter:blur(16px);
+  opacity:0.5;
   z-index:-1;
   pointer-events:none;
 }
-.h1-line2{display:inline;padding-bottom:8px;}
 @keyframes shimmer{0%{background-position:0% center}100%{background-position:200% center}}
 .s1-sub{font-size:14px;color:var(--t2);line-height:1.7;margin-bottom:24px;max-width:580px;font-weight:300;}
 @keyframes ta-idle-glow{
