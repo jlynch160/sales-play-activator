@@ -3051,7 +3051,7 @@ var LIVE_FILE_PA_URL = 'YOUR_FILE_FETCH_PA_URL_HERE';
 var __contentCache = {};
 
 function openContentByType(category) {
-  var off = window.selOff;
+  var off = selOff;
   if(!off) { alert('Select an offering first.'); return; }
 
   var catLabels = { 'pdfs': '📕 Datasheets & PDFs', 'blogs': '📝 Blog Posts', 'success-stories': '⭐ Success Stories' };
