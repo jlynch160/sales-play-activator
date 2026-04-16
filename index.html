@@ -3086,9 +3086,16 @@ function openContentByType(category) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ offering: off.name, offering_id: off.id, url: 'https://www.majorkeytech.com/' })
   })
-  .then(function(res){ if(!res.ok) throw new Error('HTTP '+res.status); return res.json(); })
-  .then(function(data){
-    var files = extractSpFiles(data.sources || data.rawSearch);
+  .then(function(res){ if(!res.ok) throw new Error('HTTP '+res.status); return res.text(); })
+  .then(function(txt){
+    var files = [];
+    try {
+      var data = JSON.parse(txt);
+      files = extractSpFiles(data.sources || data.rawSearch);
+    } catch(e) {
+      // Response wasn't JSON — no file data available
+      files = [];
+    }
     var catFiles = files.filter(function(f){ return f.category === category; });
     __contentCache[cacheKey] = catFiles;
     overlay.remove();
