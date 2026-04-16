@@ -6364,27 +6364,124 @@ function xSetupPopup(){
   document.addEventListener('click', outside);
 }
 
+// Cross-sell mapping: for each offering, which other offerings naturally follow
+var CROSS_SELL_MAP = {
+  'entra-mig':       {next:['entra-gov','workforce-creds','mim-entra','cloud-first'],signal:'Legacy IdP migration opens the door for governance and MFA uplift'},
+  'entra-gov':       {next:['rbac','isc-iga','orchestratid-apps','nhi-gov'],signal:'Governance buyers need role management and app onboarding automation'},
+  'mim-entra':       {next:['entra-mig','entra-gov','cloud-first'],signal:'MIM sunset creates urgency for full Entra migration and governance'},
+  'idproof-remote':  {next:['idproof-helpdesk','workforce-creds','credsafe'],signal:'Remote identity proofing extends naturally to helpdesk and workforce credentials'},
+  'idproof-helpdesk':{next:['idproof-remote','workforce-creds','pam-integration'],signal:'Helpdesk protection pairs with workforce MFA and privileged access'},
+  'mna':             {next:['entra-mig','entra-gov','identityscout'],signal:'M&A consolidation requires migration, governance, and identity discovery'},
+  'cloud-first':     {next:['entra-mig','workforce-creds','nhi-gov','cert-lifecycle'],signal:'Cloud transformation creates demand across identity, credentials, and machine identity'},
+  'orchestratid-apps':{next:['entra-gov','isc-iga','rbac'],signal:'App onboarding automation leads into governance and role-based access'},
+  'isc-iga':         {next:['rbac','orchestratid-apps','entra-gov','identityscout'],signal:'IGA modernization opens role management and app provisioning conversations'},
+  'nhi-gov':         {next:['secure-nhi','cert-lifecycle','pam-integration'],signal:'Machine identity governance pairs with credential rotation and PAM'},
+  'rbac':            {next:['entra-gov','isc-iga','orchestratid-apps'],signal:'Role rationalization feeds into broader governance and provisioning'},
+  'pam-integration': {next:['pam-orchestratid','skydock','nhi-gov','secure-nhi'],signal:'PAM coverage gaps lead to migration, vault, and machine identity needs'},
+  'pam-orchestratid':{next:['pam-integration','skydock','cert-lifecycle'],signal:'PAM migration naturally connects to vault consolidation and cert management'},
+  'skydock':         {next:['pam-integration','cert-lifecycle','secure-nhi'],signal:'Vault migration opens certificate and secrets management conversations'},
+  'cert-lifecycle':  {next:['secure-nhi','nhi-gov','pam-integration'],signal:'Certificate automation connects to broader machine identity and PAM'},
+  'secure-nhi':      {next:['nhi-gov','cert-lifecycle','pam-integration'],signal:'Securing machine identities pairs with governance, certs, and PAM'},
+  'workforce-creds': {next:['idproof-remote','idproof-helpdesk','credsafe','cloud-first'],signal:'Passwordless drives identity proofing and business continuity needs'},
+  'identityscout':   {next:['entra-gov','isc-iga','nhi-gov'],signal:'Identity discovery reveals ungoverned accounts that need governance'},
+  'credsafe':        {next:['workforce-creds','cloud-first','entra-mig'],signal:'Business continuity buyers also care about workforce auth and cloud readiness'}
+};
+
 function renderExpandTab(){
   var off = selOff;
   if(!off) return;
 
-  // Hero pulls from current offering — no mock XDATA lookup
   var icoEl  = document.getElementById('xr-ico');
   var nameEl = document.getElementById('xr-name');
   var subEl  = document.getElementById('xr-sub');
   if(icoEl)  icoEl.textContent  = off.icon || '🎯';
   if(nameEl) nameEl.textContent = off.name || 'Solution Play';
-  if(subEl)  subEl.textContent  = 'Next products to attach · Signals to listen for · Questions that open the door';
+  if(subEl)  subEl.textContent  = 'Next products to attach - Signals to listen for - Questions that open the door';
 
-  // If no AI expansion content has landed, show a placeholder
   var rxp = document.getElementById('r-expand');
-  if(rxp && !rxp.innerHTML.trim()){
-    rxp.innerHTML =
-      '<div style="text-align:center;padding:32px 20px;color:var(--t3);font-size:13px;line-height:1.6;">' +
-      '<div style="font-size:28px;margin-bottom:10px;">✨</div>' +
-      'Expansion opportunities will appear here once the AI generates them.' +
-      '</div>';
+  if(!rxp) return;
+
+  // Check if AI has already populated this
+  if(rxp.querySelector('.ai-badge')) return;
+
+  var cs = CROSS_SELL_MAP[off.id];
+  if(!cs) {
+    rxp.innerHTML = '<div style="text-align:center;padding:32px 20px;color:var(--t3);font-size:13px;">No expansion data configured for this offering yet.</div>';
+    return;
   }
+
+  var nextOffs = cs.next.map(function(nid){ return OFFERINGS.find(function(o){ return o.id === nid; }); }).filter(Boolean);
+
+  var html = '';
+
+  // Signal banner
+  html += '<div style="background:linear-gradient(135deg,rgba(255,184,48,0.1),rgba(105,0,255,0.05));border:1px solid rgba(255,184,48,0.25);border-left:3px solid var(--amber);border-radius:12px;padding:16px 20px;margin-bottom:24px;">' +
+    '<div style="font-family:var(--mono);font-size:9px;letter-spacing:0.12em;color:var(--amber);text-transform:uppercase;margin-bottom:8px;">💡 Expansion Signal</div>' +
+    '<div style="font-size:13px;color:var(--t1);line-height:1.6;">'+escHtml(cs.signal)+'</div>' +
+  '</div>';
+
+  // Next offerings to attach
+  html += '<div style="font-family:var(--mono);font-size:9px;letter-spacing:0.12em;color:var(--teal2);text-transform:uppercase;margin-bottom:14px;">🎯 Recommended Next Offerings ('+nextOffs.length+')</div>';
+  html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-bottom:24px;">';
+  nextOffs.forEach(function(noff, i){
+    var matchedContent = 0;
+    if(window.CONTENT_LIBRARY) {
+      ['pdfs','blogs','success-stories'].forEach(function(cat){
+        var files = window.CONTENT_LIBRARY[cat] || [];
+        var terms = (noff.keywords||[]).concat(noff.problems||[]);
+        terms.push(noff.name.toLowerCase());
+        files.forEach(function(f){
+          var hay = (f.title+' '+f.file).toLowerCase();
+          if(terms.some(function(t){ return t.length>2 && hay.indexOf(t.toLowerCase())!==-1; })) matchedContent++;
+        });
+      });
+    }
+
+    html += '<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(105,0,255,0.15);border-radius:14px;padding:16px 18px;transition:all 0.2s;cursor:default;" onmouseover="this.style.borderColor=\'rgba(105,0,255,0.4)\';this.style.transform=\'translateY(-2px)\';this.style.boxShadow=\'0 8px 24px rgba(105,0,255,0.1)\'" onmouseout="this.style.borderColor=\'rgba(105,0,255,0.15)\';this.style.transform=\'\';this.style.boxShadow=\'\'">' +
+      '<div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:10px;">' +
+        '<div style="width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,rgba(105,0,255,0.2),rgba(32,245,147,0.1));border:1px solid rgba(105,0,255,0.2);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">'+noff.icon+'</div>' +
+        '<div style="flex:1;min-width:0;">' +
+          '<div style="font-size:13px;font-weight:700;color:var(--t1);margin-bottom:3px;">'+escHtml(noff.name)+'</div>' +
+          '<div style="font-size:11px;color:var(--t2);line-height:1.4;">'+escHtml(noff.tagline)+'</div>' +
+        '</div>' +
+      '</div>' +
+      '<div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;">' +
+        (noff.problems||[]).slice(0,3).map(function(p){ return '<span style="font-size:9px;padding:2px 7px;border-radius:10px;background:rgba(255,184,48,0.08);border:1px solid rgba(255,184,48,0.2);color:rgba(255,184,48,0.85);">'+escHtml(p)+'</span>'; }).join('') +
+      '</div>' +
+      '<div style="display:flex;align-items:center;gap:12px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.06);">' +
+        '<span style="font-family:var(--mono);font-size:9px;color:var(--t3);">📚 '+matchedContent+' content matches</span>' +
+      '</div>' +
+    '</div>';
+  });
+  html += '</div>';
+
+  // Discovery questions to open the door
+  html += '<div style="font-family:var(--mono);font-size:9px;letter-spacing:0.12em;color:var(--teal2);text-transform:uppercase;margin-bottom:14px;">🗣️ Questions That Open The Door</div>';
+  html += '<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:24px;">';
+  var questions = [
+    'Are there other identity gaps you\'re seeing beyond '+off.short+'? We often find '+nextOffs[0].short+' comes up in the same conversation.',
+    'How are you handling '+(nextOffs.length>1 ? nextOffs[1].problems[0] : 'related identity challenges')+'? That\'s an area where we\'ve been driving results for similar accounts.',
+    'If you\'re investing in '+off.short+', have you thought about how '+(nextOffs.length>0 ? nextOffs[0].short : 'adjacent capabilities')+' would compound the value?',
+    'What does your identity roadmap look like beyond this initiative? We typically see teams move into '+(nextOffs.length>1 ? nextOffs[1].short : 'expanded governance')+' within 6 months.'
+  ];
+  questions.forEach(function(q, qi){
+    html += '<div style="background:rgba(32,245,147,0.04);border:1px solid rgba(32,245,147,0.12);border-left:2px solid rgba(32,245,147,0.4);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--t1);line-height:1.6;display:flex;align-items:flex-start;gap:10px;">' +
+      '<span style="font-family:var(--mono);font-size:10px;color:var(--teal2);flex-shrink:0;margin-top:1px;">Q'+(qi+1)+'</span>' +
+      '<span>'+escHtml(q)+'</span>' +
+    '</div>';
+  });
+  html += '</div>';
+
+  // Platform value estimate
+  var acvLow = 200 + (nextOffs.length * 80);
+  var acvHigh = 600 + (nextOffs.length * 150);
+  html += '<div style="background:linear-gradient(135deg,rgba(105,0,255,0.1),rgba(32,245,147,0.05));border:1px solid rgba(105,0,255,0.2);border-radius:14px;padding:18px 22px;text-align:center;">' +
+    '<div style="font-family:var(--mono);font-size:9px;letter-spacing:0.12em;color:var(--t3);text-transform:uppercase;margin-bottom:8px;">Full Platform ACV Potential</div>' +
+    '<div style="font-family:var(--display);font-size:32px;font-weight:800;background:linear-gradient(90deg,var(--purple),var(--teal));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">$'+acvLow+'K - $'+acvHigh+'K</div>' +
+    '<div style="font-size:10px;color:var(--t3);margin-top:6px;">Estimated across '+off.short+' + '+(nextOffs.length)+' expansion offerings</div>' +
+  '</div>';
+
+  rxp.innerHTML = html;
 
   // Legacy mock-driven sections are hidden via HTML display:none — skip population
   return;
