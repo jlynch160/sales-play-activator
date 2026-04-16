@@ -2967,39 +2967,82 @@ function openContentByType(category) {
     return;
   }
 
-  // Build search terms from offering keywords + problems + name
-  var terms = [].concat(selOff.keywords || [], selOff.problems || []);
-  terms.push(selOff.name.toLowerCase());
-  terms.push(selOff.short ? selOff.short.toLowerCase() : '');
-  // Deduplicate and filter short terms
-  var seen = {};
-  terms = terms.filter(function(t) {
-    t = t.toLowerCase().trim();
-    if(t.length < 3 || seen[t]) return false;
-    seen[t] = true;
-    return true;
+  // Terms too generic for an IAM company's blog library — they match everything
+  var STOP_TERMS = ['identity','access','security','cloud','management','iam',
+    'solution','service','data','compliance','risk','cost','user','system',
+    'deploy','modern','platform','tool','application','enterprise','digital',
+    'implement','strategy','integration','assessment','governance','automation',
+    'monitor','protect','secure','manage','admin','license','licence','e5','m365',
+    'dr','it','ai','sso','mfa','aws','gcp','new','key','app','old'];
+
+  var stopSet = {};
+  STOP_TERMS.forEach(function(s){ stopSet[s] = true; });
+
+  // Build search terms: prefer multi-word phrases (problems) and specific keywords
+  var phraseTerms = []; // multi-word, high value
+  var wordTerms = [];   // single-word, lower value
+
+  // Add offering name and short name as phrases (high value)
+  if(selOff.name) phraseTerms.push(selOff.name.toLowerCase());
+  if(selOff.short) phraseTerms.push(selOff.short.toLowerCase());
+
+  // Problems are usually multi-word phrases — very specific
+  (selOff.problems || []).forEach(function(p) {
+    var pl = p.toLowerCase().trim();
+    if(pl.length >= 6) phraseTerms.push(pl);
   });
 
-  // Score each file by keyword match count
+  // Keywords: filter out stop terms and very short words
+  (selOff.keywords || []).forEach(function(k) {
+    var kl = k.toLowerCase().trim();
+    if(kl.length < 4 || stopSet[kl]) return;
+    if(kl.indexOf(' ') !== -1) phraseTerms.push(kl); // multi-word keyword
+    else wordTerms.push(kl);
+  });
+
+  // Deduplicate
+  var seen = {};
+  phraseTerms = phraseTerms.filter(function(t){ if(seen[t]) return false; seen[t]=true; return true; });
+  wordTerms = wordTerms.filter(function(t){ if(seen[t]) return false; seen[t]=true; return true; });
+
+  // Score each file
   var scored = allFiles.map(function(f) {
     var hay = (f.title + ' ' + f.file).toLowerCase();
     var score = 0;
     var matched = [];
-    terms.forEach(function(term) {
-      if(hay.indexOf(term) !== -1) {
-        score += term.length > 6 ? 3 : (term.length > 3 ? 2 : 1);
-        if(matched.length < 4) matched.push(term);
+
+    // Phrase matches (multi-word) — high confidence, score 5 each
+    phraseTerms.forEach(function(phrase) {
+      if(hay.indexOf(phrase) !== -1) {
+        score += 5;
+        if(matched.length < 4) matched.push(phrase);
       }
     });
+
+    // Word matches — use word boundary check to avoid substring false positives
+    wordTerms.forEach(function(word) {
+      // Build regex with word boundaries
+      try {
+        var re = new RegExp('(?:^|[\\s\\-_\\.\\(\\)/])' + word.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + '(?:$|[\\s\\-_\\.\\(\\)/,;:!])', 'i');
+        if(re.test(hay)) {
+          score += word.length > 8 ? 3 : 2;
+          if(matched.length < 4) matched.push(word);
+        }
+      } catch(e) {}
+    });
+
     return { file: f, score: score, matched: matched };
   });
 
-  // Split into matched and unmatched, sort matched by score desc
-  var matched = scored.filter(function(s){ return s.score > 0; })
+  // Require minimum score of 4 to be considered a real match
+  // (prevents single short-word accidental matches)
+  var MIN_MATCH_SCORE = 4;
+
+  var matched = scored.filter(function(s){ return s.score >= MIN_MATCH_SCORE; })
     .sort(function(a,b){ return b.score - a.score; })
     .map(function(s){ return Object.assign({}, s.file, { _score: s.score, _matched: s.matched }); });
 
-  var unmatched = scored.filter(function(s){ return s.score === 0; })
+  var unmatched = scored.filter(function(s){ return s.score < MIN_MATCH_SCORE; })
     .map(function(s){ return s.file; });
 
   showContentBrowser(selOff.name, catLabel, category, matched, unmatched);
@@ -5056,6 +5099,29 @@ function getOfferingFallback(o, ind, comp){
 function mk(t,c,h){const e=document.createElement(t);if(c)e.className=c;if(h)e.innerHTML=h;return e;}
 function tpLi(t,n){const li=mk('li','tp-li');li.innerHTML=`<span class="tp-n">0${n}.</span><span class="tp-t">${t}</span>`;return li;}
 
+function countContentMatches(off, files) {
+  if(!off || !files || !files.length) return files ? files.length : 0;
+  var STOP = {'identity':1,'access':1,'security':1,'cloud':1,'management':1,'iam':1,'solution':1,'service':1,'data':1,'compliance':1,'risk':1,'cost':1,'user':1,'system':1,'governance':1,'automation':1,'enterprise':1,'digital':1,'e5':1,'m365':1,'dr':1,'it':1,'ai':1,'sso':1,'mfa':1,'aws':1,'gcp':1,'app':1};
+  var phrases = [];
+  var words = [];
+  if(off.name) phrases.push(off.name.toLowerCase());
+  if(off.short) phrases.push(off.short.toLowerCase());
+  (off.problems||[]).forEach(function(p){ var pl=p.toLowerCase().trim(); if(pl.length>=6) phrases.push(pl); });
+  (off.keywords||[]).forEach(function(k){ var kl=k.toLowerCase().trim(); if(kl.length<4||STOP[kl]) return; if(kl.indexOf(' ')!==-1) phrases.push(kl); else words.push(kl); });
+  var seen={}; phrases=phrases.filter(function(t){if(seen[t])return false;seen[t]=true;return true;});
+  words=words.filter(function(t){if(seen[t])return false;seen[t]=true;return true;});
+
+  return files.filter(function(f){
+    var hay=(f.title+' '+f.file).toLowerCase();
+    var score=0;
+    phrases.forEach(function(p){ if(hay.indexOf(p)!==-1) score+=5; });
+    words.forEach(function(w){
+      try{ var re=new RegExp('(?:^|[\\s\\-_\\.\\/])'+w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'(?:$|[\\s\\-_\\.\\/,;:!])','i'); if(re.test(hay)) score+=2; }catch(e){}
+    });
+    return score >= 4;
+  }).length;
+}
+
 function updateContentCounts() {
   if(!window.CONTENT_LIBRARY) return;
   var cats = ['pdfs','blogs','success-stories'];
@@ -5063,18 +5129,7 @@ function updateContentCounts() {
   var total = 0;
   cats.forEach(function(cat, i) {
     var all = window.CONTENT_LIBRARY[cat] || [];
-    var count = all.length;
-    if(selOff) {
-      var terms = [].concat(selOff.keywords||[], selOff.problems||[]);
-      terms.push(selOff.name.toLowerCase());
-      if(selOff.short) terms.push(selOff.short.toLowerCase());
-      var seen = {};
-      terms = terms.filter(function(t){ t=t.toLowerCase().trim(); if(t.length<3||seen[t])return false; seen[t]=true; return true; });
-      count = all.filter(function(f){
-        var hay = (f.title+' '+f.file).toLowerCase();
-        return terms.some(function(t){ return hay.indexOf(t)!==-1; });
-      }).length;
-    }
+    var count = selOff ? countContentMatches(selOff, all) : all.length;
     var el = document.getElementById(ids[i]);
     if(el) el.textContent = count;
     total += count;
@@ -7262,20 +7317,12 @@ function admRenderGrid() {
       // Matched content section
       '<div class="adm-card-div"></div>' +
       (function(){
-        var terms = [].concat(o.keywords||[], o.problems||[]);
-        terms.push(o.name.toLowerCase());
-        if(o.short) terms.push(o.short.toLowerCase());
-        var seen2 = {};
-        terms = terms.filter(function(t){ t=t.toLowerCase().trim(); if(t.length<3||seen2[t])return false; seen2[t]=true; return true; });
-        var cats2 = [{key:'pdfs',icon:'📕',label:'Datasheets',color:'var(--purple2)'},{key:'blogs',icon:'📝',label:'Blogs',color:'var(--teal2)'},{key:'success-stories',icon:'⭐',label:'Success Stories',color:'var(--amber)'}];
+        var cats2 = [{key:'pdfs',icon:'📕',label:'Datasheets'},{key:'blogs',icon:'📝',label:'Blogs'},{key:'success-stories',icon:'⭐',label:'Success Stories'}];
         var contentHtml = '<div style="margin-bottom:8px;"><div style="font-family:var(--mono);font-size:8px;letter-spacing:0.12em;color:var(--teal2);text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:6px;">📚 Matched Content</div>';
         contentHtml += '<div style="display:flex;gap:8px;flex-wrap:wrap;">';
         cats2.forEach(function(cat2){
           var files2 = (window.CONTENT_LIBRARY && window.CONTENT_LIBRARY[cat2.key]) || [];
-          var matchCount = files2.filter(function(f2){
-            var hay2 = (f2.title+' '+f2.file).toLowerCase();
-            return terms.some(function(t2){ return hay2.indexOf(t2)!==-1; });
-          }).length;
+          var matchCount = countContentMatches(o, files2);
           var bg = matchCount > 0 ? 'rgba(32,245,147,0.08)' : 'rgba(255,255,255,0.03)';
           var border = matchCount > 0 ? 'rgba(32,245,147,0.2)' : 'rgba(255,255,255,0.08)';
           var numColor = matchCount > 0 ? 'var(--teal2)' : 'var(--t3)';
