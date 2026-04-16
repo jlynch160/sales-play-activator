@@ -2294,20 +2294,18 @@ body{background:var(--bg);color:var(--t1);font-family:var(--body);min-height:100
   </div>
 
   <!-- TABS -->
-  <div class="tab-bar" style="grid-template-columns:repeat(8,1fr);">
+  <div class="tab-bar" style="grid-template-columns:repeat(5,1fr);">
     <div class="tab on" onclick="tab(this,'play')">The Play</div>
-    <div class="tab" onclick="tab(this,'why')">Why This Play</div>
-    <div class="tab" onclick="tab(this,'start')">Open the Call</div>
-    <div class="tab" onclick="tab(this,'obj')">Objections</div>
-    <div class="tab" onclick="tab(this,'fit')">Qualify</div>
-    <div class="tab" onclick="tab(this,'cases')">Proof Points</div>
-    <div class="tab" onclick="tab(this,'intel')">vs Partners</div>
-    <div class="tab" style="color:var(--amber);border-bottom-color:transparent;" onclick="tab(this,'expand')">Expand Deal ↑</div>
+    <div class="tab" onclick="tab(this,'talk')">Talk Track</div>
+    <div class="tab" onclick="tab(this,'qualify')">Qualify & Prove</div>
+    <div class="tab" onclick="tab(this,'compete')">Compete</div>
+    <div class="tab" style="color:var(--amber);" onclick="tab(this,'expand')">Grow ↑</div>
   </div>
 
   <div class="panels">
 
     <!-- THE PLAY -->
+    <!-- ═══ TAB 1: THE PLAY (play + why) ═══ -->
     <div class="panel on" id="p-play">
       <div class="play-layout">
         <div>
@@ -2325,72 +2323,70 @@ body{background:var(--bg);color:var(--t1);font-family:var(--body);min-height:100
           </div>
         </div>
       </div>
+
+      <div style="margin-top:24px;padding-top:20px;border-top:1px solid rgba(255,255,255,0.06);">
+        <div class="sec-lbl" style="margin-bottom:14px">Why this play wins</div>
+        <div id="r-why-full" class="ai-rendered"></div>
+      </div>
       <div id="r-why" style="display:none"></div>
     </div>
 
-    <!-- WHY THIS PLAY -->
-    <div class="panel" id="p-why">
-      <div class="sec-lbl" style="margin-bottom:14px">Why this play wins</div>
-      <div id="r-why-full" class="ai-rendered"></div>
-    </div>
-
-    <!-- OPEN THE CALL -->
-    <div class="panel" id="p-start">
+    <!-- ═══ TAB 2: TALK TRACK (open the call + objections) ═══ -->
+    <div class="panel" id="p-talk">
       <div class="opener-box">
         <div class="opener-lbl">Open with this</div>
         <div class="opener-txt" id="r-op"></div>
       </div>
-      <div class="sec-lbl" style="margin-bottom:12px">Questions to ask next</div>
+
+      <div class="sec-lbl" style="margin-bottom:12px">Discovery questions</div>
       <ul class="tp-ul" id="r-dq"></ul>
-    </div>
 
-    <!-- OBJECTIONS -->
-    <div class="panel" id="p-obj">
-      <!-- Objection Bank -->
-      <div class="obj-bank" id="obj-bank">
-        <div class="obj-bank-hdr" onclick="toggleObjBank()">
-          <div class="obj-bank-title">
-            <span>📚 Objection Bank</span>
-            <span class="obj-bank-badge" id="obj-bank-count">0 saved</span>
+      <div style="margin-top:28px;padding-top:22px;border-top:1px solid rgba(255,255,255,0.06);">
+        <!-- Objection Bank -->
+        <div class="obj-bank" id="obj-bank">
+          <div class="obj-bank-hdr" onclick="toggleObjBank()">
+            <div class="obj-bank-title">
+              <span>📚 Objection Bank</span>
+              <span class="obj-bank-badge" id="obj-bank-count">0 saved</span>
+            </div>
+            <span class="obj-bank-chevron" id="obj-bank-chevron">▾</span>
           </div>
-          <span class="obj-bank-chevron" id="obj-bank-chevron">▾</span>
-        </div>
-        <div class="obj-bank-body" id="obj-bank-body">
-          <div id="obj-bank-list"><div class="obj-bank-empty">No saved objections yet — click Save on any card below.</div></div>
-          <div class="obj-bank-add">
-            <div class="obj-bank-add-title">Add your own objection</div>
-            <textarea class="obj-bank-input" id="obj-bank-q" rows="2" placeholder="The objection (e.g. We already have CyberArk, why do we need this?)"></textarea>
-            <textarea class="obj-bank-input" id="obj-bank-a" rows="2" placeholder="Your response / how to handle it"></textarea>
-            <button class="obj-bank-submit" onclick="addManualObjection()">Save to bank</button>
+          <div class="obj-bank-body" id="obj-bank-body">
+            <div id="obj-bank-list"><div class="obj-bank-empty">No saved objections yet - click Save on any card below.</div></div>
+            <div class="obj-bank-add">
+              <div class="obj-bank-add-title">Add your own objection</div>
+              <textarea class="obj-bank-input" id="obj-bank-q" rows="2" placeholder="The objection (e.g. We already have CyberArk, why do we need this?)"></textarea>
+              <textarea class="obj-bank-input" id="obj-bank-a" rows="2" placeholder="Your response / how to handle it"></textarea>
+              <button class="obj-bank-submit" onclick="addManualObjection()">Save to bank</button>
+            </div>
           </div>
         </div>
+        <div class="sec-lbl" style="margin-bottom:16px">When they push back</div>
+        <div class="obj-ul" id="r-obj"></div>
       </div>
-      <div class="sec-lbl" style="margin-bottom:16px">When they push back — what to say</div>
-      <div class="obj-ul" id="r-obj"></div>
     </div>
 
-    <!-- QUALIFY -->
-    <div class="panel" id="p-fit">
+    <!-- ═══ TAB 3: QUALIFY & PROVE (qualify + proof points) ═══ -->
+    <div class="panel" id="p-qualify">
       <div class="fit-layout">
         <div>
-          <div class="fit-col-lbl">✓ &nbsp;This deal is real if...</div>
+          <div class="fit-col-lbl">This deal is real if...</div>
           <div class="fit-ul" id="r-fy"></div>
         </div>
         <div>
-          <div class="fit-col-lbl" style="color:var(--t2)">✕ &nbsp;Walk away if...</div>
+          <div class="fit-col-lbl" style="color:var(--t2)">Walk away if...</div>
           <div class="fit-ul" id="r-fn"></div>
         </div>
       </div>
+
+      <div style="margin-top:28px;padding-top:22px;border-top:1px solid rgba(255,255,255,0.06);">
+        <div class="sec-lbl" style="margin-bottom:14px">Proof points</div>
+        <div class="case-ul" id="r-cases"></div>
+      </div>
     </div>
 
-    <!-- PROOF POINTS -->
-    <div class="panel" id="p-cases">
-      <div class="sec-lbl" style="margin-bottom:14px">Why this play wins</div>
-      <div class="case-ul" id="r-cases"></div>
-    </div>
-
-    <!-- VS COMPETITION -->
-    <div class="panel" id="p-intel">
+    <!-- ═══ TAB 4: COMPETE ═══ -->
+    <div class="panel" id="p-compete">
       <div class="sec-lbl" style="margin-bottom:14px">How to win against each partner</div>
       <table class="ct"><thead><tr><th>PARTNER</th><th>WHAT THEY'LL CLAIM</th><th>HOW YOU WIN</th></tr></thead><tbody id="r-ct"></tbody></table>
     </div>
@@ -4827,7 +4823,7 @@ function parseAndRenderAIResponse(text){
   document.querySelectorAll('.mock-banner').forEach(function(b){ b.remove(); });
 
   if(sections['competitive positioning']){
-    const panel = document.getElementById('p-intel');
+    const panel = document.getElementById('p-compete');
     if(panel){
       panel.innerHTML =
         '<div class="sec-lbl" style="margin-bottom:14px">How we beat the alternatives</div>' +
