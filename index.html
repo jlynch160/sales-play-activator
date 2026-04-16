@@ -3047,64 +3047,13 @@ var LIVE_INTEL_PA_URL = 'https://default5132dc45769d4b38a3a7635a520ea3.cd.enviro
 // Fetches actual file content as base64 from SharePoint
 var LIVE_FILE_PA_URL = 'YOUR_FILE_FETCH_PA_URL_HERE';
 
-// ── CONTENT LIBRARY (per-category file browser) ──────────────────────────────
-var __contentCache = {};
+// ── CONTENT LIBRARY (hardcoded from SharePoint scrape) ───────────────────────
 
 function openContentByType(category) {
-  var off = selOff;
-  if(!off) { alert('Select an offering first.'); return; }
-
   var catLabels = { 'pdfs': '📕 Datasheets & PDFs', 'blogs': '📝 Blog Posts', 'success-stories': '⭐ Success Stories' };
   var catLabel = catLabels[category] || category;
-
-  // Check if we already have Live Intel data cached for this offering
-  var cacheKey = off.id + '__' + category;
-  if(__contentCache[cacheKey]) {
-    showContentBrowser(off.name, catLabel, category, __contentCache[cacheKey]);
-    return;
-  }
-
-  // Need to fetch from PA flow
-  var paConfigured = LIVE_INTEL_PA_URL && LIVE_INTEL_PA_URL.indexOf('YOUR_POWER_AUTOMATE') !== 0;
-  if(!paConfigured) {
-    alert('Live Intel PA flow not configured yet.');
-    return;
-  }
-
-  // Create loading popup
-  var existing = document.getElementById('content-browser');
-  if(existing) existing.remove();
-  var overlay = document.createElement('div');
-  overlay.id = 'content-browser';
-  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(5,2,20,0.92);backdrop-filter:blur(8px);z-index:999999;display:flex;align-items:center;justify-content:center;padding:24px;';
-  overlay.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;gap:14px;color:var(--t2);"><div class="li-spinner"></div><div style="font-family:var(--mono);font-size:11px;">Loading '+escHtml(catLabel)+'…</div></div>';
-  document.body.appendChild(overlay);
-  overlay.addEventListener('click', function(e){ if(e.target===overlay){ overlay.remove(); } });
-
-  fetch(LIVE_INTEL_PA_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ offering: off.name, offering_id: off.id, url: 'https://www.majorkeytech.com/' })
-  })
-  .then(function(res){ if(!res.ok) throw new Error('HTTP '+res.status); return res.text(); })
-  .then(function(txt){
-    var files = [];
-    try {
-      var data = JSON.parse(txt);
-      files = extractSpFiles(data.sources || data.rawSearch);
-    } catch(e) {
-      // Response wasn't JSON — no file data available
-      files = [];
-    }
-    var catFiles = files.filter(function(f){ return f.category === category; });
-    __contentCache[cacheKey] = catFiles;
-    overlay.remove();
-    showContentBrowser(off.name, catLabel, category, catFiles);
-  })
-  .catch(function(err){
-    overlay.remove();
-    alert('Error fetching content: ' + err.message);
-  });
+  var files = (window.CONTENT_LIBRARY && window.CONTENT_LIBRARY[category]) || [];
+  showContentBrowser(selOff ? selOff.name : 'All Offerings', catLabel, category, files);
 }
 
 function showContentBrowser(offeringName, catLabel, category, files) {
@@ -3196,63 +3145,74 @@ function openFileViewer(filePath, fileTitle, category) {
   document.getElementById('fv-close').addEventListener('click', closeFileViewer);
   document.addEventListener('keydown', fvEscHandler);
 
-  var fileConfigured = LIVE_FILE_PA_URL && LIVE_FILE_PA_URL.indexOf('YOUR_FILE_FETCH') !== 0;
+  // Determine the best source URL for the file
+  var viewUrl = null;
+  var actualFile = (filePath||'').split('/').pop();
 
-  if(!isViewable || !fileConfigured) {
-    // Not viewable inline — show a nice fallback card
-    var contentEl = document.getElementById('fv-content');
-    var msg = !fileConfigured ? 'File viewer PA flow not configured yet. Set LIVE_FILE_PA_URL.' : 'This file type cannot be previewed inline.';
+  // Try local file path first (when running from file://)
+  if(window.location.protocol === 'file:' && category && actualFile) {
+    var baseDir = window.location.href.replace(/[^\/]*$/, '');
+    var scraperBase = baseDir.replace(/sales-play-activator-main\/sales-play-activator-main\/$/,'scaper/').replace(/sales-play-activator-main\/$/,'scaper/');
+    viewUrl = scraperBase + category + '/' + actualFile;
+  }
+
+  // If not local or not viewable, try PA flow or SharePoint direct
+  var fileConfigured = LIVE_FILE_PA_URL && LIVE_FILE_PA_URL.indexOf('YOUR_FILE_FETCH') !== 0;
+  var contentEl = document.getElementById('fv-content');
+
+  if(viewUrl && isViewable) {
+    // Load local file directly in iframe
+    var sandbox = /\.html?$/i.test(actualFile) ? ' sandbox="allow-same-origin"' : '';
+    contentEl.innerHTML = '<iframe src="'+escHtml(viewUrl)+'"'+sandbox+' style="width:100%;height:100%;border:none;border-radius:0;background:#fff;"></iframe>';
+  } else if(isViewable && fileConfigured) {
+    // Fetch via PA flow (base64)
+    var serverRelPath;
+    try { serverRelPath = decodeURIComponent(new URL(filePath).pathname); }
+    catch(e) { serverRelPath = filePath; }
+
+    fetch(LIVE_FILE_PA_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ filePath: serverRelPath })
+    })
+    .then(function(res){ if(!res.ok) throw new Error('HTTP '+res.status); return res.json(); })
+    .then(function(data) {
+      var b64 = data.content;
+      var ct = data.contentType || 'application/octet-stream';
+      if(!b64) throw new Error('Empty file content returned');
+      var blob = base64ToBlob(b64, ct);
+      if(__fileViewerBlobUrl) URL.revokeObjectURL(__fileViewerBlobUrl);
+      __fileViewerBlobUrl = URL.createObjectURL(blob);
+      var el = document.getElementById('fv-content');
+      if(!el) return;
+      if(/^image\//.test(ct)) {
+        el.innerHTML = '<img src="'+__fileViewerBlobUrl+'" style="max-width:100%;max-height:100%;object-fit:contain;border-radius:8px;">';
+      } else {
+        var sb = /html/i.test(ct) ? ' sandbox="allow-same-origin"' : '';
+        el.innerHTML = '<iframe src="'+__fileViewerBlobUrl+'"'+sb+' style="width:100%;height:100%;border:none;border-radius:0;background:#fff;"></iframe>';
+      }
+    })
+    .catch(function(err) {
+      var el = document.getElementById('fv-content');
+      if(!el) return;
+      el.innerHTML =
+        '<div style="text-align:center;padding:40px;">' +
+          '<div style="font-size:48px;margin-bottom:16px;">⚠️</div>' +
+          '<div style="font-size:14px;color:#FF8A8A;margin-bottom:8px;">Could not load file</div>' +
+          '<div style="font-size:11px;color:var(--t3);margin-bottom:24px;">'+escHtml(String(err))+'</div>' +
+          '<a href="'+escHtml(filePath)+'" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:10px;background:linear-gradient(135deg,var(--purple),var(--teal));color:#0a0620;border-radius:12px;padding:14px 28px;text-decoration:none;font-weight:700;font-size:14px;">Open in SharePoint instead ↗</a>' +
+        '</div>';
+    });
+  } else {
+    // Not viewable — fallback card
     contentEl.innerHTML =
       '<div style="text-align:center;padding:40px;">' +
         '<div style="font-size:72px;margin-bottom:20px;">'+icon+'</div>' +
         '<div style="font-size:18px;font-weight:700;color:var(--t1);margin-bottom:10px;">'+escHtml(fileName)+'</div>' +
-        '<div style="font-size:12px;color:var(--t3);margin-bottom:24px;">'+escHtml(msg)+'</div>' +
+        '<div style="font-size:12px;color:var(--t3);margin-bottom:24px;">Open this file in SharePoint to view it.</div>' +
         '<a href="'+escHtml(filePath)+'" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:10px;background:linear-gradient(135deg,var(--purple),var(--teal));color:#0a0620;border-radius:12px;padding:14px 28px;text-decoration:none;font-weight:700;font-size:14px;">Open in SharePoint ↗</a>' +
       '</div>';
-    return;
   }
-
-  // Fetch file content via PA flow
-  var serverRelPath;
-  try { serverRelPath = decodeURIComponent(new URL(filePath).pathname); }
-  catch(e) { serverRelPath = filePath; }
-
-  fetch(LIVE_FILE_PA_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ filePath: serverRelPath })
-  })
-  .then(function(res){ if(!res.ok) throw new Error('HTTP '+res.status); return res.json(); })
-  .then(function(data) {
-    var b64 = data.content;
-    var ct = data.contentType || 'application/octet-stream';
-    if(!b64) throw new Error('Empty file content returned');
-
-    var blob = base64ToBlob(b64, ct);
-    if(__fileViewerBlobUrl) URL.revokeObjectURL(__fileViewerBlobUrl);
-    __fileViewerBlobUrl = URL.createObjectURL(blob);
-
-    var contentEl = document.getElementById('fv-content');
-    if(!contentEl) return;
-
-    if(/^image\//.test(ct)) {
-      contentEl.innerHTML = '<img src="'+__fileViewerBlobUrl+'" style="max-width:100%;max-height:100%;object-fit:contain;border-radius:8px;">';
-    } else {
-      var sandbox = /html/i.test(ct) ? ' sandbox="allow-same-origin"' : '';
-      contentEl.innerHTML = '<iframe src="'+__fileViewerBlobUrl+'"'+sandbox+' style="width:100%;height:100%;border:none;border-radius:0;background:#fff;"></iframe>';
-    }
-  })
-  .catch(function(err) {
-    var contentEl = document.getElementById('fv-content');
-    if(!contentEl) return;
-    contentEl.innerHTML =
-      '<div style="text-align:center;padding:40px;">' +
-        '<div style="font-size:48px;margin-bottom:16px;">⚠️</div>' +
-        '<div style="font-size:14px;color:#FF8A8A;margin-bottom:8px;">Could not load file</div>' +
-        '<div style="font-size:11px;color:var(--t3);margin-bottom:24px;">'+escHtml(String(err))+'</div>' +
-        '<a href="'+escHtml(filePath)+'" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:10px;background:linear-gradient(135deg,var(--purple),var(--teal));color:#0a0620;border-radius:12px;padding:14px 28px;text-decoration:none;font-weight:700;font-size:14px;">Open in SharePoint instead ↗</a>' +
-      '</div>';
-  });
 }
 
 function closeFileViewer() {
@@ -3749,6 +3709,169 @@ function gp() {
   const k = (!sC || sC === "No Partner") ? "default" : sC;
   return iData[k] || iData["default"] || getFallback(sI, sC);
 }
+// ── CONTENT LIBRARY DATA ─────────────────────────────────────────────────────
+window.CONTENT_LIBRARY={
+  'blogs':[
+    {title:"5 Common Access Review Pitfalls How To Fix Them",file:"5-common-access-review-pitfalls-how-to-fix-them.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/5-common-access-review-pitfalls-how-to-fix-them.html"},
+    {title:"5 Signs Zero Trust Is Right For Your Organizat",file:"5-signs-zero-trust-is-right-for-your-organizat.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/5-signs-zero-trust-is-right-for-your-organizat.html"},
+    {title:"6 Highlights From Sailpoint Navigate 2025",file:"6-highlights-from-sailpoint-navigate-2025.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/6-highlights-from-sailpoint-navigate-2025.html"},
+    {title:"7 Benefits Of Zero Trust",file:"7-benefits-of-zero-trust.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/7-benefits-of-zero-trust.html"},
+    {title:"Accelerating Privileged Access Security Practical Steps For Pam Automation Success",file:"accelerating-privileged-access-security-practical-steps-for-pam-automation-success.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/accelerating-privileged-access-security-practical-steps-for-pam-automation-success.html"},
+    {title:"Auditing Identity And Access Management",file:"auditing-identity-and-access-management.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/auditing-identity-and-access-management.html"},
+    {title:"Authentication Vs Authorization Ciam Tools",file:"authentication-vs-authorization-ciam-tools.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/authentication-vs-authorization-ciam-tools.html"},
+    {title:"Benefits Advantages Of Ciam",file:"benefits-advantages-of-ciam.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/benefits-advantages-of-ciam.html"},
+    {title:"Best Ciem Solutions For Cloud Security",file:"best-ciem-solutions-for-cloud-security.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/best-ciem-solutions-for-cloud-security.html"},
+    {title:"Best Iam Solutions",file:"best-iam-solutions.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/best-iam-solutions.html"},
+    {title:"Biometric Authentication Iam Guide",file:"biometric-authentication-iam-guide.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/biometric-authentication-iam-guide.html"},
+    {title:"Business Case For Lifecycle Workflows Microsoft Entra Id",file:"business-case-for-lifecycle-workflows-microsoft-entra-id.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/business-case-for-lifecycle-workflows-microsoft-entra-id.html"},
+    {title:"Choose The Best Ciam Solution",file:"choose-the-best-ciam-solution.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/choose-the-best-ciam-solution.html"},
+    {title:"Choosing Right Iam Solution",file:"choosing-right-iam-solution.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/choosing-right-iam-solution.html"},
+    {title:"Ciam Implementation And Integration Best Practices",file:"ciam-implementation-and-integration-best-practices.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/ciam-implementation-and-integration-best-practices.html"},
+    {title:"Ciam Security And Customer Experience Balance",file:"ciam-security-and-customer-experience-balance.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/ciam-security-and-customer-experience-balance.html"},
+    {title:"Ciam Top Business Use Cases",file:"ciam-top-business-use-cases.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/ciam-top-business-use-cases.html"},
+    {title:"Cloud Entitlement Discovery And Inventory",file:"cloud-entitlement-discovery-and-inventory.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/cloud-entitlement-discovery-and-inventory.html"},
+    {title:"Cloud Infrastructure Entitlements Key Elements",file:"cloud-infrastructure-entitlements-key-elements.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/cloud-infrastructure-entitlements-key-elements.html"},
+    {title:"Comparative Analysis Of Top Iam Tools",file:"comparative-analysis-of-top-iam-tools.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/comparative-analysis-of-top-iam-tools.html"},
+    {title:"Components Of Identity And Access Management Iam",file:"components-of-identity-and-access-management-iam.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/components-of-identity-and-access-management-iam.html"},
+    {title:"Critical Sharepoint On Prem Zero Day Vulnerability Urgent Steps To Protect Your Systems Now",file:"critical-sharepoint-on-prem-zero-day-vulnerability-urgent-steps-to-protect-your-systems-now.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/critical-sharepoint-on-prem-zero-day-vulnerability-urgent-steps-to-protect-your-systems-now.html"},
+    {title:"Customer Identity And Access Management Ciam An In Depth Overview",file:"customer-identity-and-access-management-ciam-an-in-depth-overview.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/customer-identity-and-access-management-ciam-an-in-depth-overview.html"},
+    {title:"Customer Identity And Access Management Ciam",file:"customer-identity-and-access-management-ciam.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/customer-identity-and-access-management-ciam.html"},
+    {title:"Cyberark Webinar Series Transforming Identity Security Through Intelligent Automation",file:"cyberark-webinar-series-transforming-identity-security-through-intelligent-automation.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/cyberark-webinar-series-transforming-identity-security-through-intelligent-automation.html"},
+    {title:"Decentralized Identity Explained Practical Q A 2026",file:"decentralized-identity-explained-practical-q-a-2026.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/decentralized-identity-explained-practical-q-a-2026.html"},
+    {title:"Differences Between Ciam And Iam Solutions",file:"differences-between-ciam-and-iam-solutions.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/differences-between-ciam-and-iam-solutions.html"},
+    {title:"Digital Trust Reimagined Verifiable Credentials Face Check Help Stop Fraud",file:"digital-trust-reimagined-verifiable-credentials-face-check-help-stop-fraud.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/digital-trust-reimagined-verifiable-credentials-face-check-help-stop-fraud.html"},
+    {title:"Elevating Customer Experience Driving Business Growth Ciam",file:"elevating-customer-experience-driving-business-growth-ciam.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/elevating-customer-experience-driving-business-growth-ciam.html"},
+    {title:"Enhancing Remote Workforce Security How Idproof Is Transforming Identity Verification",file:"enhancing-remote-workforce-security-how-idproof-is-transforming-identity-verification.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/enhancing-remote-workforce-security-how-idproof-is-transforming-identity-verification.html"},
+    {title:"Features To Consider When Evaluating Pam Vendor",file:"features-to-consider-when-evaluating-pam-vendor.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/features-to-consider-when-evaluating-pam-vendor.html"},
+    {title:"Five Common Identity Governance Administration Iga Challenges How Managed Services Help Solve Them",file:"five-common-identity-governance-administration-iga-challenges-how-managed-services-help-solve-them.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/five-common-identity-governance-administration-iga-challenges-how-managed-services-help-solve-them.html"},
+    {title:"From Deepfakes To Fraudulent Employees Securing Remote Work",file:"from-deepfakes-to-fraudulent-employees-securing-remote-work.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/from-deepfakes-to-fraudulent-employees-securing-remote-work.html"},
+    {title:"From Shadow To Certainty Securing Machine Identities With Confidence 2025 Navigate Session Recap",file:"from-shadow-to-certainty-securing-machine-identities-with-confidence-2025-navigate-session-recap.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/from-shadow-to-certainty-securing-machine-identities-with-confidence-2025-navigate-session-recap.html"},
+    {title:"Fundamental Elements Of Modern Iam",file:"fundamental-elements-of-modern-iam.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/fundamental-elements-of-modern-iam.html"},
+    {title:"Have You Solved Your Iam Problem",file:"have-you-solved-your-iam-problem.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/have-you-solved-your-iam-problem.html"},
+    {title:"How Ciam Tools Collect And Use Customer Data",file:"how-ciam-tools-collect-and-use-customer-data.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/how-ciam-tools-collect-and-use-customer-data.html"},
+    {title:"How Iam Helps Mitigate Cyber Security Risks",file:"how-iam-helps-mitigate-cyber-security-risks.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/how-iam-helps-mitigate-cyber-security-risks.html"},
+    {title:"Iam Compliance",file:"iam-compliance.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/iam-compliance.html"},
+    {title:"Iam For Government",file:"iam-for-government.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/iam-for-government.html"},
+    {title:"Iam Implementation Step By Step Guide",file:"iam-implementation-step-by-step-guide.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/iam-implementation-step-by-step-guide.html"},
+    {title:"Iam In Ecommerce",file:"iam-in-ecommerce.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/iam-in-ecommerce.html"},
+    {title:"Iam In Financial Services",file:"iam-in-financial-services.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/iam-in-financial-services.html"},
+    {title:"Iam In Healthcare",file:"iam-in-healthcare.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/iam-in-healthcare.html"},
+    {title:"Identity Assurance Made Simple Remote Hiring Third Party Access And Call Center Protection",file:"identity-assurance-made-simple-remote-hiring-third-party-access-and-call-center-protection.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/identity-assurance-made-simple-remote-hiring-third-party-access-and-call-center-protection.html"},
+    {title:"Identity Is The New Perimeter Security In A Cloud First World",file:"identity-is-the-new-perimeter-security-in-a-cloud-first-world.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/identity-is-the-new-perimeter-security-in-a-cloud-first-world.html"},
+    {title:"Identity Modernization Foundation Ai Readiness Healthcare",file:"identity-modernization-foundation-ai-readiness-healthcare.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/identity-modernization-foundation-ai-readiness-healthcare.html"},
+    {title:"Identity Proofing 101",file:"identity-proofing-101.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/identity-proofing-101.html"},
+    {title:"Identity Silos Complexity",file:"identity-silos-complexity.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/identity-silos-complexity.html"},
+    {title:"Iga Change Management Guide To Successful Engagements",file:"iga-change-management-guide-to-successful-engagements.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/iga-change-management-guide-to-successful-engagements.html"},
+    {title:"Impact Of Ai Machine Learning On Iam",file:"impact-of-ai-machine-learning-on-iam.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/impact-of-ai-machine-learning-on-iam.html"},
+    {title:"Importance Of Iam",file:"importance-of-iam.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/importance-of-iam.html"},
+    {title:"Importance Of Role Based Access Control In Ciem",file:"importance-of-role-based-access-control-in-ciem.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/importance-of-role-based-access-control-in-ciem.html"},
+    {title:"Improve Security With A Zero Trust Access Model",file:"improve-security-with-a-zero-trust-access-model.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/improve-security-with-a-zero-trust-access-model.html"},
+    {title:"Introduction To Cloud Infrastructure Entitlement Management Ciem",file:"introduction-to-cloud-infrastructure-entitlement-management-ciem.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/introduction-to-cloud-infrastructure-entitlement-management-ciem.html"},
+    {title:"Introduction To Identity And Access Management",file:"introduction-to-identity-and-access-management.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/introduction-to-identity-and-access-management.html"},
+    {title:"Key Components Features Successful Ciam Programs",file:"key-components-features-successful-ciam-programs.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/key-components-features-successful-ciam-programs.html"},
+    {title:"Key Components Of Privileged Access Solutions",file:"key-components-of-privileged-access-solutions.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/key-components-of-privileged-access-solutions.html"},
+    {title:"Key Takeaways From Identiverse 2025",file:"key-takeaways-from-identiverse-2025.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/key-takeaways-from-identiverse-2025.html"},
+    {title:"Kpis For App Onboarding What To Measure And Why It Matters",file:"kpis-for-app-onboarding-what-to-measure-and-why-it-matters.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/kpis-for-app-onboarding-what-to-measure-and-why-it-matters.html"},
+    {title:"Mastering Certificate Renewal How Automation Bridges Pki And Privileged Access",file:"mastering-certificate-renewal-how-automation-bridges-pki-and-privileged-access.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/mastering-certificate-renewal-how-automation-bridges-pki-and-privileged-access.html"},
+    {title:"Mastering Non Human Identity Management Challenges Strategies And Executive Alignment",file:"mastering-non-human-identity-management-challenges-strategies-and-executive-alignment.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/mastering-non-human-identity-management-challenges-strategies-and-executive-alignment.html"},
+    {title:"Microsoft Entra Id Governance Whats New And Why It Matters",file:"microsoft-entra-id-governance-whats-new-and-why-it-matters.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/microsoft-entra-id-governance-whats-new-and-why-it-matters.html"},
+    {title:"Modernizing Identity Governance Majorkey Horizonid Microsoft Entra Suite",file:"modernizing-identity-governance-majorkey-horizonid-microsoft-entra-suite.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/modernizing-identity-governance-majorkey-horizonid-microsoft-entra-suite.html"},
+    {title:"Modernizing Identity Governance Streamlining Access For A Secure Enterprise",file:"modernizing-identity-governance-streamlining-access-for-a-secure-enterprise.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/modernizing-identity-governance-streamlining-access-for-a-secure-enterprise.html"},
+    {title:"Navigating Ai Adoption Identity Security Considerations For Microsoft Copilot",file:"navigating-ai-adoption-identity-security-considerations-for-microsoft-copilot.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/navigating-ai-adoption-identity-security-considerations-for-microsoft-copilot.html"},
+    {title:"Nomadid Majorkey Strata Icam Ddil Disconnected Identity",file:"nomadid-majorkey-strata-icam-ddil-disconnected-identity.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/nomadid-majorkey-strata-icam-ddil-disconnected-identity.html"},
+    {title:"Nydfs Amendment User Access Reviews",file:"nydfs-amendment-user-access-reviews.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/nydfs-amendment-user-access-reviews.html"},
+    {title:"On Premises Privileged Access Management Pam Versus Pam As A Service",file:"on-premises-privileged-access-management-pam-versus-pam-as-a-service.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/on-premises-privileged-access-management-pam-versus-pam-as-a-service.html"},
+    {title:"Outcome Driven Iam Why Identity Programs Win On Results Not Tools",file:"outcome-driven-iam-why-identity-programs-win-on-results-not-tools.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/outcome-driven-iam-why-identity-programs-win-on-results-not-tools.html"},
+    {title:"Preparing For 2024 Solar Eclipse Guide To Implementing Nist Csf 2",file:"preparing-for-2024-solar-eclipse-guide-to-implementing-nist-csf-2.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/preparing-for-2024-solar-eclipse-guide-to-implementing-nist-csf-2.html"},
+    {title:"Preparing For Ai Driven Identity Threats",file:"preparing-for-ai-driven-identity-threats.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/preparing-for-ai-driven-identity-threats.html"},
+    {title:"Provisioning And Deprovisioning In Iam",file:"provisioning-and-deprovisioning-in-iam.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/provisioning-and-deprovisioning-in-iam.html"},
+    {title:"Redefining Efficiency And Reliability How Majorkey Managed Operations Empowers Identity Programs",file:"redefining-efficiency-and-reliability-how-majorkey-managed-operations-empowers-identity-programs.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/redefining-efficiency-and-reliability-how-majorkey-managed-operations-empowers-identity-programs.html"},
+    {title:"Rethinking Application Onboarding A Value Based Approach For Real Business Impact 2025 Navigate Session Recap",file:"rethinking-application-onboarding-a-value-based-approach-for-real-business-impact-2025-navigate-session-recap.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/rethinking-application-onboarding-a-value-based-approach-for-real-business-impact-2025-navigate-session-recap.html"},
+    {title:"Role Of Ciem In Cloud Compliance",file:"role-of-ciem-in-cloud-compliance.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/role-of-ciem-in-cloud-compliance.html"},
+    {title:"Role Of Iam In Cloud",file:"role-of-iam-in-cloud.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/role-of-iam-in-cloud.html"},
+    {title:"Role Of Iam In Education",file:"role-of-iam-in-education.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/role-of-iam-in-education.html"},
+    {title:"Role Of Single Sign On Sso In Iam",file:"role-of-single-sign-on-sso-in-iam.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/role-of-single-sign-on-sso-in-iam.html"},
+    {title:"Securing Modern Identities How Microsoft Entra Id Governance Transforms Access Management",file:"securing-modern-identities-how-microsoft-entra-id-governance-transforms-access-management.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/securing-modern-identities-how-microsoft-entra-id-governance-transforms-access-management.html"},
+    {title:"Segregation Of Duties Challenges And Mitigation Strategies",file:"segregation-of-duties-challenges-and-mitigation-strategies.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/segregation-of-duties-challenges-and-mitigation-strategies.html"},
+    {title:"Segregation Of Duties Finance And Accounting",file:"segregation-of-duties-finance-and-accounting.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/segregation-of-duties-finance-and-accounting.html"},
+    {title:"Segregation Of Duties Role Of Technology",file:"segregation-of-duties-role-of-technology.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/segregation-of-duties-role-of-technology.html"},
+    {title:"Segregation Of Duties",file:"segregation-of-duties.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/segregation-of-duties.html"},
+    {title:"Selling Iam To The Business Speak Their Language Not Yours",file:"selling-iam-to-the-business-speak-their-language-not-yours.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/selling-iam-to-the-business-speak-their-language-not-yours.html"},
+    {title:"The Evolution Of Iam Transforming From Security Necessity To Strategic Value Driver",file:"the-evolution-of-iam-transforming-from-security-necessity-to-strategic-value-driver.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/the-evolution-of-iam-transforming-from-security-necessity-to-strategic-value-driver.html"},
+    {title:"Transitioning Beyond Mim Revisited Part 1 Current Mim Landscape",file:"transitioning-beyond-mim-revisited-part-1-current-mim-landscape.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/transitioning-beyond-mim-revisited-part-1-current-mim-landscape.html"},
+    {title:"Unlocking Operational Insight How Identitylens Is Transforming Managed Services",file:"unlocking-operational-insight-how-identitylens-is-transforming-managed-services.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/unlocking-operational-insight-how-identitylens-is-transforming-managed-services.html"},
+    {title:"Vpns To Identity Driven Access Microsoft Entra Global Secure Access Advantage",file:"vpns-to-identity-driven-access-microsoft-entra-global-secure-access-advantage.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/vpns-to-identity-driven-access-microsoft-entra-global-secure-access-advantage.html"},
+    {title:"What Is Federated Identity",file:"what-is-federated-identity.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/what-is-federated-identity.html"},
+    {title:"What Is Harbor Pilot An Intro To Sailpoints New Iam Ai Agent",file:"what-is-harbor-pilot-an-intro-to-sailpoints-new-iam-ai-agent.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/what-is-harbor-pilot-an-intro-to-sailpoints-new-iam-ai-agent.html"},
+    {title:"What Is Privileged Access Management Pam",file:"what-is-privileged-access-management-pam.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/what-is-privileged-access-management-pam.html"},
+    {title:"What Is Role Based Access Control Rbac",file:"what-is-role-based-access-control-rbac.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/what-is-role-based-access-control-rbac.html"},
+    {title:"What Is Skydock A Comprehensive Solution For Cyberark Object Migration",file:"what-is-skydock-a-comprehensive-solution-for-cyberark-object-migration.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/what-is-skydock-a-comprehensive-solution-for-cyberark-object-migration.html"},
+    {title:"What Is Zero Trust",file:"what-is-zero-trust.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/what-is-zero-trust.html"},
+    {title:"What We Learned At Cyberark Impact 2025",file:"what-we-learned-at-cyberark-impact-2025.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/what-we-learned-at-cyberark-impact-2025.html"},
+    {title:"Why Iam Projects Fail And How To Flip The Script",file:"why-iam-projects-fail-and-how-to-flip-the-script.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/why-iam-projects-fail-and-how-to-flip-the-script.html"},
+    {title:"Zero Trust Explained",file:"zero-trust-explained.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/zero-trust-explained.html"},
+    {title:"Zero Trust Isnt Just For The Cloud It Works For On Premises Too",file:"zero-trust-isnt-just-for-the-cloud-it-works-for-on-premises-too.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/zero-trust-isnt-just-for-the-cloud-it-works-for-on-premises-too.html"},
+    {title:"Zero Trust Security And Iam In Access Control",file:"zero-trust-security-and-iam-in-access-control.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/zero-trust-security-and-iam-in-access-control.html"},
+  ],
+  'pdfs':[
+    {title:"2025 Combined Federal Capabilities Statement",file:"2025_Combined_Federal_Capabilities_Statement.pdf",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/pdfs/2025_Combined_Federal_Capabilities_Statement.pdf"},
+    {title:"2026 Microsoft Services Portfolio   Customer Facing",file:"2026 Microsoft Services Portfolio - Customer-Facing.pdf",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/pdfs/2026%20Microsoft%20Services%20Portfolio%20-%20Customer-Facing.pdf"},
+    {title:"47 Day Certificate Automation Readiness Checklist",file:"47-Day Certificate Automation Readiness Checklist.pdf",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/pdfs/47-Day%20Certificate%20Automation%20Readiness%20Checklist.pdf"},
+    {title:"AD Consolidation   From Rust To Resilience   Offering V2",file:"AD Consolidation - From Rust to Resilience - Offering v2.pdf",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/pdfs/AD%20Consolidation%20-%20From%20Rust%20to%20Resilience%20-%20Offering%20v2.pdf"},
+    {title:"AI Readiness Advisory Assessment   Security Copilot",file:"AI Readiness Advisory Assessment - Security Copilot.pdf",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/pdfs/AI%20Readiness%20Advisory%20Assessment%20-%20Security%20Copilot.pdf"},
+    {title:"Advisory Services Data Sheet",file:"Advisory Services Data Sheet.pdf",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/pdfs/Advisory%20Services%20Data%20Sheet.pdf"},
+    {title:"CredSafe Tool Overview",file:"CredSafe Tool Overview.pdf",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/pdfs/CredSafe%20Tool%20Overview.pdf"},
+    {title:"CyberArk PAM Data Sheet",file:"CyberArk PAM Data Sheet.pdf",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/pdfs/CyberArk%20PAM%20Data%20Sheet.pdf"},
+    {title:"Dec2025 NomadID Whitepaper",file:"Dec2025 NomadID Whitepaper.pdf",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/pdfs/Dec2025%20NomadID%20Whitepaper.pdf"},
+    {title:"HorizonID Overview",file:"HorizonID Overview.pdf",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/pdfs/HorizonID%20Overview.pdf"},
+    {title:"IDProof EBook",file:"IDProof eBook.pdf",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/pdfs/IDProof%20eBook.pdf"},
+    {title:"IDProof+ Overview Data Sheet",file:"IDProof+ Overview Data Sheet.pdf",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/pdfs/IDProof%2B%20Overview%20Data%20Sheet.pdf"},
+    {title:"IGA Services Data Sheet",file:"IGA Services Data Sheet.pdf",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/pdfs/IGA%20Services%20Data%20Sheet.pdf"},
+    {title:"Identity That Works For Care   Access Experience Assessment",file:"Identity That Works For Care - Access Experience Assessment.pdf",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/pdfs/Identity%20That%20Works%20For%20Care%20-%20Access%20Experience%20Assessment.pdf"},
+    {title:"IdentityLens Overview Whitepaper",file:"IdentityLens Overview Whitepaper.pdf",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/pdfs/IdentityLens%20Overview%20Whitepaper.pdf"},
+    {title:"IdentityLens Product Overview",file:"IdentityLens Product Overview.pdf",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/pdfs/IdentityLens%20Product%20Overview.pdf"},
+    {title:"IdentityScout Product Overview",file:"IdentityScout Product Overview.pdf",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/pdfs/IdentityScout%20Product%20Overview.pdf"},
+    {title:"LessFrictionMoreFlow   Okta To Entra   Advisory V2",file:"LessFrictionMoreFlow - Okta to Entra - Advisory v2.pdf",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/pdfs/LessFrictionMoreFlow%20-%20Okta%20to%20Entra%20-%20Advisory%20v2.pdf"},
+    {title:"Leveraging Artificial Intelligence In Identity Security",file:"Leveraging Artificial Intelligence in Identity Security.pdf",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/pdfs/Leveraging%20Artificial%20Intelligence%20in%20Identity%20Security.pdf"},
+    {title:"MIM To Microsoft Entra ID Readiness And Roadmap",file:"MIM-to-Microsoft Entra ID Readiness and Roadmap.pdf",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/pdfs/MIM-to-Microsoft%20Entra%20ID%20Readiness%20and%20Roadmap.pdf"},
+    {title:"Microsoft Entra ID Readiness & Roadmap   Commercial",file:"Microsoft Entra ID Readiness & Roadmap - Commercial.pdf",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/pdfs/Microsoft%20Entra%20ID%20Readiness%20%26%20Roadmap%20-%20Commercial.pdf"},
+    {title:"Microsoft Entra Suite Workshop",file:"Microsoft Entra Suite Workshop.pdf",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/pdfs/Microsoft%20Entra%20Suite%20Workshop.pdf"},
+    {title:"Modernize Your Privileged Access Management Program Ebook",file:"Modernize Your Privileged Access Management Program ebook.pdf",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/pdfs/Modernize%20Your%20Privileged%20Access%20Management%20Program%20ebook.pdf"},
+    {title:"NomadID Overview Data Sheet",file:"NomadID Overview Data Sheet.pdf",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/pdfs/NomadID%20Overview%20Data%20Sheet.pdf"},
+    {title:"OrchestratID Product Overview",file:"OrchestratID Product Overview.pdf",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/pdfs/OrchestratID%20Product%20Overview.pdf"},
+    {title:"PAM Automation Guide",file:"PAM Automation Guide.pdf",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/pdfs/PAM%20Automation%20Guide.pdf"},
+    {title:"PKI Meets PAM",file:"PKI Meets PAM.pdf",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/pdfs/PKI%20Meets%20PAM.pdf"},
+    {title:"Ping Data Sheet",file:"Ping Data Sheet.pdf",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/pdfs/Ping%20Data%20Sheet.pdf"},
+    {title:"SailPoint ARM Data Sheet",file:"SailPoint ARM Data Sheet.pdf",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/pdfs/SailPoint%20ARM%20Data%20Sheet.pdf"},
+    {title:"SailPoint IIQ To ISC Data Sheet",file:"SailPoint IIQ to ISC Data Sheet.pdf",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/pdfs/SailPoint%20IIQ%20to%20ISC%20Data%20Sheet.pdf"},
+    {title:"SailPoint MSP Program Data Sheet",file:"SailPoint MSP Program Data Sheet.pdf",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/pdfs/SailPoint%20MSP%20Program%20Data%20Sheet.pdf"},
+    {title:"SailPoint NERM Data Sheet",file:"SailPoint NERM Data Sheet.pdf",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/pdfs/SailPoint%20NERM%20Data%20Sheet.pdf"},
+    {title:"Saviynt Partner On A Page",file:"Saviynt Partner on a Page.pdf",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/pdfs/Saviynt%20Partner%20on%20a%20Page.pdf"},
+    {title:"Signs Your IGA Program Needs A Reboot Ebook",file:"Signs Your IGA Program Needs a Reboot ebook.pdf",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/pdfs/Signs%20Your%20IGA%20Program%20Needs%20a%20Reboot%20ebook.pdf"},
+    {title:"SkyDock Tool Overview",file:"SkyDock Tool Overview.pdf",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/pdfs/SkyDock%20Tool%20Overview.pdf"},
+    {title:"The Next Evolution Of Identity Governance",file:"The Next Evolution of Identity Governance.pdf",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/pdfs/The%20Next%20Evolution%20of%20Identity%20Governance.pdf"},
+  ],
+  'success-stories':[
+    {title:"A Modern Scalable Iga Solution For A Large Healthcare Network",file:"a-modern-scalable-iga-solution-for-a-large-healthcare-network.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/success-stories/a-modern-scalable-iga-solution-for-a-large-healthcare-network.html"},
+    {title:"Application Governance Vendor Selection And Implementation",file:"application-governance-vendor-selection-and-implementation.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/success-stories/application-governance-vendor-selection-and-implementation.html"},
+    {title:"Cloud Security Assessment Google Cloud",file:"cloud-security-assessment-google-cloud.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/success-stories/cloud-security-assessment-google-cloud.html"},
+    {title:"Consolidating Identity Processes Improving Security And Reducing Costs With Microsoft Entra Id Governance",file:"consolidating-identity-processes-improving-security-and-reducing-costs-with-microsoft-entra-id-governance.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/success-stories/consolidating-identity-processes-improving-security-and-reducing-costs-with-microsoft-entra-id-governance.html"},
+    {title:"Fastpath Delinea Seperation Of Duties Toolset Update",file:"fastpath-delinea-seperation-of-duties-toolset-update.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/success-stories/fastpath-delinea-seperation-of-duties-toolset-update.html"},
+    {title:"Helping Community Colleges Improve Security With Microsoft 365 Security Services",file:"helping-community-colleges-improve-security-with-microsoft-365-security-services.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/success-stories/helping-community-colleges-improve-security-with-microsoft-365-security-services.html"},
+    {title:"Hospital System User Onboarding",file:"hospital-system-user-onboarding.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/success-stories/hospital-system-user-onboarding.html"},
+    {title:"Identity Integration And Consolidation Post Acquisition",file:"identity-integration-and-consolidation-post-acquisition.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/success-stories/identity-integration-and-consolidation-post-acquisition.html"},
+    {title:"Modernizing Global Heavy Equipment Manufacturer Identity Application Governance",file:"modernizing-global-heavy-equipment-manufacturer-identity-application-governance.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/success-stories/modernizing-global-heavy-equipment-manufacturer-identity-application-governance.html"},
+    {title:"Non User Starts Automation Supply Chain",file:"non-user-starts-automation-supply-chain.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/success-stories/non-user-starts-automation-supply-chain.html"},
+    {title:"Recovering A Cyberark Implementation For A Healthcare Fintech Leader",file:"recovering-a-cyberark-implementation-for-a-healthcare-fintech-leader.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/success-stories/recovering-a-cyberark-implementation-for-a-healthcare-fintech-leader.html"},
+    {title:"Recovering Stalled Fastpath Implementation",file:"recovering-stalled-fastpath-implementation.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/success-stories/recovering-stalled-fastpath-implementation.html"},
+    {title:"Sailpoint Rescue Fortune 500 Bank",file:"sailpoint-rescue-fortune-500-bank.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/success-stories/sailpoint-rescue-fortune-500-bank.html"},
+    {title:"Saviynt Rescue Services",file:"saviynt-rescue-services.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/success-stories/saviynt-rescue-services.html"},
+    {title:"Saying Goodbye Adfs Migrating A Federal Agency To Microsoft Entra Id For A Zero Trust Cloud First Future",file:"saying-goodbye-adfs-migrating-a-federal-agency-to-microsoft-entra-id-for-a-zero-trust-cloud-first-future.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/success-stories/saying-goodbye-adfs-migrating-a-federal-agency-to-microsoft-entra-id-for-a-zero-trust-cloud-first-future.html"},
+    {title:"Streamlining Access Reviews And Identity Governance With Saviynt Eic For A Large Retailer",file:"streamlining-access-reviews-and-identity-governance-with-saviynt-eic-for-a-large-retailer.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/success-stories/streamlining-access-reviews-and-identity-governance-with-saviynt-eic-for-a-large-retailer.html"},
+    {title:"Transforming Privileged Access Management With Cyberark",file:"transforming-privileged-access-management-with-cyberark.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/success-stories/transforming-privileged-access-management-with-cyberark.html"},
+    {title:"User Onboarding Hospital",file:"user-onboarding-hospital.html",path:"https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/success-stories/user-onboarding-hospital.html"},
+  ],
+};
 window.OFFERINGS=[
   {id:'entra-mig',name:'X to Entra ID Migration',short:'Entra Migration',icon:'🔄',tagline:'Move off Okta, Ping, or any legacy IdP onto Microsoft Entra ID',
    problems:['Okta renewal','duplicate identity spend','legacy IdP','SSO consolidation','M365 E5 unused entitlement','vendor consolidation','contract expiry'],
