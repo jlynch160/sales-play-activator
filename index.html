@@ -3092,21 +3092,26 @@ function showContentBrowser(offeringName, catLabel, category, files, otherFiles)
       var upPct = Math.round(ratingStats.up / total * 100);
       statsHtml = '<span style="font-family:var(--mono);font-size:9px;color:var(--t3);margin-left:auto;">' + upPct + '% helpful</span>';
     }
-    var safeFp = escHtml(f.path).replace(/'/g,"\\'");
-    var safeFn = escHtml(f.title||fileName).replace(/'/g,"\\'");
-    return '<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:18px;transition:all 0.2s;position:relative;display:flex;flex-direction:column;" onmouseover="this.style.borderColor=\'rgba(105,0,255,0.4)\';this.style.transform=\'translateY(-2px)\';this.style.boxShadow=\'0 8px 24px rgba(105,0,255,0.12)\'" onmouseout="this.style.borderColor=\'rgba(255,255,255,0.08)\';this.style.transform=\'\';this.style.boxShadow=\'\'">' +
-      '<div onclick="openFileViewer(\''+safeFp+'\',\''+safeFn+'\',\''+cat+'\')" style="cursor:pointer;flex:1;">' +
+    var upActive = currentRating === 'up';
+    var downActive = currentRating === 'down';
+    var upBg = upActive ? 'rgba(32,245,147,0.2)' : 'rgba(255,255,255,0.04)';
+    var upBorder = upActive ? 'rgba(32,245,147,0.5)' : 'rgba(255,255,255,0.08)';
+    var upColor = upActive ? 'var(--teal2)' : 'var(--t3)';
+    var downBg = downActive ? 'rgba(255,92,92,0.2)' : 'rgba(255,255,255,0.04)';
+    var downBorder = downActive ? 'rgba(255,92,92,0.5)' : 'rgba(255,255,255,0.08)';
+    var downColor = downActive ? '#FF8A8A' : 'var(--t3)';
+    return '<div class="cb-card" data-path="'+escHtml(f.path)+'" data-title="'+escHtml(f.title||fileName)+'" data-cat="'+cat+'" data-fkey="'+escHtml(feedbackKey)+'" style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:18px;transition:all 0.2s;position:relative;display:flex;flex-direction:column;">' +
+      '<div class="cb-card-body" style="cursor:pointer;flex:1;">' +
         '<div style="font-size:34px;margin-bottom:10px;">'+icon+'</div>' +
         '<div style="font-size:15px;font-weight:600;color:var(--t1);line-height:1.4;margin-bottom:6px;word-break:break-word;">'+escHtml(f.title||fileName)+'</div>' +
         (fileExt ? '<span style="font-family:var(--mono);font-size:10px;letter-spacing:0.1em;padding:2px 7px;border-radius:4px;background:rgba(105,0,255,0.15);color:var(--purple2);text-transform:uppercase;">'+fileExt+'</span>' : '') +
         matchedPills +
         '<div style="position:absolute;top:14px;right:14px;font-size:12px;color:rgba(105,0,255,0.5);">↗</div>' +
       '</div>' +
-      // Feedback row
       '<div style="display:flex;align-items:center;gap:8px;margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.06);">' +
         '<span style="font-family:var(--mono);font-size:9px;color:var(--t3);letter-spacing:0.08em;text-transform:uppercase;">Useful?</span>' +
-        '<button onclick="event.stopPropagation();rateContent(\''+feedbackKey.replace(/\\/g,'\\\\').replace(/\'/g,"\\'")+'\',\'up\',this)" class="rate-btn rate-up'+(currentRating==='up'?' on':'')+'" style="display:flex;align-items:center;gap:4px;padding:5px 10px;border-radius:8px;background:'+(currentRating==='up'?'rgba(32,245,147,0.2)':'rgba(255,255,255,0.04)')+';border:1px solid '+(currentRating==='up'?'rgba(32,245,147,0.5)':'rgba(255,255,255,0.08)')+';color:'+(currentRating==='up'?'var(--teal2)':'var(--t3)')+';cursor:pointer;font-size:13px;transition:all 0.2s;" onmouseover="if(!this.classList.contains(\'on\')){this.style.background=\'rgba(32,245,147,0.08)\';this.style.borderColor=\'rgba(32,245,147,0.3)\';this.style.color=\'var(--teal2)\'}" onmouseout="if(!this.classList.contains(\'on\')){this.style.background=\'rgba(255,255,255,0.04)\';this.style.borderColor=\'rgba(255,255,255,0.08)\';this.style.color=\'var(--t3)\'}"><span>👍</span><span style="font-family:var(--mono);font-size:10px;font-weight:700;">'+ratingStats.up+'</span></button>' +
-        '<button onclick="event.stopPropagation();rateContent(\''+feedbackKey.replace(/\\/g,'\\\\').replace(/\'/g,"\\'")+'\',\'down\',this)" class="rate-btn rate-down'+(currentRating==='down'?' on':'')+'" style="display:flex;align-items:center;gap:4px;padding:5px 10px;border-radius:8px;background:'+(currentRating==='down'?'rgba(255,92,92,0.2)':'rgba(255,255,255,0.04)')+';border:1px solid '+(currentRating==='down'?'rgba(255,92,92,0.5)':'rgba(255,255,255,0.08)')+';color:'+(currentRating==='down'?'#FF8A8A':'var(--t3)')+';cursor:pointer;font-size:13px;transition:all 0.2s;" onmouseover="if(!this.classList.contains(\'on\')){this.style.background=\'rgba(255,92,92,0.08)\';this.style.borderColor=\'rgba(255,92,92,0.3)\';this.style.color=\'#FF8A8A\'}" onmouseout="if(!this.classList.contains(\'on\')){this.style.background=\'rgba(255,255,255,0.04)\';this.style.borderColor=\'rgba(255,255,255,0.08)\';this.style.color=\'var(--t3)\'}"><span>👎</span><span style="font-family:var(--mono);font-size:10px;font-weight:700;">'+ratingStats.down+'</span></button>' +
+        '<button class="rate-btn rate-up'+(upActive?' on':'')+'" data-vote="up" style="display:flex;align-items:center;gap:4px;padding:5px 10px;border-radius:8px;background:'+upBg+';border:1px solid '+upBorder+';color:'+upColor+';cursor:pointer;font-size:13px;transition:all 0.2s;"><span>👍</span><span class="rate-count" style="font-family:var(--mono);font-size:10px;font-weight:700;">'+ratingStats.up+'</span></button>' +
+        '<button class="rate-btn rate-down'+(downActive?' on':'')+'" data-vote="down" style="display:flex;align-items:center;gap:4px;padding:5px 10px;border-radius:8px;background:'+downBg+';border:1px solid '+downBorder+';color:'+downColor+';cursor:pointer;font-size:13px;transition:all 0.2s;"><span>👎</span><span class="rate-count" style="font-family:var(--mono);font-size:10px;font-weight:700;">'+ratingStats.down+'</span></button>' +
         statsHtml +
       '</div>' +
     '</div>';
@@ -3142,6 +3147,43 @@ function showContentBrowser(offeringName, catLabel, category, files, otherFiles)
 
   document.getElementById('cb-close').addEventListener('click', function(){ overlay.remove(); });
   overlay.addEventListener('click', function(e){ if(e.target===overlay) overlay.remove(); });
+
+  // Event delegation for card clicks + rating buttons
+  overlay.addEventListener('click', function(e) {
+    var rateBtn = e.target.closest('.rate-btn');
+    if(rateBtn) {
+      e.stopPropagation();
+      var card = rateBtn.closest('.cb-card');
+      if(!card) return;
+      var fkey = card.getAttribute('data-fkey');
+      var vote = rateBtn.getAttribute('data-vote');
+      rateContent(fkey, vote, rateBtn);
+      return;
+    }
+    var cardBody = e.target.closest('.cb-card-body');
+    if(cardBody) {
+      var card = cardBody.closest('.cb-card');
+      if(!card) return;
+      var path = card.getAttribute('data-path');
+      var title = card.getAttribute('data-title');
+      var cat = card.getAttribute('data-cat');
+      openFileViewer(path, title, cat);
+    }
+  });
+
+  // Card hover
+  overlay.querySelectorAll('.cb-card').forEach(function(c) {
+    c.addEventListener('mouseover', function() {
+      c.style.borderColor = 'rgba(105,0,255,0.4)';
+      c.style.transform = 'translateY(-2px)';
+      c.style.boxShadow = '0 8px 24px rgba(105,0,255,0.12)';
+    });
+    c.addEventListener('mouseout', function() {
+      c.style.borderColor = 'rgba(255,255,255,0.08)';
+      c.style.transform = '';
+      c.style.boxShadow = '';
+    });
+  });
 }
 
 // ── INLINE FILE VIEWER ──────────────────────────────────────────────────────
