@@ -3063,25 +3063,31 @@ function openFileViewer(filePath, fileTitle, category) {
   document.getElementById('fv-close').addEventListener('click', closeFileViewer);
   document.addEventListener('keydown', fvEscHandler);
 
-  // Determine the best source URL for the file
-  var viewUrl = null;
-  var actualFile = (filePath||'').split('/').pop();
+  // Build candidate URLs to try
+  var actualFile = decodeURIComponent((filePath||'').split('/').pop());
+  var candidates = [];
 
-  // Try local file path first (when running from file://)
-  if(window.location.protocol === 'file:' && category && actualFile) {
-    var baseDir = window.location.href.replace(/[^\/]*$/, '');
-    var scraperBase = baseDir.replace(/sales-play-activator-main\/sales-play-activator-main\/$/,'scaper/').replace(/sales-play-activator-main\/$/,'scaper/');
-    viewUrl = scraperBase + category + '/' + actualFile;
+  if(category && actualFile) {
+    if(window.location.protocol === 'file:') {
+      // Local development — try scraper folder
+      var baseDir = window.location.href.replace(/[^\/]*$/, '');
+      var scraperBase = baseDir.replace(/sales-play-activator-main\/sales-play-activator-main\/$/,'scaper/').replace(/sales-play-activator-main\/$/,'scaper/');
+      candidates.push(scraperBase + category + '/' + encodeURIComponent(actualFile));
+    } else {
+      // Hosted — try same-origin content folder first (if uploaded to Azure)
+      candidates.push('/content/' + category + '/' + encodeURIComponent(actualFile));
+      candidates.push('content/' + category + '/' + encodeURIComponent(actualFile));
+    }
   }
 
-  // If not local or not viewable, try PA flow or SharePoint direct
   var fileConfigured = LIVE_FILE_PA_URL && LIVE_FILE_PA_URL.indexOf('YOUR_FILE_FETCH') !== 0;
   var contentEl = document.getElementById('fv-content');
 
-  if(viewUrl && isViewable) {
-    // Load local file directly in iframe
-    var sandbox = /\.html?$/i.test(actualFile) ? ' sandbox="allow-same-origin"' : '';
-    contentEl.innerHTML = '<iframe src="'+escHtml(viewUrl)+'"'+sandbox+' style="width:100%;height:100%;border:none;border-radius:0;background:#fff;"></iframe>';
+  if(candidates.length > 0 && isViewable) {
+    // Load from same-origin (local scraper or hosted content folder)
+    var viewUrl = candidates[0];
+    var sandbox = /\.html?$/i.test(actualFile) ? ' sandbox="allow-same-origin allow-popups"' : '';
+    contentEl.innerHTML = '<iframe src="'+escHtml(viewUrl)+'"'+sandbox+' style="width:100%;height:100%;border:none;border-radius:0;background:#fff;" onerror="this.parentNode.innerHTML=\'<div style=padding:40px;text-align:center;color:var(--t2);>Could not load file inline. Click Open in SharePoint above.</div>\'"></iframe>';
   } else if(isViewable && fileConfigured) {
     // Fetch via PA flow (base64)
     var serverRelPath;
