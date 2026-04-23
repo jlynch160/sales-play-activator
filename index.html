@@ -3188,22 +3188,22 @@ function openPlaysMap() {
     '<button id="pm-close" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:var(--t1);width:46px;height:46px;border-radius:14px;cursor:pointer;font-size:22px;transition:all 0.2s;" onmouseover="this.style.background=\'rgba(255,92,92,0.15)\';this.style.borderColor=\'rgba(255,92,92,0.35)\'" onmouseout="this.style.background=\'rgba(255,255,255,0.08)\';this.style.borderColor=\'rgba(255,255,255,0.15)\'">&#10005;</button>' +
   '</div>';
 
-  // Hero banner with stats
-  html += '<div style="position:relative;z-index:1;padding:40px 40px 12px;max-width:1500px;margin:0 auto;">' +
-    '<div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:18px;margin-bottom:36px;">' +
-      '<div style="background:linear-gradient(145deg,rgba(105,0,255,0.15),rgba(32,245,147,0.06));border:1px solid rgba(105,0,255,0.35);border-radius:20px;padding:32px 36px;position:relative;overflow:hidden;">' +
-        '<div style="position:absolute;top:-50px;right:-50px;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,rgba(105,0,255,0.28),transparent 70%);"></div>' +
-        '<div style="position:absolute;bottom:-30px;left:-30px;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,rgba(32,245,147,0.15),transparent 70%);"></div>' +
-        '<div style="position:relative;z-index:1;">' +
-          '<div style="font-family:var(--mono);font-size:12px;letter-spacing:0.18em;color:var(--purple2);text-transform:uppercase;margin-bottom:14px;font-weight:600;">The MajorKey Portfolio</div>' +
-          '<div style="font-family:var(--display);font-size:30px;font-weight:800;color:var(--t1);line-height:1.25;margin-bottom:14px;letter-spacing:-0.02em;">' +
-            '<span style="background:linear-gradient(90deg,#A366FF,#20F593);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">19 plays</span>, ' +
-            '<span style="color:var(--t1);">5 technology pillars</span>, ' +
-            '<span style="color:var(--t2);">one identity security platform.</span>' +
-          '</div>' +
-          '<div style="font-size:15px;color:var(--t2);line-height:1.7;">Pick any technology tab to see plays grouped by partner, or browse everything at once. Each card opens a personalized play with the full content library behind it.</div>' +
+  // Hero banner
+  html += '<div style="position:relative;z-index:1;padding:40px 40px 0;max-width:1500px;margin:0 auto;">' +
+    '<div style="background:linear-gradient(145deg,rgba(105,0,255,0.15),rgba(32,245,147,0.06));border:1px solid rgba(105,0,255,0.35);border-radius:20px;padding:36px 44px;position:relative;margin-bottom:20px;">' +
+      '<div style="position:absolute;top:-60px;right:-40px;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(105,0,255,0.28),transparent 70%);pointer-events:none;"></div>' +
+      '<div style="position:absolute;bottom:-40px;left:20%;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,rgba(32,245,147,0.15),transparent 70%);pointer-events:none;"></div>' +
+      '<div style="position:relative;z-index:1;">' +
+        '<div style="font-family:var(--mono);font-size:12px;letter-spacing:0.18em;color:var(--purple2);text-transform:uppercase;margin-bottom:14px;font-weight:600;">The MajorKey Portfolio</div>' +
+        '<div style="font-family:var(--display);font-size:clamp(22px,2.4vw,32px);font-weight:800;color:var(--t1);line-height:1.3;margin-bottom:16px;letter-spacing:-0.02em;padding-bottom:4px;">' +
+          '<span style="background:linear-gradient(90deg,#A366FF,#20F593);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;display:inline-block;line-height:1.3;padding-bottom:2px;">19 plays</span>, ' +
+          '<span style="color:var(--t1);">5 technology pillars</span>, ' +
+          '<span style="color:var(--t2);">one identity security platform.</span>' +
         '</div>' +
+        '<div style="font-size:15px;color:var(--t2);line-height:1.7;max-width:980px;">Pick any technology tab to see plays grouped by partner, or browse everything at once. Each card opens a personalized play with the full content library behind it.</div>' +
       '</div>' +
+    '</div>' +
+    '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-bottom:36px;">' +
       renderStatCard('19', 'Offerings', 'var(--purple2)') +
       renderStatCard(totalAssets, 'Content Assets', 'var(--teal2)') +
       renderStatCard('5', 'Tech Pillars', 'var(--amber)') +
