@@ -2590,7 +2590,8 @@ body{background:var(--bg);color:var(--t1);font-family:var(--body);min-height:100
     <div class="em-body" id="em-body"></div>
     <div class="em-footer">
       <button class="em-cancel-btn" onclick="closeEmailModal()">Close</button>
-      <button class="em-copy-btn" onclick="copyEmailTemplate()">Copy to clipboard</button>
+      <button class="em-copy-btn" onclick="copyEmailTemplate()" style="background:rgba(255,255,255,0.05);color:var(--t1);border:1px solid rgba(255,255,255,0.15);flex:0 0 auto;padding:11px 18px;">⎘ Copy</button>
+      <button class="em-copy-btn" onclick="sendViaOutlook()" style="flex:1;background:linear-gradient(135deg,#0078D4,#005A9E);color:#fff;">📧 Send via Outlook</button>
     </div>
   </div>
 </div>
@@ -6564,7 +6565,29 @@ function copyEmailTemplate(){
       text += '• ' + a.title + '\n  ' + a.path + '\n';
     });
   }
-  try{navigator.clipboard.writeText(text).then(function(){var btn=document.querySelector('.em-copy-btn');if(btn){btn.textContent='Copied!';setTimeout(function(){btn.textContent='Copy to clipboard';},2000);}}).catch(function(){fallbackCopy(text,null);});}catch(e){fallbackCopy(text,null);}
+  try{navigator.clipboard.writeText(text).then(function(){var btn=document.querySelectorAll('.em-copy-btn')[0];if(btn){var orig=btn.innerHTML;btn.innerHTML='✓ Copied';setTimeout(function(){btn.innerHTML=orig;},2000);}}).catch(function(){fallbackCopy(text,null);});}catch(e){fallbackCopy(text,null);}
+}
+
+function sendViaOutlook() {
+  const templates = getEmailTemplates();
+  const t = templates[currentEmailTab];
+  var body = t.body;
+  if(__selectedAttachments.length > 0) {
+    body += '\n\n---\nAttached resources:\n';
+    __selectedAttachments.forEach(function(a) {
+      body += '• ' + a.title + '\n  ' + a.path + '\n';
+    });
+  }
+  // Outlook Web Deep Link
+  var url = 'https://outlook.office.com/mail/deeplink/compose' +
+    '?subject=' + encodeURIComponent(t.subject) +
+    '&body=' + encodeURIComponent(body);
+  // If URL is too long for deep link, fall back to mailto:
+  if(url.length > 2000) {
+    url = 'mailto:?subject=' + encodeURIComponent(t.subject) + '&body=' + encodeURIComponent(body);
+  }
+  window.open(url, '_blank');
+  trackEvent('send_outlook', __selectedAttachments.length + ' attachments');
 }
 
 
