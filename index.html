@@ -3172,31 +3172,36 @@ function openPlaysMap() {
 
   var html = '';
 
-  // Ambient background glow
+  // Ambient animated background glow
   html += '<div style="position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;">' +
-    '<div style="position:absolute;top:-200px;right:-100px;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(105,0,255,0.15),transparent 60%);filter:blur(80px);"></div>' +
-    '<div style="position:absolute;bottom:-100px;left:-100px;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(32,245,147,0.08),transparent 60%);filter:blur(80px);"></div>' +
-    '<div style="position:absolute;top:40%;left:50%;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(255,184,48,0.05),transparent 60%);filter:blur(80px);transform:translateX(-50%);"></div>' +
+    '<div style="position:absolute;top:-250px;right:-150px;width:800px;height:800px;border-radius:50%;background:radial-gradient(circle,rgba(105,0,255,0.22),transparent 60%);filter:blur(100px);animation:pm-drift-a 18s ease-in-out infinite;"></div>' +
+    '<div style="position:absolute;bottom:-150px;left:-150px;width:700px;height:700px;border-radius:50%;background:radial-gradient(circle,rgba(32,245,147,0.12),transparent 60%);filter:blur(100px);animation:pm-drift-b 22s ease-in-out infinite;"></div>' +
+    '<div style="position:absolute;top:40%;left:50%;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(255,184,48,0.08),transparent 60%);filter:blur(100px);transform:translateX(-50%);animation:pm-drift-c 26s ease-in-out infinite;"></div>' +
   '</div>';
 
   // Header (sticky)
-  html += '<div style="position:sticky;top:0;background:linear-gradient(180deg,rgba(10,1,24,0.98),rgba(10,1,24,0.92));backdrop-filter:blur(20px);border-bottom:1px solid rgba(105,0,255,0.25);z-index:10;padding:18px 32px;display:flex;align-items:center;gap:16px;">' +
-    '<div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#6900FF,#20F593);display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 8px 24px rgba(105,0,255,0.4);">🗺</div>' +
-    '<div><div style="font-family:var(--mono);font-size:10px;letter-spacing:0.16em;color:var(--amber);text-transform:uppercase;margin-bottom:3px;">Plays Map</div>' +
-    '<div style="font-family:var(--display);font-size:20px;font-weight:800;color:var(--t1);letter-spacing:-0.01em;">Solution Plays Portfolio</div></div>' +
+  html += '<div style="position:sticky;top:0;background:linear-gradient(180deg,rgba(10,1,24,0.98),rgba(10,1,24,0.92));backdrop-filter:blur(20px);border-bottom:1px solid rgba(105,0,255,0.25);z-index:10;padding:22px 40px;display:flex;align-items:center;gap:20px;">' +
+    '<div style="width:54px;height:54px;border-radius:14px;background:linear-gradient(135deg,#6900FF,#20F593);display:flex;align-items:center;justify-content:center;font-size:28px;box-shadow:0 10px 30px rgba(105,0,255,0.5),inset 0 1px 0 rgba(255,255,255,0.2);">🗺</div>' +
+    '<div><div style="font-family:var(--mono);font-size:12px;letter-spacing:0.18em;color:var(--amber);text-transform:uppercase;margin-bottom:4px;">Plays Map</div>' +
+    '<div style="font-family:var(--display);font-size:26px;font-weight:800;color:var(--t1);letter-spacing:-0.02em;">Solution Plays Portfolio</div></div>' +
     '<div style="flex:1;"></div>' +
-    '<button id="pm-close" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:var(--t1);width:40px;height:40px;border-radius:12px;cursor:pointer;font-size:18px;transition:all 0.2s;" onmouseover="this.style.background=\'rgba(255,92,92,0.15)\';this.style.borderColor=\'rgba(255,92,92,0.35)\'" onmouseout="this.style.background=\'rgba(255,255,255,0.08)\';this.style.borderColor=\'rgba(255,255,255,0.15)\'">&#10005;</button>' +
+    '<button id="pm-close" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:var(--t1);width:46px;height:46px;border-radius:14px;cursor:pointer;font-size:22px;transition:all 0.2s;" onmouseover="this.style.background=\'rgba(255,92,92,0.15)\';this.style.borderColor=\'rgba(255,92,92,0.35)\'" onmouseout="this.style.background=\'rgba(255,255,255,0.08)\';this.style.borderColor=\'rgba(255,255,255,0.15)\'">&#10005;</button>' +
   '</div>';
 
   // Hero banner with stats
-  html += '<div style="position:relative;z-index:1;padding:32px 32px 8px;max-width:1400px;margin:0 auto;">' +
-    '<div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:14px;margin-bottom:28px;">' +
-      '<div style="background:linear-gradient(145deg,rgba(105,0,255,0.12),rgba(32,245,147,0.05));border:1px solid rgba(105,0,255,0.3);border-radius:16px;padding:24px 28px;position:relative;overflow:hidden;">' +
-        '<div style="position:absolute;top:-30px;right:-30px;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,rgba(105,0,255,0.2),transparent 70%);"></div>' +
+  html += '<div style="position:relative;z-index:1;padding:40px 40px 12px;max-width:1500px;margin:0 auto;">' +
+    '<div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:18px;margin-bottom:36px;">' +
+      '<div style="background:linear-gradient(145deg,rgba(105,0,255,0.15),rgba(32,245,147,0.06));border:1px solid rgba(105,0,255,0.35);border-radius:20px;padding:32px 36px;position:relative;overflow:hidden;">' +
+        '<div style="position:absolute;top:-50px;right:-50px;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,rgba(105,0,255,0.28),transparent 70%);"></div>' +
+        '<div style="position:absolute;bottom:-30px;left:-30px;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,rgba(32,245,147,0.15),transparent 70%);"></div>' +
         '<div style="position:relative;z-index:1;">' +
-          '<div style="font-family:var(--mono);font-size:9px;letter-spacing:0.14em;color:var(--purple2);text-transform:uppercase;margin-bottom:10px;opacity:0.9;">The MajorKey Portfolio</div>' +
-          '<div style="font-family:var(--display);font-size:22px;font-weight:700;color:var(--t1);line-height:1.3;margin-bottom:8px;">19 plays, 5 technology pillars, one identity security platform.</div>' +
-          '<div style="font-size:13px;color:var(--t2);line-height:1.5;">Pick any technology tab to see the plays grouped by partner, or browse all offerings at once. Each card opens a personalized play with the full content library behind it.</div>' +
+          '<div style="font-family:var(--mono);font-size:12px;letter-spacing:0.18em;color:var(--purple2);text-transform:uppercase;margin-bottom:14px;font-weight:600;">The MajorKey Portfolio</div>' +
+          '<div style="font-family:var(--display);font-size:30px;font-weight:800;color:var(--t1);line-height:1.25;margin-bottom:14px;letter-spacing:-0.02em;">' +
+            '<span style="background:linear-gradient(90deg,#A366FF,#20F593);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">19 plays</span>, ' +
+            '<span style="color:var(--t1);">5 technology pillars</span>, ' +
+            '<span style="color:var(--t2);">one identity security platform.</span>' +
+          '</div>' +
+          '<div style="font-size:15px;color:var(--t2);line-height:1.7;">Pick any technology tab to see plays grouped by partner, or browse everything at once. Each card opens a personalized play with the full content library behind it.</div>' +
         '</div>' +
       '</div>' +
       renderStatCard('19', 'Offerings', 'var(--purple2)') +
@@ -3207,8 +3212,8 @@ function openPlaysMap() {
   '</div>';
 
   // Tab bar
-  html += '<div style="position:sticky;top:80px;background:linear-gradient(180deg,rgba(10,1,24,0.95),rgba(10,1,24,0.85));backdrop-filter:blur(20px);padding:0 32px;border-bottom:1px solid rgba(255,255,255,0.06);z-index:9;">';
-  html += '<div style="max-width:1400px;margin:0 auto;display:flex;flex-wrap:wrap;gap:4px;">';
+  html += '<div style="position:sticky;top:98px;background:linear-gradient(180deg,rgba(10,1,24,0.95),rgba(10,1,24,0.85));backdrop-filter:blur(20px);padding:0 40px;border-bottom:1px solid rgba(255,255,255,0.06);z-index:9;">';
+  html += '<div style="max-width:1500px;margin:0 auto;display:flex;flex-wrap:wrap;gap:4px;">';
   var tabs = [{key:'all', label:'All Offerings', emoji:'📇', count: OFFERINGS.length, color:'var(--t1)'}];
   Object.keys(PLAY_CATEGORIES).forEach(function(k){
     var c = PLAY_CATEGORIES[k];
@@ -3216,16 +3221,16 @@ function openPlaysMap() {
   });
   tabs.forEach(function(t, i){
     var active = i===0;
-    html += '<button class="pm-tab'+(active?' on':'')+'" data-tab="'+t.key+'" data-color="'+t.color+'" style="display:flex;align-items:center;gap:10px;padding:14px 22px 16px;background:'+(active?'linear-gradient(180deg,transparent,'+t.color+'15)':'transparent')+';border:none;border-bottom:3px solid '+(active?t.color:'transparent')+';color:'+(active?t.color:'var(--t3)')+';cursor:pointer;font-family:var(--body);font-size:14px;font-weight:600;transition:all 0.25s;position:relative;">' +
-      '<span style="font-size:17px;">'+t.emoji+'</span>' +
+    html += '<button class="pm-tab'+(active?' on':'')+'" data-tab="'+t.key+'" data-color="'+t.color+'" style="display:flex;align-items:center;gap:12px;padding:18px 26px 20px;background:'+(active?'linear-gradient(180deg,transparent,'+t.color+'18)':'transparent')+';border:none;border-bottom:3px solid '+(active?t.color:'transparent')+';color:'+(active?t.color:'var(--t3)')+';cursor:pointer;font-family:var(--body);font-size:16px;font-weight:600;transition:all 0.25s;position:relative;">' +
+      '<span style="font-size:20px;">'+t.emoji+'</span>' +
       '<span>'+t.label+'</span>' +
-      '<span style="font-family:var(--mono);font-size:10px;padding:3px 8px;border-radius:10px;background:'+(active?t.color+'20':'rgba(255,255,255,0.04)')+';border:1px solid '+(active?t.color+'40':'rgba(255,255,255,0.08)')+';color:'+(active?t.color:'var(--t3)')+';font-weight:700;">'+t.count+'</span>' +
+      '<span style="font-family:var(--mono);font-size:12px;padding:4px 10px;border-radius:12px;background:'+(active?t.color+'25':'rgba(255,255,255,0.04)')+';border:1px solid '+(active?t.color+'50':'rgba(255,255,255,0.08)')+';color:'+(active?t.color:'var(--t3)')+';font-weight:700;">'+t.count+'</span>' +
     '</button>';
   });
   html += '</div></div>';
 
   // Body content container
-  html += '<div style="position:relative;z-index:1;"><div id="pm-body" style="padding:32px;max-width:1400px;margin:0 auto;"></div></div>';
+  html += '<div style="position:relative;z-index:1;"><div id="pm-body" style="padding:40px;max-width:1500px;margin:0 auto;"></div></div>';
 
   overlay.innerHTML = html;
   document.body.appendChild(overlay);
@@ -3253,10 +3258,11 @@ function openPlaysMap() {
 }
 
 function renderStatCard(value, label, color) {
-  return '<div style="background:linear-gradient(145deg,rgba(255,255,255,0.04),rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:20px 22px;position:relative;overflow:hidden;transition:transform 0.2s;" onmouseover="this.style.transform=\'translateY(-2px)\'" onmouseout="this.style.transform=\'\'">' +
-    '<div style="position:absolute;top:0;left:0;right:0;height:2px;background:'+color+';opacity:0.6;border-radius:16px 16px 0 0;"></div>' +
-    '<div style="font-family:var(--mono);font-size:32px;font-weight:800;color:'+color+';line-height:1;margin-bottom:6px;letter-spacing:-0.02em;">'+value+'</div>' +
-    '<div style="font-size:11px;color:var(--t3);letter-spacing:0.06em;text-transform:uppercase;">'+label+'</div>' +
+  return '<div style="background:linear-gradient(145deg,rgba(255,255,255,0.05),rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:28px 26px;position:relative;overflow:hidden;transition:all 0.3s cubic-bezier(0.34,1.4,0.64,1);" onmouseover="this.style.transform=\'translateY(-4px)\';this.style.borderColor=\''+color+'60\';this.style.boxShadow=\'0 14px 40px '+color+'20\'" onmouseout="this.style.transform=\'\';this.style.borderColor=\'rgba(255,255,255,0.1)\';this.style.boxShadow=\'\'">' +
+    '<div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,'+color+','+color+'60 70%,transparent);border-radius:20px 20px 0 0;"></div>' +
+    '<div style="position:absolute;top:-30px;right:-30px;width:100px;height:100px;border-radius:50%;background:radial-gradient(circle,'+color+'15,transparent 70%);pointer-events:none;"></div>' +
+    '<div style="font-family:var(--mono);font-size:44px;font-weight:800;color:'+color+';line-height:1;margin-bottom:10px;letter-spacing:-0.03em;position:relative;z-index:1;">'+value+'</div>' +
+    '<div style="font-size:13px;color:var(--t3);letter-spacing:0.08em;text-transform:uppercase;font-weight:500;position:relative;z-index:1;">'+label+'</div>' +
   '</div>';
 }
 
@@ -3346,51 +3352,51 @@ function renderCategorySection(cat, key, standalone) {
 
     var problems = (off.problems || []).slice(0, 2);
     var problemPills = problems.map(function(p){
-      return '<span style="font-size:10px;padding:3px 8px;border-radius:10px;background:rgba(255,184,48,0.08);border:1px solid rgba(255,184,48,0.2);color:rgba(255,184,48,0.85);">'+escHtml(p)+'</span>';
+      return '<span style="font-size:12px;padding:5px 12px;border-radius:14px;background:rgba(255,184,48,0.1);border:1px solid rgba(255,184,48,0.25);color:rgba(255,184,48,0.9);font-weight:500;">'+escHtml(p)+'</span>';
     }).join('');
 
     // Asset breakdown icons
     var assetIcons = '';
-    if(contentCounts.pdfs > 0) assetIcons += '<span title="'+contentCounts.pdfs+' datasheets" style="display:inline-flex;align-items:center;gap:3px;font-size:11px;color:var(--purple2);"><span style="font-size:12px;">📕</span>'+contentCounts.pdfs+'</span>';
-    if(contentCounts.blogs > 0) assetIcons += '<span title="'+contentCounts.blogs+' blogs" style="display:inline-flex;align-items:center;gap:3px;font-size:11px;color:var(--teal2);"><span style="font-size:12px;">📝</span>'+contentCounts.blogs+'</span>';
-    if(contentCounts.ss > 0) assetIcons += '<span title="'+contentCounts.ss+' success stories" style="display:inline-flex;align-items:center;gap:3px;font-size:11px;color:var(--amber);"><span style="font-size:12px;">⭐</span>'+contentCounts.ss+'</span>';
-    if(contentCounts.web > 0) assetIcons += '<span title="'+contentCounts.web+' webinars" style="display:inline-flex;align-items:center;gap:3px;font-size:11px;color:#FF8A8A;"><span style="font-size:12px;">🎥</span>'+contentCounts.web+'</span>';
-    if(!assetIcons) assetIcons = '<span style="font-size:11px;color:var(--t3);opacity:0.6;">No assets</span>';
+    if(contentCounts.pdfs > 0) assetIcons += '<span title="'+contentCounts.pdfs+' datasheets" style="display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:13px;font-weight:700;color:var(--purple2);"><span style="font-size:15px;">📕</span>'+contentCounts.pdfs+'</span>';
+    if(contentCounts.blogs > 0) assetIcons += '<span title="'+contentCounts.blogs+' blogs" style="display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:13px;font-weight:700;color:var(--teal2);"><span style="font-size:15px;">📝</span>'+contentCounts.blogs+'</span>';
+    if(contentCounts.ss > 0) assetIcons += '<span title="'+contentCounts.ss+' success stories" style="display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:13px;font-weight:700;color:var(--amber);"><span style="font-size:15px;">⭐</span>'+contentCounts.ss+'</span>';
+    if(contentCounts.web > 0) assetIcons += '<span title="'+contentCounts.web+' webinars" style="display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:13px;font-weight:700;color:#FF8A8A;"><span style="font-size:15px;">🎥</span>'+contentCounts.web+'</span>';
+    if(!assetIcons) assetIcons = '<span style="font-size:12px;color:var(--t3);opacity:0.6;">No assets</span>';
 
     // Short why snippet
     var whyShort = (off.why || '').slice(0, 110);
     if(off.why && off.why.length > 110) whyShort += '...';
 
-    cardsHtml += '<div class="pm-card" data-off-id="'+id+'" data-color="'+cat.color+'" style="background:linear-gradient(145deg,rgba(30,18,69,0.6),rgba(10,1,24,0.4));border:1px solid '+cat.color+'25;border-radius:18px;padding:22px 24px;cursor:pointer;transition:all 0.35s cubic-bezier(0.34,1.4,0.64,1);position:relative;overflow:hidden;animation:adm-card-in 0.5s ease both;backdrop-filter:blur(10px);">' +
+    cardsHtml += '<div class="pm-card" data-off-id="'+id+'" data-color="'+cat.color+'" style="background:linear-gradient(145deg,rgba(30,18,69,0.65),rgba(10,1,24,0.45));border:1px solid '+cat.color+'30;border-radius:22px;padding:28px 30px;cursor:pointer;transition:all 0.4s cubic-bezier(0.34,1.4,0.64,1);position:relative;overflow:hidden;animation:adm-card-in 0.5s ease both;backdrop-filter:blur(12px);">' +
       // Top gradient accent
-      '<div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,'+cat.color+',transparent 80%);border-radius:18px 18px 0 0;opacity:0.9;"></div>' +
+      '<div style="position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,'+cat.color+','+cat.color+'60 60%,transparent);border-radius:22px 22px 0 0;opacity:1;"></div>' +
       // Corner glow orb
-      '<div style="position:absolute;top:-60px;right:-60px;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,'+cat.color+'20,transparent 70%);pointer-events:none;transition:opacity 0.3s;"></div>' +
+      '<div style="position:absolute;top:-80px;right:-80px;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,'+cat.color+'25,transparent 70%);pointer-events:none;transition:opacity 0.3s;"></div>' +
       // Subtle pattern
-      '<div style="position:absolute;bottom:-40px;left:-40px;width:140px;height:140px;border-radius:50%;background:radial-gradient(circle,'+cat.color+'08,transparent 70%);pointer-events:none;"></div>' +
+      '<div style="position:absolute;bottom:-50px;left:-50px;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,'+cat.color+'10,transparent 70%);pointer-events:none;"></div>' +
 
       '<div style="position:relative;z-index:1;">' +
         // Header with icon + name
-        '<div style="display:flex;align-items:flex-start;gap:14px;margin-bottom:14px;">' +
-          '<div style="width:54px;height:54px;border-radius:14px;background:linear-gradient(135deg,'+cat.color+'35,'+cat.color+'12);border:1px solid '+cat.color+'40;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;box-shadow:0 6px 20px '+cat.color+'20;">'+off.icon+'</div>' +
+        '<div style="display:flex;align-items:flex-start;gap:18px;margin-bottom:18px;">' +
+          '<div style="width:68px;height:68px;border-radius:18px;background:linear-gradient(135deg,'+cat.color+'40,'+cat.color+'15);border:1.5px solid '+cat.color+'50;display:flex;align-items:center;justify-content:center;font-size:32px;flex-shrink:0;box-shadow:0 8px 28px '+cat.color+'30,inset 0 1px 0 rgba(255,255,255,0.1);">'+off.icon+'</div>' +
           '<div style="flex:1;min-width:0;">' +
-            '<div style="font-family:var(--display);font-size:16px;font-weight:800;color:var(--t1);margin-bottom:4px;line-height:1.25;letter-spacing:-0.01em;">'+escHtml(off.name)+'</div>' +
-            '<div style="font-size:12px;color:var(--t2);line-height:1.5;">'+escHtml(off.tagline)+'</div>' +
+            '<div style="font-family:var(--display);font-size:20px;font-weight:800;color:var(--t1);margin-bottom:6px;line-height:1.25;letter-spacing:-0.01em;">'+escHtml(off.name)+'</div>' +
+            '<div style="font-size:14px;color:var(--t2);line-height:1.55;">'+escHtml(off.tagline)+'</div>' +
           '</div>' +
         '</div>' +
 
         // Why snippet
-        (whyShort ? '<div style="font-size:12px;color:var(--t2);line-height:1.6;margin-bottom:14px;padding:10px 14px;background:rgba(255,255,255,0.02);border-left:2px solid '+cat.color+'40;border-radius:0 8px 8px 0;">'+escHtml(whyShort)+'</div>' : '') +
+        (whyShort ? '<div style="font-size:14px;color:var(--t2);line-height:1.7;margin-bottom:18px;padding:14px 18px;background:rgba(255,255,255,0.025);border-left:3px solid '+cat.color+'50;border-radius:0 10px 10px 0;">'+escHtml(whyShort)+'</div>' : '') +
 
         // Pain signals
-        '<div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:14px;">'+problemPills+'</div>' +
+        '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:18px;">'+problemPills+'</div>' +
 
         // Footer: content stats + CTA
-        '<div style="display:flex;align-items:center;gap:10px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.06);">' +
-          '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">'+assetIcons+'</div>' +
-          '<div style="margin-left:auto;display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:20px;background:'+cat.color+'15;border:1px solid '+cat.color+'30;transition:all 0.2s;">' +
-            '<span style="font-family:var(--mono);font-size:10px;letter-spacing:0.08em;color:'+cat.color+';font-weight:700;text-transform:uppercase;">Open</span>' +
-            '<span style="font-size:13px;color:'+cat.color+';">→</span>' +
+        '<div style="display:flex;align-items:center;gap:14px;padding-top:18px;border-top:1px solid rgba(255,255,255,0.08);">' +
+          '<div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">'+assetIcons+'</div>' +
+          '<div style="margin-left:auto;display:flex;align-items:center;gap:8px;padding:9px 18px;border-radius:24px;background:'+cat.color+'20;border:1px solid '+cat.color+'50;transition:all 0.2s;">' +
+            '<span style="font-family:var(--mono);font-size:12px;letter-spacing:0.1em;color:'+cat.color+';font-weight:700;text-transform:uppercase;">Open Play</span>' +
+            '<span style="font-size:16px;color:'+cat.color+';">→</span>' +
           '</div>' +
         '</div>' +
       '</div>' +
@@ -3399,26 +3405,26 @@ function renderCategorySection(cat, key, standalone) {
 
   var header = '';
   if(standalone) {
-    header = '<div style="margin-bottom:28px;">' +
-      '<div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">' +
-        '<div style="width:5px;height:30px;border-radius:3px;background:'+cat.color+';"></div>' +
-        '<div style="font-size:26px;">'+cat.emoji+'</div>' +
-        '<div style="font-family:var(--display);font-size:24px;font-weight:800;color:var(--t1);">'+cat.label+'</div>' +
-        '<span style="font-family:var(--mono);font-size:11px;padding:4px 10px;border-radius:12px;background:'+cat.color+'15;border:1px solid '+cat.color+'40;color:'+cat.color+';">'+cat.offeringIds.length+' offerings</span>' +
+    header = '<div style="margin-bottom:36px;">' +
+      '<div style="display:flex;align-items:center;gap:16px;margin-bottom:14px;">' +
+        '<div style="width:6px;height:40px;border-radius:4px;background:linear-gradient(180deg,'+cat.color+','+cat.color+'60);"></div>' +
+        '<div style="font-size:36px;">'+cat.emoji+'</div>' +
+        '<div style="font-family:var(--display);font-size:34px;font-weight:800;color:var(--t1);letter-spacing:-0.02em;">'+cat.label+'</div>' +
+        '<span style="font-family:var(--mono);font-size:14px;padding:6px 14px;border-radius:14px;background:'+cat.color+'20;border:1px solid '+cat.color+'50;color:'+cat.color+';font-weight:700;">'+cat.offeringIds.length+' offerings</span>' +
       '</div>' +
-      '<div style="font-size:14px;color:var(--t2);line-height:1.6;margin-left:17px;">'+escHtml(cat.description)+'</div>' +
+      '<div style="font-size:16px;color:var(--t2);line-height:1.7;margin-left:22px;max-width:900px;">'+escHtml(cat.description)+'</div>' +
     '</div>';
   } else {
-    header = '<div style="display:flex;align-items:center;gap:10px;margin:32px 0 16px;">' +
-      '<div style="width:4px;height:20px;border-radius:2px;background:'+cat.color+';"></div>' +
-      '<span style="font-size:18px;">'+cat.emoji+'</span>' +
-      '<span style="font-family:var(--display);font-size:17px;font-weight:700;color:var(--t1);">'+cat.label+'</span>' +
-      '<span style="font-family:var(--mono);font-size:10px;padding:3px 9px;border-radius:10px;background:'+cat.color+'15;border:1px solid '+cat.color+'30;color:'+cat.color+';">'+cat.offeringIds.length+'</span>' +
-      '<div style="flex:1;height:1px;background:linear-gradient(90deg,'+cat.color+'40,transparent);"></div>' +
+    header = '<div style="display:flex;align-items:center;gap:14px;margin:44px 0 22px;">' +
+      '<div style="width:5px;height:28px;border-radius:3px;background:linear-gradient(180deg,'+cat.color+','+cat.color+'60);"></div>' +
+      '<span style="font-size:24px;">'+cat.emoji+'</span>' +
+      '<span style="font-family:var(--display);font-size:22px;font-weight:800;color:var(--t1);letter-spacing:-0.01em;">'+cat.label+'</span>' +
+      '<span style="font-family:var(--mono);font-size:12px;padding:4px 12px;border-radius:12px;background:'+cat.color+'18;border:1px solid '+cat.color+'40;color:'+cat.color+';font-weight:700;">'+cat.offeringIds.length+'</span>' +
+      '<div style="flex:1;height:1px;background:linear-gradient(90deg,'+cat.color+'50,transparent);"></div>' +
     '</div>';
   }
 
-  return header + '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;margin-bottom:20px;">' + cardsHtml + '</div>';
+  return header + '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:22px;margin-bottom:32px;">' + cardsHtml + '</div>';
 }
 
 // ── DEAL TRACKER ──────────────────────────────────────────────────────────
