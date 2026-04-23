@@ -760,9 +760,10 @@ body{background:var(--bg);color:var(--t1);font-family:var(--body);min-height:100
 .em-tab.on{color:var(--teal2);border-bottom-color:var(--teal);}
 .em-body{padding:20px 24px;overflow-y:auto;flex:1;}
 .em-field{margin-bottom:14px;}
-.em-field-lbl{font-family:var(--mono);font-size:11px;letter-spacing:0.1em;color:var(--t3);text-transform:uppercase;margin-bottom:6px;}
-.em-subject{font-size:15px;font-weight:600;color:var(--t1);background:var(--card);border:1px solid var(--b3);border-radius:var(--r);padding:10px 14px;font-family:var(--display);}
-.em-body-text{font-size:15px;color:var(--t1);background:var(--bg2);border:1px solid var(--b3);border-radius:var(--r);padding:14px 16px;line-height:1.75;white-space:pre-line;font-weight:300;font-family:var(--body);}
+.em-field-lbl{font-family:var(--mono);font-size:11px;letter-spacing:0.12em;color:var(--teal2);text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:8px;}
+.em-field-lbl::before{content:'';width:3px;height:12px;background:linear-gradient(180deg,var(--purple),var(--teal));border-radius:2px;}
+.em-subject{font-size:16px;font-weight:700;color:var(--t1);background:linear-gradient(145deg,rgba(105,0,255,0.08),rgba(105,0,255,0.02));border:1px solid rgba(105,0,255,0.2);border-radius:12px;padding:14px 18px;font-family:var(--display);letter-spacing:-0.01em;}
+.em-body-text{font-size:15px;color:var(--t1);background:linear-gradient(145deg,rgba(255,255,255,0.02),rgba(255,255,255,0.005));border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:20px 24px;line-height:1.8;white-space:pre-line;font-weight:400;font-family:var(--body);}
 .em-footer{padding:14px 24px;border-top:1px solid var(--b3);display:flex;gap:8px;flex-shrink:0;}
 .em-copy-btn{flex:1;padding:11px;border-radius:var(--r);background:linear-gradient(135deg,var(--teal),#0D9488);border:none;color:var(--bg);font-family:var(--display);font-size:14px;font-weight:700;cursor:pointer;transition:all 0.2s;letter-spacing:0.03em;}
 .em-copy-btn:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(0,212,184,0.35);}
@@ -6413,66 +6414,84 @@ goTo = function(n){
 // Email templates per offering
 function getEmailTemplates(){
   const p = gp();
-  const offerName = selOff ? selOff.name : 'our solution';
+  const offerName = selOff ? selOff.name : 'identity security';
+  const offerShort = selOff ? selOff.short : 'identity security';
   const ind = sI || 'your industry';
-  const buyer = p.buyer || 'the team';
+  const pain = p.tps && p.tps[0] ? p.tps[0].replace(/—/g,'-').replace(/–/g,'-').toLowerCase().replace(/\.$/,'') : 'managing access at scale';
+
+  const signature = `\nBest regards,\n[Your Name]\n[Your Title] | MajorKey Technologies\nDriving progress and adoption of identity security for modern enterprises\nmajorkeytech.com`;
 
   return [
     {
       label: 'Cold Outreach',
-      subject: `${offerName} — a question about ${ind}`,
+      subject: `Quick question about ${offerShort} at [Company Name]`,
       body: `Hi [First Name],
 
-I work with ${ind} organisations on identity security and I came across [Company Name] while researching the space.
+I lead ${ind} conversations at MajorKey Technologies and noticed [Company Name] may be navigating one of the most common challenges we see right now: ${pain}.
 
-One thing that comes up consistently in this sector right now is ${p.tps && p.tps[0] ? p.tps[0].toLowerCase() : 'managing access at scale'}.
+MajorKey helps organizations like yours solve this head-on. We are a pure-play identity security partner, and ${offerShort} is one of our core offerings.
 
-I wanted to reach out because we've helped similar organisations tackle this directly — and the results have been significant.
+Would you be open to a 20-minute conversation to explore whether there is a fit? I would rather save you time upfront than pitch something that is not relevant.
 
-Would it be worth a 20-minute conversation to see if there's a fit?
-
-[Your name]`
+${signature}`
     },
     {
       label: 'Post Discovery',
-      subject: `Following up — ${offerName} for [Company Name]`,
+      subject: `Next steps on ${offerShort} for [Company Name]`,
       body: `Hi [First Name],
 
-Really appreciated the conversation earlier. Based on what you shared, I think there's a strong fit — specifically around:
+Thanks for the conversation. Based on what you shared, there is a clear fit with how we approach ${offerShort.toLowerCase()}. Three things stood out:
 
-${p.tps ? p.tps.slice(0,3).map((t,i) => `${i+1}. ${t}`).join('\n') : ''}
+${p.tps ? p.tps.slice(0,3).map((t,i) => `${i+1}. ${t.replace(/—/g,'-').replace(/–/g,'-')}`).join('\n') : '1. [Key pain point 1]\n2. [Key pain point 2]\n3. [Key pain point 3]'}
 
-${p.next || 'I would like to propose a next step.'}
+${(p.next || 'I would like to propose a next step.').replace(/—/g,'-').replace(/–/g,'-')}
+
+I have attached a few resources that directly address what we discussed. Happy to walk through them live if that is easier.
 
 Can we get 30 minutes on the calendar with you and [other stakeholder] this week?
 
-[Your name]`
+${signature}`
     },
     {
       label: 'Follow-Up (No Response)',
-      subject: `Re: ${offerName} — [Company Name]`,
+      subject: `Still worth a conversation? ${offerShort} for [Company Name]`,
       body: `Hi [First Name],
 
-Just bumping this up in case it got buried.
+Bumping this in case it got buried.
 
-I know your team is dealing with [specific pain from call] — that tends to become more urgent as [deadline/event] approaches.
+[Company Name] is not alone on this. Most ${ind} teams we work with are navigating the same pressure around ${pain}, and it tends to become more urgent as [deadline, audit, or renewal] gets closer.
 
-Happy to be brief — even a 15-minute call would give us both a clear picture of whether this is worth pursuing.
+If the timing is not right, no offense taken. If it is, a 15-minute call would give us both a clear read on whether there is a fit.
 
-[Your name]`
+${signature}`
     },
     {
       label: 'Executive Sponsor',
-      subject: `Identity risk at [Company Name] — worth 10 minutes?`,
+      subject: `Identity risk at [Company Name]: worth 10 minutes`,
       body: `Hi [Executive Name],
 
-I'll be brief — I've been speaking with [Champion Name] about how [Company Name] is approaching identity security, specifically around ${p.why ? p.why.split('.')[0].toLowerCase() : 'access governance'}.
+I will be direct.
 
-Given what's at stake with [insurance/audit/compliance deadline], I wanted to connect directly.
+I have been speaking with [Champion Name] about how [Company Name] is approaching ${offerShort.toLowerCase()}, specifically around ${p.why ? p.why.split('.')[0].replace(/—/g,'-').replace(/–/g,'-').toLowerCase() : 'access governance and identity risk'}.
 
-We've helped ${ind} organisations significantly reduce their exposure in this area. Happy to share a brief overview — would 10 minutes work this week?
+With [insurance renewal, regulatory deadline, or board review] on the horizon, the cost of delay is real. MajorKey is a pure-play identity security partner. We have helped ${ind} organizations meaningfully reduce this exposure, often in under a quarter.
 
-[Your name]`
+Would you have 10 minutes this week for a direct conversation? If there is no fit, I will not take more of your time.
+
+${signature}`
+    },
+    {
+      label: 'Content Share',
+      subject: `Resources on ${offerShort} you may find useful`,
+      body: `Hi [First Name],
+
+Based on our conversation about ${offerShort.toLowerCase()}, I wanted to share a few resources that go deeper on the specific challenges you mentioned.
+
+These are a mix of short reads, customer stories, and product overviews, all directly relevant to where [Company Name] is today.
+
+If any of them land, I am happy to set up time with our subject matter experts to go deeper. No pressure either way.
+
+${signature}`
     }
   ];
 }
