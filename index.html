@@ -6412,41 +6412,192 @@ goTo = function(n){
 // ── SELLER TOOLKIT ────────────────────────────────────────────────────────
 
 // Email templates per offering
+// Outcome/value prop map per offering - drives email template personalization
+var OFFERING_OUTCOMES = {
+  'entra-mig': {
+    pain: 'paying for Okta, Ping, or ForgeRock while already owning Entra ID licenses',
+    outcome: 'cut duplicate identity spend by 40-60% and consolidate SSO onto Microsoft',
+    differentiator: 'our Okta-to-Entra advisory framework de-risks migration in 12-16 weeks',
+    proofPoint: 'recently moved a federal agency off ADFS onto Entra ID for a zero trust cloud-first future',
+    urgency: 'Okta renewal or M365 E5 entitlement sitting unused'
+  },
+  'entra-gov': {
+    pain: 'manual access reviews, provisioning backlogs, and audit findings around joiner-mover-leaver',
+    outcome: 'automate JML lifecycle workflows and deliver audit-ready access certifications',
+    differentiator: 'HorizonID extends Entra ID Governance to handle complex connectors and app integrations Entra alone cannot',
+    proofPoint: 'helped a healthcare network consolidate identity processes while reducing costs with Entra ID Governance',
+    urgency: 'SailPoint/Saviynt renewal or regulatory audit approaching'
+  },
+  'mim-entra': {
+    pain: 'aging Microsoft Identity Manager infrastructure nearing end-of-life',
+    outcome: 'retire MIM and modernize identity onto cloud-native Entra ID Governance',
+    differentiator: 'our MIM-to-Entra readiness assessment and HorizonID bridge complex MIM scenarios',
+    proofPoint: 'multiple enterprises transitioning from MIM portal and sync to Entra ID',
+    urgency: 'MIM end-of-support, hybrid sync instability, or FIM/Forefront retirement'
+  },
+  'idproof-remote': {
+    pain: 'remote onboarding fraud and no verifiable identity proofing for new hires',
+    outcome: 'verify identity of remote employees and contractors before granting access',
+    differentiator: 'IDProof+ combines document verification, face match, and liveness detection in a single flow',
+    proofPoint: 'stops deepfake and fraudulent employee attempts during remote hiring',
+    urgency: 'North Korea IT worker threat or distributed workforce expansion'
+  },
+  'idproof-helpdesk': {
+    pain: 'help desk social engineering, password reset fraud, and caller impersonation',
+    outcome: 'verify caller identity in real-time before any privileged action',
+    differentiator: 'IDProof+ for Helpdesk integrates with ServiceNow and your ITSM to gate every privileged reset',
+    proofPoint: 'prevents MFA bypass and vishing attacks that target the help desk',
+    urgency: 'recent social engineering incident or cyber insurance requirement'
+  },
+  'mna': {
+    pain: 'two Entra tenants, duplicate directories, and cross-tenant access after an acquisition',
+    outcome: 'consolidate identity across entities on deal-driven timelines',
+    differentiator: 'AD Consolidation from Rust to Resilience offering handles post-acquisition integration end-to-end',
+    proofPoint: 'integrated and consolidated identity post-acquisition for multiple enterprise clients',
+    urgency: 'merger, acquisition, divestiture, or carve-out timeline'
+  },
+  'cloud-first': {
+    pain: 'legacy IAM patterns blocking cloud migration and Zero Trust readiness',
+    outcome: 'build a cloud-native identity foundation that scales with your digital transformation',
+    differentiator: 'MajorKey is a pure-play identity security partner with deep Microsoft Entra Suite expertise',
+    proofPoint: 'helped federal agencies and enterprises move to a zero trust cloud-first future',
+    urgency: 'cloud migration underway or Zero Trust mandate from leadership'
+  },
+  'orchestratid-apps': {
+    pain: 'manual app provisioning, slow application onboarding, and connector development backlog',
+    outcome: 'automate application onboarding and SCIM connector build across your SaaS estate',
+    differentiator: 'OrchestratID eliminates the bottleneck that stalls most IGA deployments',
+    proofPoint: 'modernized identity and app governance for a global heavy equipment manufacturer',
+    urgency: 'SaaS sprawl outpacing your ability to provision access'
+  },
+  'isc-iga': {
+    pain: 'aging SailPoint IdentityIQ, Saviynt, or Oracle IAM platform approaching end of support',
+    outcome: 'migrate to SailPoint Identity Security Cloud with cleaner policies and lower TCO',
+    differentiator: 'our SailPoint IIQ-to-ISC migration framework captures the opportunity to rationalize years of customization debt',
+    proofPoint: 'rescued a Fortune 500 bank SailPoint implementation and led a large retailer Saviynt EIC program',
+    urgency: 'IIQ end of support, SailPoint renewal, or IGA modernization mandate'
+  },
+  'nhi-gov': {
+    pain: 'service account sprawl, unmanaged API keys, and ungoverned machine identities',
+    outcome: 'bring non-human identities under the same governance rigor as your workforce',
+    differentiator: 'we extend your existing IGA platform to cover service accounts, bots, and workload identities',
+    proofPoint: 'most enterprises have 10-40x more machine than human identities with almost no governance',
+    urgency: 'DevOps expansion, cloud migration, or audit findings on service account hygiene'
+  },
+  'rbac': {
+    pain: 'role explosion, toxic combinations, SoD violations, and excessive standing access',
+    outcome: 'rationalize roles, enforce least-privilege, and reduce certification fatigue',
+    differentiator: 'role mining approach that cuts the role catalog by 40-70% while preserving business access',
+    proofPoint: 'Fastpath and Delinea SoD toolsets deployed for enterprise access governance',
+    urgency: 'SoD violations flagged in audit or entitlement reviews overwhelming reviewers'
+  },
+  'pam-integration': {
+    pain: 'incomplete PAM coverage, unvaulted privileged accounts, and standing admin access',
+    outcome: 'close PAM coverage gaps and enforce just-in-time privileged access at scale',
+    differentiator: 'deep CyberArk and BeyondTrust integration experience across IGA, ITSM, and ITDR',
+    proofPoint: 'transformed privileged access for healthcare fintech leaders with CyberArk rescue engagements',
+    urgency: 'CyberArk renewal, PAM adoption gaps, or cyber insurance requirement'
+  },
+  'pam-orchestratid': {
+    pain: 'PAM platform migration, CyberArk upgrade, or moving between PAM tools',
+    outcome: 'accelerate PAM vault migration and policy conversion without extended downtime',
+    differentiator: 'OrchestratID automates vault content, policy, and integration migration',
+    proofPoint: 'enterprise PAM migrations completed without manual rework or extended outages',
+    urgency: 'PAM platform decision or forced upgrade timeline'
+  },
+  'skydock': {
+    pain: 'secrets and certificate sprawl across multiple vaults',
+    outcome: 'migrate and consolidate vault contents onto a single platform',
+    differentiator: 'SkyDock automates CyberArk object migration and secret consolidation',
+    proofPoint: 'automated credential and certificate migrations across HashiCorp, Azure Key Vault, and AWS Secrets Manager',
+    urgency: 'vault consolidation mandate or secrets management modernization'
+  },
+  'cert-lifecycle': {
+    pain: 'certificate outages from expiry and manual TLS certificate tracking',
+    outcome: 'eliminate certificate outages with automated lifecycle management',
+    differentiator: 'our PKI meets PAM approach governs certificates with the same rigor as human privileged access',
+    proofPoint: '47-day TLS certificate lifespans are coming and only automation can keep pace',
+    urgency: 'recent certificate outage or the new 47-day CA/B Forum certificate mandate'
+  },
+  'secure-nhi': {
+    pain: 'unrotated secrets, static credentials, and hardcoded service principals',
+    outcome: 'secure machine identities with automated credential rotation and governance',
+    differentiator: 'extends existing PAM, IGA, and certificate platforms to cover DevOps and cloud workloads',
+    proofPoint: 'service account risk is the most common unmanaged attack surface we find',
+    urgency: 'service principal sprawl or DevSecOps program expansion'
+  },
+  'workforce-creds': {
+    pain: 'phishing attacks, credential theft, password spray, and MFA fatigue',
+    outcome: 'deploy phishing-resistant passwordless authentication across the workforce',
+    differentiator: 'FIDO2 and Windows Hello rollout combined with Defender for Identity threat detection',
+    proofPoint: 'passwordless reduces helpdesk password reset volume by 50-80%',
+    urgency: 'recent phishing incident, insurance requirement, or AI-driven attack exposure'
+  },
+  'identityscout': {
+    pain: 'unknown accounts, orphaned identities, shadow IT, and identity visibility gaps',
+    outcome: 'discover every identity across your estate and onboard them into governance',
+    differentiator: 'IdentityScout surfaces ungoverned accounts that existing IGA cannot see',
+    proofPoint: 'typical discovery finds 20-40% more accounts than the customer thought existed',
+    urgency: 'audit on orphaned accounts or identity inventory mandate'
+  },
+  'credsafe': {
+    pain: 'business continuity risk if Entra ID or the primary IdP has an outage',
+    outcome: 'maintain authentication and access during identity provider outages',
+    differentiator: 'CredSafe provides credential resilience and offline authentication capability',
+    proofPoint: 'keeps the business running when the identity infrastructure itself goes down',
+    urgency: 'board scrutiny on identity resilience after recent vendor outages'
+  }
+};
+
 function getEmailTemplates(){
   const p = gp();
   const offerName = selOff ? selOff.name : 'identity security';
   const offerShort = selOff ? selOff.short : 'identity security';
   const ind = sI || 'your industry';
-  const pain = p.tps && p.tps[0] ? p.tps[0].replace(/—/g,'-').replace(/–/g,'-').toLowerCase().replace(/\.$/,'') : 'managing access at scale';
+  const o = (selOff && OFFERING_OUTCOMES[selOff.id]) || {
+    pain: 'managing access at scale',
+    outcome: 'strengthen your identity security posture',
+    differentiator: 'MajorKey is a pure-play identity security partner',
+    proofPoint: 'delivered outcomes for similar organizations',
+    urgency: 'recent audit, renewal, or security incident'
+  };
 
   const signature = `\nBest regards,\n[Your Name]\n[Your Title] | MajorKey Technologies\nDriving progress and adoption of identity security for modern enterprises\nmajorkeytech.com`;
 
   return [
     {
       label: 'Cold Outreach',
-      subject: `Quick question about ${offerShort} at [Company Name]`,
+      subject: `${offerShort} at [Company Name]: ${o.outcome.split(',')[0]}`,
       body: `Hi [First Name],
 
-I lead ${ind} conversations at MajorKey Technologies and noticed [Company Name] may be navigating one of the most common challenges we see right now: ${pain}.
+I lead ${ind} conversations at MajorKey Technologies. Reaching out because most organizations in your space are navigating ${o.pain}, and the cost of leaving it unaddressed is adding up.
 
-MajorKey helps organizations like yours solve this head-on. We are a pure-play identity security partner, and ${offerShort} is one of our core offerings.
+Our ${offerShort} offering helps you ${o.outcome}. Specifically: ${o.differentiator}.
 
-Would you be open to a 20-minute conversation to explore whether there is a fit? I would rather save you time upfront than pitch something that is not relevant.
+Real example: we ${o.proofPoint}.
+
+If [Company Name] is feeling pressure from ${o.urgency}, it would be worth 20 minutes to compare notes. No pitch, just a direct conversation about what is working for similar ${ind} teams.
+
+Open to a quick call this week or next?
 
 ${signature}`
     },
     {
       label: 'Post Discovery',
-      subject: `Next steps on ${offerShort} for [Company Name]`,
+      subject: `${offerShort} for [Company Name]: next steps`,
       body: `Hi [First Name],
 
-Thanks for the conversation. Based on what you shared, there is a clear fit with how we approach ${offerShort.toLowerCase()}. Three things stood out:
+Appreciated the conversation. Based on what you shared, the fit with our ${offerShort} offering is clear. You are dealing with ${o.pain}, and our approach is built specifically to ${o.outcome}.
+
+What makes our approach different: ${o.differentiator}.
+
+Three specific things that stood out from our call:
 
 ${p.tps ? p.tps.slice(0,3).map((t,i) => `${i+1}. ${t.replace(/—/g,'-').replace(/–/g,'-')}`).join('\n') : '1. [Key pain point 1]\n2. [Key pain point 2]\n3. [Key pain point 3]'}
 
 ${(p.next || 'I would like to propose a next step.').replace(/—/g,'-').replace(/–/g,'-')}
 
-I have attached a few resources that directly address what we discussed. Happy to walk through them live if that is easier.
+I have attached resources that directly address what we discussed. Happy to walk through them live if that is easier.
 
 Can we get 30 minutes on the calendar with you and [other stakeholder] this week?
 
@@ -6454,27 +6605,31 @@ ${signature}`
     },
     {
       label: 'Follow-Up (No Response)',
-      subject: `Still worth a conversation? ${offerShort} for [Company Name]`,
+      subject: `Still worth a conversation on ${offerShort}?`,
       body: `Hi [First Name],
 
 Bumping this in case it got buried.
 
-[Company Name] is not alone on this. Most ${ind} teams we work with are navigating the same pressure around ${pain}, and it tends to become more urgent as [deadline, audit, or renewal] gets closer.
+[Company Name] is not alone on ${o.pain}. Most ${ind} teams we work with are feeling the same pressure, and it tends to intensify as ${o.urgency} gets closer.
 
-If the timing is not right, no offense taken. If it is, a 15-minute call would give us both a clear read on whether there is a fit.
+Quick read: ${o.proofPoint}. Our approach is built to ${o.outcome}.
+
+If timing is not right, no offense taken. If it is, 15 minutes gives us both a clear read on whether there is a fit.
 
 ${signature}`
     },
     {
       label: 'Executive Sponsor',
-      subject: `Identity risk at [Company Name]: worth 10 minutes`,
+      subject: `[Company Name] identity risk: 10 minutes?`,
       body: `Hi [Executive Name],
 
 I will be direct.
 
-I have been speaking with [Champion Name] about how [Company Name] is approaching ${offerShort.toLowerCase()}, specifically around ${p.why ? p.why.split('.')[0].replace(/—/g,'-').replace(/–/g,'-').toLowerCase() : 'access governance and identity risk'}.
+I have been speaking with [Champion Name] about ${o.pain} at [Company Name]. With ${o.urgency} on the horizon, the cost of delay is real.
 
-With [insurance renewal, regulatory deadline, or board review] on the horizon, the cost of delay is real. MajorKey is a pure-play identity security partner. We have helped ${ind} organizations meaningfully reduce this exposure, often in under a quarter.
+MajorKey is a pure-play identity security partner. Our ${offerShort} offering helps ${ind} leaders ${o.outcome}. ${o.differentiator.charAt(0).toUpperCase() + o.differentiator.slice(1)}.
+
+Real-world outcome: ${o.proofPoint}.
 
 Would you have 10 minutes this week for a direct conversation? If there is no fit, I will not take more of your time.
 
@@ -6482,14 +6637,16 @@ ${signature}`
     },
     {
       label: 'Content Share',
-      subject: `Resources on ${offerShort} you may find useful`,
+      subject: `${offerShort}: resources for [Company Name]`,
       body: `Hi [First Name],
 
-Based on our conversation about ${offerShort.toLowerCase()}, I wanted to share a few resources that go deeper on the specific challenges you mentioned.
+Based on our conversation about ${o.pain}, I wanted to share a few resources that go deeper on how we ${o.outcome}.
 
-These are a mix of short reads, customer stories, and product overviews, all directly relevant to where [Company Name] is today.
+These cover our ${offerShort} offering specifically: the approach, the outcomes, and a customer story or two that parallel where [Company Name] is today.
 
-If any of them land, I am happy to set up time with our subject matter experts to go deeper. No pressure either way.
+Key takeaway across all of them: ${o.differentiator}.
+
+If any of this lands, I am happy to set up time with our subject matter experts to go deeper. No pressure either way.
 
 ${signature}`
     }
