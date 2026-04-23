@@ -1,71 +1,82 @@
 # MajorKey Solution Plays - Teams App
 
-This folder contains the Teams app manifest to deploy Solution Plays as a personal tab inside Microsoft Teams.
+**Ready to upload!** The zip file `SolutionPlays.zip` is already packaged and on your Desktop.
 
-## What you get
+## What's in the zip
 
-- Sellers access Solution Plays directly inside Teams (no separate login)
-- User identity (name, email) auto-populates email signatures via Teams SSO
-- Theme automatically matches Teams (light/dark/high-contrast)
+- `manifest.json` - App configuration (GUID: `6f1bc950-142a-4029-90ea-7f3920f8db82`)
+- `icon-color.png` - 192x192 MajorKey-branded color icon (purple/green gradient with "MK")
+- `icon-outline.png` - 32x32 outline icon (white "MK" with rounded border)
 
-## One-time setup
+## Upload to Teams
 
-### 1. Generate a GUID for the app ID
+### Option A - Test it yourself first (recommended)
 
-Open PowerShell and run:
-```powershell
-[guid]::NewGuid()
+1. Open **Microsoft Teams** (desktop or web)
+2. Click **Apps** in the left sidebar (grid icon)
+3. Click **Manage your apps** at the bottom
+4. Click **Upload an app** button
+5. Choose **Upload a custom app** (or "Upload a personal app")
+6. Select `SolutionPlays.zip` from your Desktop
+7. Click **Add** when Teams prompts you
+
+The app will appear as "Solution Plays" in your Teams sidebar.
+
+### Option B - Roll out to your team
+
+1. Go to Teams Admin Center: https://admin.teams.microsoft.com
+2. **Teams apps** -> **Manage apps** -> **Actions** -> **Upload new app**
+3. Upload `SolutionPlays.zip`
+4. Once approved, assign to users via **Setup policies** -> **App setup policies**
+5. Pin to the app bar so sellers see it automatically
+
+## What users will see
+
+When a seller opens the app inside Teams:
+
+1. The app loads from https://nice-grass-018e5aa0f.2.azurestaticapps.net/
+2. Teams SDK automatically passes their identity (name, email, tenant)
+3. A green user badge appears in the top-right showing their initials + name
+4. All email templates auto-fill with their actual name and email in the signature
+5. No separate login required
+
+## If you want to regenerate
+
+The icons were generated from this script: `gen_teams_icons.js` in Downloads folder. To re-create:
+
+```bash
+cd c:/Users/jlynch/Downloads
+node gen_teams_icons.js
 ```
 
-Copy the GUID and paste it into `manifest.json` where it says `REPLACE-WITH-NEW-GUID`.
+To re-zip:
 
-### 2. Create the two icon files
-
-Teams requires two PNG icons in this folder:
-
-- **icon-color.png** — 192x192px, full color MajorKey logo on any background
-- **icon-outline.png** — 32x32px, white outline logo on transparent background
-
-Use any of these to create them:
-- Figma/Sketch/Photoshop with the MajorKey logo SVG
-- Online converter: https://cloud.microsoft/designer (built into M365)
-- Microsoft's icon generator: https://developer.microsoft.com/en-us/microsoft-teams/app-icon-generator
-
-Drop both files into this folder.
-
-### 3. Package the app
-
-Create a zip containing these 3 files (at the root, not in a subfolder):
-- `manifest.json`
-- `icon-color.png`
-- `icon-outline.png`
-
-Name it `SolutionPlays.zip`.
-
-### 4. Upload to Teams
-
-**Option A — Personal upload (test first):**
-1. Open Teams
-2. Click the `...` (Apps) in the left sidebar → **Manage your apps** → **Upload an app**
-3. Choose **Upload a custom app** → select `SolutionPlays.zip`
-4. Add to Teams
-
-**Option B — Organization-wide deploy:**
-1. Go to Teams Admin Center: https://admin.teams.microsoft.com
-2. **Teams apps** → **Manage apps** → **Upload new app**
-3. Upload `SolutionPlays.zip`
-4. Once approved, assign to users via **Setup policies**
-
-## What happens when a user opens it
-
-1. Teams loads the Static Web App URL in an iframe
-2. Teams JS SDK initializes automatically
-3. Your name, email, and tenant are passed to the app via `microsoftTeams.app.getContext()`
-4. The app populates your email signature with your real name/email
-5. No separate login required
+```bash
+cd c:/Users/jlynch/Downloads && node -e "
+const fs=require('fs'),archiver=require('archiver');
+const d='sales-play-activator-main/sales-play-activator-main/teams-app';
+const o=fs.createWriteStream(d+'/SolutionPlays.zip');
+const a=archiver('zip',{zlib:{level:9}}); a.pipe(o);
+a.file(d+'/manifest.json',{name:'manifest.json'});
+a.file(d+'/icon-color.png',{name:'icon-color.png'});
+a.file(d+'/icon-outline.png',{name:'icon-outline.png'});
+a.finalize();"
+```
 
 ## Troubleshooting
 
-- **App loads but shows no user badge:** Check browser console - Teams SDK may have failed to init. Happens in the standalone app URL (outside Teams) which is expected.
-- **Icons missing:** They must be PNG (not JPG/SVG), exactly 192x192 and 32x32, named exactly as specified.
-- **"Invalid manifest" error:** The GUID must be a valid v4 UUID, the URL must be HTTPS and not localhost.
+**"Invalid manifest"** - Verify the app URL in manifest.json matches your deployed Static Web App URL.
+
+**Icons look wrong** - Open the PNGs directly to verify they rendered correctly. They must be EXACTLY 192x192 and 32x32.
+
+**App shows but no user badge** - Expected when accessed outside Teams (e.g. directly in a browser). The Teams JS SDK only activates inside Teams.
+
+**Upload is blocked** - Your tenant may require admin approval for custom apps. Ask an M365 admin to enable "Allow custom apps" in Teams Admin Center -> Teams apps -> Manage apps -> Org-wide settings.
+
+## To update the app
+
+When you want to push changes:
+1. Update `index.html` and redeploy to Azure (GitHub push auto-deploys)
+2. If the manifest itself changed, bump `version` in manifest.json (e.g. "1.0.0" -> "1.0.1")
+3. Re-zip and re-upload to Teams
+4. Teams auto-updates the app for users
