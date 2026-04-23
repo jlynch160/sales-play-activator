@@ -1,9 +1,8 @@
 {
-  "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.17/MicrosoftTeams.schema.json",
-  "manifestVersion": "1.17",
+  "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.16/MicrosoftTeams.schema.json",
+  "manifestVersion": "1.16",
   "version": "1.0.0",
   "id": "6f1bc950-142a-4029-90ea-7f3920f8db82",
-  "packageName": "com.majorkey.solutionplays",
   "developer": {
     "name": "MajorKey Technologies",
     "websiteUrl": "https://www.majorkeytech.com",
