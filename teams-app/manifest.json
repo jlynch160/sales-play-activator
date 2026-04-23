@@ -1,0 +1,47 @@
+{
+  "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.17/MicrosoftTeams.schema.json",
+  "manifestVersion": "1.17",
+  "version": "1.0.0",
+  "id": "REPLACE-WITH-NEW-GUID",
+  "packageName": "com.majorkey.solutionplays",
+  "developer": {
+    "name": "MajorKey Technologies",
+    "websiteUrl": "https://www.majorkeytech.com",
+    "privacyUrl": "https://www.majorkeytech.com/privacy",
+    "termsOfUseUrl": "https://www.majorkeytech.com/terms"
+  },
+  "icons": {
+    "color": "icon-color.png",
+    "outline": "icon-outline.png"
+  },
+  "name": {
+    "short": "Solution Plays",
+    "full": "MajorKey Solution Plays"
+  },
+  "description": {
+    "short": "AI-powered sales play generator for identity security deals",
+    "full": "Generate personalized solution plays in seconds. Paste discovery notes, pick an offering, and get a complete sales play with talk tracks, objection handling, proof points, and content recommendations - all aligned to MajorKey's identity security offerings."
+  },
+  "accentColor": "#6900FF",
+  "staticTabs": [
+    {
+      "entityId": "solution-plays-home",
+      "name": "Solution Plays",
+      "contentUrl": "https://nice-grass-018e5aa0f.2.azurestaticapps.net/",
+      "websiteUrl": "https://nice-grass-018e5aa0f.2.azurestaticapps.net/",
+      "scopes": [
+        "personal"
+      ]
+    }
+  ],
+  "permissions": [
+    "identity",
+    "messageTeamMembers"
+  ],
+  "validDomains": [
+    "nice-grass-018e5aa0f.2.azurestaticapps.net",
+    "*.azurestaticapps.net",
+    "columnit.sharepoint.com",
+    "outlook.office.com"
+  ]
+}

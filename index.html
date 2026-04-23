@@ -6,6 +6,7 @@
 <title>Sales Play Activator</title>
 <script src="https://res.cdn.office.net/teams-js/2.31.1/js/MicrosoftTeams.min.js" crossorigin="anonymous"></script>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://res.cdn.office.net/teams-js/2.24.0/js/MicrosoftTeams.min.js" crossorigin="anonymous"></script>
 <style>
 @font-face{font-family:'Pangram';src:url('fonts/PPPangramSansRounded-Regular.otf') format('opentype');font-weight:400;font-style:normal;font-display:swap;}
 @font-face{font-family:'Pangram';src:url('fonts/PPPangramSansRounded-Medium.otf') format('opentype');font-weight:500;font-style:normal;font-display:swap;}
@@ -2941,6 +2942,54 @@ var LIVE_INTEL_PA_URL = 'https://default5132dc45769d4b38a3a7635a520ea3.cd.enviro
 var LIVE_FILE_PA_URL = 'YOUR_FILE_FETCH_PA_URL_HERE';
 
 // ── CONTENT LIBRARY (hardcoded from SharePoint scrape) ───────────────────────
+
+// ── TEAMS CONTEXT / AUTO-AUTH ─────────────────────────────────────────────
+// When running inside Microsoft Teams, auto-populate user identity
+var __teamsUser = null;
+
+(function initTeamsContext(){
+  if(typeof microsoftTeams === 'undefined') return;
+  try {
+    microsoftTeams.app.initialize().then(function(){
+      microsoftTeams.app.getContext().then(function(context){
+        if(context && context.user) {
+          __teamsUser = {
+            name: context.user.displayName || context.user.userPrincipalName || '',
+            email: context.user.userPrincipalName || context.user.loginHint || '',
+            tenantId: context.user.tenant && context.user.tenant.id ? context.user.tenant.id : '',
+            theme: context.app && context.app.theme ? context.app.theme : 'default'
+          };
+          applyTeamsUserToUI();
+
+          // React to theme changes (dark/light/high-contrast)
+          microsoftTeams.app.registerOnThemeChangeHandler(function(theme){
+            __teamsUser.theme = theme;
+          });
+        }
+      }).catch(function(){});
+    }).catch(function(){});
+  } catch(e) {}
+})();
+
+function applyTeamsUserToUI() {
+  if(!__teamsUser) return;
+  // Update any [Your Name] / [Your Email] references on the fly
+  // (The email templates read from getTeamsUserInfo() when building signatures)
+  // Show the logged-in user in the header
+  var hdr = document.querySelector('.hdr-right');
+  if(hdr && !document.getElementById('teams-user-badge')) {
+    var badge = document.createElement('div');
+    badge.id = 'teams-user-badge';
+    badge.style.cssText = 'display:flex;align-items:center;gap:8px;padding:6px 12px;background:rgba(32,245,147,0.08);border:1px solid rgba(32,245,147,0.25);border-radius:20px;font-size:12px;color:var(--teal2);';
+    var initials = (__teamsUser.name || __teamsUser.email).split(/\s+|@/).filter(Boolean).slice(0,2).map(function(s){return s[0];}).join('').toUpperCase();
+    badge.innerHTML = '<span style="width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#6900FF,#20F593);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;font-family:var(--mono);">'+initials+'</span><span style="color:var(--t1);">'+escHtml(__teamsUser.name || __teamsUser.email)+'</span>';
+    hdr.insertBefore(badge, hdr.firstChild);
+  }
+}
+
+function getTeamsUserInfo() {
+  return __teamsUser || { name: '[Your Name]', email: '[Your Email]', tenantId: '' };
+}
 
 // ── SELECTED ATTACHMENTS FOR EMAIL ─────────────────────────────────────────
 var __selectedAttachments = [];
@@ -6672,7 +6721,10 @@ function getEmailTemplates(){
   const nextMove = (p && p.next) ? p.next.replace(/—/g,'-').replace(/–/g,'-') : '';
   const tpsList = (p && p.tps && p.tps.length) ? p.tps.slice(0,3).map(function(t,i){ return (i+1) + '. ' + t.replace(/—/g,'-').replace(/–/g,'-'); }).join('\n') : '';
 
-  const signature = `\nBest regards,\n[Your Name]\n[Your Title] | MajorKey Technologies\nDriving progress and adoption of identity security for modern enterprises\nmajorkeytech.com`;
+  const user = getTeamsUserInfo();
+  const userName = user.name !== '[Your Name]' ? user.name : '[Your Name]';
+  const userEmail = user.email !== '[Your Email]' ? user.email : '';
+  const signature = `\nBest regards,\n${userName}\nMajorKey Technologies${userEmail ? '\n' + userEmail : ''}\nDriving progress and adoption of identity security for modern enterprises\nmajorkeytech.com`;
 
   return [
     {
