@@ -2008,6 +2008,49 @@ body{background:var(--bg);color:var(--t1);font-family:var(--body);min-height:100
 #adm-pop-close:hover,#li-reader-close:hover{background:rgba(255,92,92,0.15) !important;border-color:rgba(255,92,92,0.3) !important;}
 #li-reader-prev:hover{background:rgba(157,111,255,0.18) !important;}
 #li-reader-next:hover{background:rgba(0,212,184,0.18) !important;}
+/* ── PRINT / PDF EXPORT STYLES ────────────────────────────────────────── */
+@media print {
+  body, html { background: #fff !important; color: #111 !important; font-size: 11pt; }
+  .hdr, .progress, .toolkit-bar, .tab-bar, .play-nav, #play-nav, #sp-popup, #linkedin-popup,
+  #email-modal, #file-viewer, #share-modal, #content-browser, #onboard-modal,
+  #li-reader, #compare-modal, #analytics-modal, #admin-screen,
+  #s1, #s2, #loading, .amb, .footer, button, .btn-play, .btn-back,
+  #notes-toggle-btn, #help-modal, .obj-bank, .notes-toggle,
+  .play-nav-btn, [onclick*="openEmailModal"], [onclick*="openContentByType"],
+  #attach-badge, #xpopup, .xinfo-btn { display: none !important; }
+  .app { max-width: 100% !important; padding: 0 !important; }
+  .screen#s3 { display: block !important; }
+  .panel { display: block !important; opacity: 1 !important; page-break-inside: avoid; margin-bottom: 20pt; border-top: 1pt solid #ccc; padding-top: 14pt; }
+  .panel::before { content: attr(data-print-title); display: block; font-size: 16pt; font-weight: 700; margin-bottom: 12pt; color: #6900FF; }
+  #p-play::before { content: 'The Play'; }
+  #p-talk::before { content: 'Talk Track'; }
+  #p-qualify::before { content: 'Qualify & Prove'; }
+  #p-compete::before { content: 'Compete'; }
+  #p-expand::before { content: 'Grow the Account'; }
+  .play-card { background: #f4f0ff !important; color: #111 !important; border: 1pt solid #6900FF !important; padding: 14pt !important; page-break-inside: avoid; }
+  .play-card * { color: #111 !important; }
+  .play-name, .play-offering, h1, h2, h3 { color: #111 !important; }
+  .play-ring, .play-ring-wrap { display: none !important; }
+  .mpill { background: #eee !important; color: #111 !important; border: 1pt solid #ccc !important; }
+  .sec-lbl, .xsec-label { color: #6900FF !important; font-weight: 700 !important; font-size: 10pt !important; }
+  .tp-ul li, .obj-ul > div, .case-ul > div, .fit-ul > div,
+  .ai-rendered ul > li, .ai-rendered ol > li {
+    background: #f8f8ff !important; color: #111 !important;
+    border: 1pt solid #ddd !important; border-left: 3pt solid #6900FF !important;
+    padding: 8pt 12pt !important; margin-bottom: 6pt !important;
+    page-break-inside: avoid;
+  }
+  .ai-rendered p { color: #111 !important; background: #f8f8ff !important; border-left: 3pt solid #6900FF !important; padding: 8pt 12pt !important; }
+  .opener-box { background: #f4f0ff !important; border: 1pt solid #6900FF !important; padding: 12pt !important; color: #111 !important; }
+  .opener-txt { color: #111 !important; }
+  .fit-layout { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 12pt !important; }
+  .fit-col-lbl { color: #111 !important; font-weight: 700 !important; }
+  .ct { width: 100% !important; border-collapse: collapse !important; }
+  .ct th, .ct td { border: 1pt solid #ccc !important; padding: 6pt 8pt !important; color: #111 !important; }
+  .ct th { background: #6900FF !important; color: #fff !important; }
+  /* Header on every page */
+  @page { margin: 0.6in; size: letter; }
+}
 </style>
 </head>
 <body>
@@ -2326,6 +2369,9 @@ body{background:var(--bg);color:var(--t1);font-family:var(--body);min-height:100
     <div style="margin-left:auto;"></div>
     <button class="play-nav-btn" onclick="sharePlay()" style="border-color:rgba(32,245,147,0.3);color:var(--teal2);background:rgba(32,245,147,0.08);">
       <span style="font-size:16px;">📤</span> Share Play
+    </button>
+    <button class="play-nav-btn" onclick="exportPlayPDF()" style="border-color:rgba(105,0,255,0.3);color:var(--purple2);background:rgba(105,0,255,0.08);">
+      <span style="font-size:16px;">📄</span> Export PDF
     </button>
   </div>
 
@@ -5385,6 +5431,48 @@ function tabReset(){
 }
 
 
+function exportPlayPDF() {
+  if(!selOff) { alert('Select an offering first.'); return; }
+  trackEvent('export_pdf', selOff.id);
+
+  // Set document title so the PDF filename is meaningful
+  var originalTitle = document.title;
+  var prospect = (document.getElementById('disc-ta') && document.getElementById('disc-ta').value) || '';
+  var company = (prospect.match(/\bat\s+([A-Z][A-Za-z0-9\s&,.'-]{2,40})\b/) || [,''])[1].trim() || '[Prospect]';
+  var dateStr = new Date().toISOString().slice(0,10);
+  document.title = 'MajorKey Solution Play - ' + selOff.short + ' - ' + company + ' - ' + dateStr;
+
+  // Make all tabs visible for print
+  var allPanels = document.querySelectorAll('.panel');
+  var originalDisplays = [];
+  allPanels.forEach(function(p) {
+    originalDisplays.push(p.style.display);
+    p.style.display = 'block';
+    p.classList.add('on');
+  });
+
+  // If Expand tab not rendered yet, render it so it prints
+  if(typeof renderExpandTab === 'function') {
+    try { renderExpandTab(); } catch(e) {}
+  }
+
+  // Small delay then print
+  setTimeout(function() {
+    window.print();
+    // Restore
+    setTimeout(function() {
+      document.title = originalTitle;
+      allPanels.forEach(function(p, i) {
+        p.style.display = originalDisplays[i];
+        if(originalDisplays[i] !== 'block') p.classList.remove('on');
+      });
+      // Re-activate the current tab
+      var activeTab = document.querySelector('.tab.on');
+      if(activeTab) activeTab.click();
+    }, 500);
+  }, 100);
+}
+
 function sharePlay(){
   var off = selOff;
   if(!off) return;
@@ -5597,14 +5685,83 @@ function fullReset(){
 }
 
 // ── OBJECTION BANK ──
-function getObjBank(){ try{ return JSON.parse(localStorage.getItem('obj-bank')||'[]'); }catch(e){ return []; } }
+// ── SHARED OBJECTION BANK ────────────────────────────────────────────────
+// Team-wide starter set — curated by MajorKey sales leadership
+var SHARED_OBJECTIONS = [
+  // Generic / cross-offering
+  { q: "We're fine - our current IAM is working", a: "The question isn't whether it works, it's whether it covers 100% of your identity risk surface. Most teams find privileged accounts, contractor access, and machine identities aren't governed. Can we run a quick gap assessment?", tags: ['generic'], scope: 'all' },
+  { q: "We already have MFA deployed", a: "MFA is table stakes, not a finish line. Modern attackers bypass legacy MFA with phishing. Our FIDO2 passwordless approach closes that gap - we can show breach cases where standard MFA was defeated in under 10 minutes.", tags: ['workforce-creds','cloud-first'], scope: 'workforce-creds' },
+  { q: "It's too complex to migrate", a: "We hear this a lot. Our deployment approach starts with the highest-risk identities - typically 10-15% of your estate - and delivers measurable compliance value in 90 days without disrupting day-to-day operations. No rip and replace.", tags: ['entra-mig','mim-entra','isc-iga'], scope: 'all' },
+  { q: "Our budget is locked", a: "Let's reframe: the average credential-based breach costs $4.9M. If we can show a 6-month ROI against that baseline, does this become a risk mitigation investment rather than a discretionary spend?", tags: ['generic'], scope: 'all' },
+  { q: "Why not just use Microsoft native features?", a: "Great starting point - most E5 customers only use 30-40% of their Entra capabilities. But for complex provisioning, app governance, and SoD scenarios, Entra alone has gaps. HorizonID and OrchestratID fill exactly those gaps without replacing what you've already paid for.", tags: ['entra-gov','cloud-first'], scope: 'entra-gov' },
+  { q: "We're already using SailPoint/Saviynt", a: "We implement and modernize both. The question is whether your current deployment is delivering the outcomes it promised. We often find rescues and replatforms make more business sense than abandoning the investment - happy to share customer stories.", tags: ['isc-iga'], scope: 'isc-iga' },
+  { q: "We have CyberArk but it's not fully deployed", a: "That's the #1 pattern we see. CyberArk is a great platform but adoption and integration gaps leave most customers with 30-60% coverage. We specialize in closing those gaps - IGA integration, ITSM workflows, session monitoring expansion. Quick assessment can quantify your gap.", tags: ['pam-integration'], scope: 'pam-integration' },
+  { q: "Our team is too busy for a new project", a: "That's exactly why we offer managed operations - L2/L3 support on your existing platforms so your team focuses on strategy. We've reduced BAU burden for customers by 40-70% while improving their security posture.", tags: ['generic'], scope: 'all' },
+  { q: "We don't have a compliance deadline yet", a: "Most of our urgent engagements started without deadlines - they accelerate when auditors, insurers, or board committees ask questions. Getting ahead gives you leverage; being reactive limits your options. Worth a baseline conversation while there's runway.", tags: ['generic'], scope: 'all' },
+  { q: "What makes MajorKey different from Big 4 consultants?", a: "Big 4 does strategy. We do strategy plus hands-on-keyboard implementation and managed operations. We're a pure-play identity security partner - nothing else. Deeper bench, faster delivery, lower cost, and skin in the game on outcomes.", tags: ['generic'], scope: 'all' },
+  // Migration-specific
+  { q: "We're not ready to leave Okta", a: "We're not suggesting you rip it out tomorrow. Most of our Okta-to-Entra migrations are phased over 12-18 months. First step is a readiness assessment that identifies which apps can move immediately vs. which need work - no commitment required.", tags: ['entra-mig'], scope: 'entra-mig' },
+  { q: "ADFS has worked for us for years", a: "It has - and it's approaching end of life. Microsoft is deprecating ADFS, and continuing to maintain on-prem federation infrastructure in a cloud-first world adds cost without adding value. Our ADFS-to-Entra migration framework handles this in phases.", tags: ['entra-mig'], scope: 'entra-mig' },
+  // MIM
+  { q: "MIM still works, why change now?", a: "MIM is on a deprecation path and Microsoft's strategic investment is in Entra ID Governance. Every month you wait increases technical debt and makes migration harder. Teams that plan now have options; teams that wait will be forced.", tags: ['mim-entra'], scope: 'mim-entra' },
+  // IDProof
+  { q: "We already verify identity at onboarding", a: "How? Most 'verification' is checking an email address or matching to an HR record - neither stops deepfake attacks or North Korea IT worker schemes. Real identity proofing requires document + face match + liveness. IDProof+ adds that layer in a single flow.", tags: ['idproof-remote','idproof-helpdesk'], scope: 'idproof-remote' },
+  // Machine identity
+  { q: "Machine identities aren't on our radar", a: "They're the fastest-growing attack surface in your environment. Most enterprises have 10-40x more machine identities than human, with almost no governance. Attackers know this - service account compromises are in nearly every recent major breach.", tags: ['nhi-gov','secure-nhi'], scope: 'nhi-gov' }
+];
+
+function getObjBank(){
+  var local = [];
+  try { local = JSON.parse(localStorage.getItem('obj-bank')||'[]'); } catch(e){}
+  // Mark source
+  local = local.map(function(o){ return Object.assign({}, o, { source: 'mine' }); });
+  var shared = SHARED_OBJECTIONS.map(function(o){ return Object.assign({}, o, { source: 'shared' }); });
+  return { local: local, shared: shared, all: local.concat(shared) };
+}
+
+function getLocalObjections(){
+  try { return JSON.parse(localStorage.getItem('obj-bank')||'[]'); } catch(e){ return []; }
+}
 function saveObjBank(arr){ try{ localStorage.setItem('obj-bank', JSON.stringify(arr)); }catch(e){} }
+
+// Export to clipboard as JSON for sharing with team
+function exportObjections(){
+  var text = JSON.stringify(getLocalObjections(), null, 2);
+  try {
+    navigator.clipboard.writeText(text).then(function(){
+      var btn = document.getElementById('obj-export-btn');
+      if(btn){ btn.textContent = '✓ Copied JSON'; setTimeout(function(){ btn.textContent = '⤓ Export'; }, 2000); }
+    });
+  } catch(e) {}
+}
+
+// Import from pasted JSON
+function importObjections(){
+  var json = prompt('Paste the team objection JSON here:');
+  if(!json) return;
+  try {
+    var arr = JSON.parse(json);
+    if(!Array.isArray(arr)) throw new Error('Not an array');
+    var existing = getLocalObjections();
+    var seen = {};
+    existing.forEach(function(o){ seen[o.q] = true; });
+    var added = 0;
+    arr.forEach(function(o){
+      if(o.q && !seen[o.q]){ existing.unshift({ q: o.q, a: o.a || '', ts: o.ts || Date.now() }); seen[o.q] = true; added++; }
+    });
+    saveObjBank(existing);
+    renderObjBank();
+    alert('Imported ' + added + ' new objections.');
+  } catch(e) {
+    alert('Invalid JSON: ' + e.message);
+  }
+}
 
 function saveObjection(btn, q, a){
   if(!q) return;
-  const bank = getObjBank();
+  const bank = getLocalObjections();
   if(bank.some(o => o.q === q)) { btn.textContent='Already saved'; return; }
-  bank.unshift({ q, a, ts: Date.now() });
+  bank.unshift({ q: q, a: a, ts: Date.now() });
   saveObjBank(bank);
   btn.textContent = '✓ Saved';
   btn.classList.add('saved');
@@ -5616,44 +5773,87 @@ function addManualObjection(){
   const q = (document.getElementById('obj-bank-q')?.value || '').trim();
   const a = (document.getElementById('obj-bank-a')?.value || '').trim();
   if(!q) return;
-  const bank = getObjBank();
-  bank.unshift({ q, a, ts: Date.now() });
+  const bank = getLocalObjections();
+  bank.unshift({ q: q, a: a, ts: Date.now() });
   saveObjBank(bank);
   document.getElementById('obj-bank-q').value = '';
   document.getElementById('obj-bank-a').value = '';
   renderObjBank();
-  // Open the bank if collapsed
   const body = document.getElementById('obj-bank-body');
   if(body && !body.classList.contains('open')) toggleObjBank();
 }
 
 function deleteObjection(idx){
-  const bank = getObjBank();
+  const bank = getLocalObjections();
   bank.splice(idx, 1);
   saveObjBank(bank);
   renderObjBank();
 }
 
 function renderObjBank(){
-  const bank = getObjBank();
+  const data = getObjBank();
+  const localBank = data.local;
+  const sharedBank = data.shared;
   const list = document.getElementById('obj-bank-list');
   const countEl = document.getElementById('obj-bank-count');
-  if(countEl) countEl.textContent = bank.length + ' saved';
-  if(!list) return;
-  if(bank.length === 0){
-    list.innerHTML = '<div class="obj-bank-empty">No saved objections yet — click Save on any card below.</div>';
-    return;
+
+  // Filter shared by current offering if one is selected
+  var relevantShared = sharedBank;
+  if(selOff) {
+    relevantShared = sharedBank.filter(function(o) {
+      return o.scope === 'all' || o.scope === selOff.id || (o.tags && o.tags.indexOf(selOff.id) !== -1);
+    });
   }
-  list.innerHTML = '';
-  bank.forEach((o, i) => {
-    const item = document.createElement('div');
-    item.className = 'obj-bank-item';
-    item.innerHTML =
-      '<button class="obj-bank-del" onclick="deleteObjection('+i+')" title="Remove">✕</button>' +
-      '<div class="obj-bank-q">⚠ ' + escHtml(o.q) + '</div>' +
-      (o.a ? '<div class="obj-bank-a">→ ' + escHtml(o.a) + '</div>' : '');
-    list.appendChild(item);
-  });
+
+  if(countEl) countEl.textContent = (localBank.length + relevantShared.length) + ' available';
+  if(!list) return;
+
+  var html = '';
+
+  // Toolbar
+  html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;padding:8px 10px;background:rgba(105,0,255,0.05);border:1px solid rgba(105,0,255,0.15);border-radius:8px;">' +
+    '<span style="font-family:var(--mono);font-size:10px;letter-spacing:0.1em;color:var(--t3);text-transform:uppercase;flex:1;">'+(selOff?'Filtered for '+escHtml(selOff.short):'All offerings')+'</span>' +
+    '<button onclick="exportObjections()" id="obj-export-btn" style="font-size:11px;color:var(--teal2);background:rgba(32,245,147,0.1);border:1px solid rgba(32,245,147,0.3);border-radius:6px;padding:4px 10px;cursor:pointer;">⤓ Export</button>' +
+    '<button onclick="importObjections()" style="font-size:11px;color:var(--purple2);background:rgba(105,0,255,0.1);border:1px solid rgba(105,0,255,0.3);border-radius:6px;padding:4px 10px;cursor:pointer;">⤒ Import</button>' +
+  '</div>';
+
+  // Shared (team) objections
+  if(relevantShared.length > 0) {
+    html += '<div style="font-family:var(--mono);font-size:10px;letter-spacing:0.12em;color:var(--teal2);text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:8px;">' +
+      '<span>⭐ Team Playbook</span>' +
+      '<span style="color:var(--t3);">' + relevantShared.length + '</span>' +
+      '<div style="flex:1;height:1px;background:rgba(255,255,255,0.06);"></div>' +
+    '</div>';
+    relevantShared.forEach(function(o) {
+      html += '<div class="obj-bank-item" style="border-left-color:var(--teal);">' +
+        '<div class="obj-bank-q">⚠ ' + escHtml(o.q) + '</div>' +
+        (o.a ? '<div class="obj-bank-a">→ ' + escHtml(o.a) + '</div>' : '') +
+        '<div style="font-family:var(--mono);font-size:9px;color:var(--teal2);margin-top:6px;opacity:0.8;">TEAM PLAYBOOK</div>' +
+      '</div>';
+    });
+  }
+
+  // Local (personal) objections
+  if(localBank.length > 0) {
+    html += '<div style="font-family:var(--mono);font-size:10px;letter-spacing:0.12em;color:var(--purple2);text-transform:uppercase;margin:18px 0 10px;display:flex;align-items:center;gap:8px;">' +
+      '<span>📚 My Additions</span>' +
+      '<span style="color:var(--t3);">' + localBank.length + '</span>' +
+      '<div style="flex:1;height:1px;background:rgba(255,255,255,0.06);"></div>' +
+    '</div>';
+    localBank.forEach(function(o, i) {
+      html += '<div class="obj-bank-item">' +
+        '<button class="obj-bank-del" onclick="deleteObjection('+i+')" title="Remove">✕</button>' +
+        '<div class="obj-bank-q">⚠ ' + escHtml(o.q) + '</div>' +
+        (o.a ? '<div class="obj-bank-a">→ ' + escHtml(o.a) + '</div>' : '') +
+      '</div>';
+    });
+  }
+
+  if(relevantShared.length === 0 && localBank.length === 0) {
+    html += '<div class="obj-bank-empty">No saved objections yet - click Save on any card below.</div>';
+  }
+
+  list.innerHTML = html;
 }
 
 function toggleObjBank(){
