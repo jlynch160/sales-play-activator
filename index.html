@@ -2067,6 +2067,7 @@ body{background:var(--bg);color:var(--t1);font-family:var(--body);min-height:100
   <div class="hdr-right">
     <div class="status-dot"></div>
     <div class="hdr-pill">DIGITAL IDENTITY · ZERO TRUST</div>
+    <button onclick="openMyDeals()" style="display:flex;align-items:center;gap:6px;background:rgba(32,245,147,0.08);border:1px solid rgba(32,245,147,0.25);border-radius:8px;padding:6px 12px;cursor:pointer;font-family:var(--mono);font-size:11px;letter-spacing:0.1em;color:var(--teal2);text-transform:uppercase;transition:all 0.2s;" onmouseover="this.style.background='rgba(32,245,147,0.18)'" onmouseout="this.style.background='rgba(32,245,147,0.08)'">📇 My Deals <span id="deal-count-badge" style="display:none;min-width:16px;padding:0 5px;border-radius:10px;background:var(--teal);color:#0A0118;font-family:var(--mono);font-size:9px;font-weight:800;"></span></button>
     <button onclick="openAdmin()" style="background:rgba(157,111,255,0.1);border:1px solid rgba(157,111,255,0.25);border-radius:8px;padding:6px 12px;cursor:pointer;font-family:var(--mono);font-size:11px;letter-spacing:0.1em;color:var(--purple2);text-transform:uppercase;transition:all 0.2s;" onmouseover="this.style.background='rgba(157,111,255,0.2)'" onmouseout="this.style.background='rgba(157,111,255,0.1)'">⚡ Admin</button>
   </div>
 </header>
@@ -2159,6 +2160,7 @@ body{background:var(--bg);color:var(--t1);font-family:var(--body);min-height:100
       <div class="ta-label">Your discovery notes</div>
       <div class="ta-label-sub">Type or paste your raw call notes below</div>
     </div>
+    <button onclick="openTranscriptUpload()" style="margin-left:auto;display:flex;align-items:center;gap:6px;background:rgba(105,0,255,0.1);border:1px solid rgba(105,0,255,0.25);border-radius:8px;padding:8px 14px;cursor:pointer;font-family:var(--body);font-size:12px;font-weight:600;color:var(--purple2);transition:all 0.2s;white-space:nowrap;" onmouseover="this.style.background='rgba(105,0,255,0.2)'" onmouseout="this.style.background='rgba(105,0,255,0.1)'">📋 Paste Transcript</button>
   </div>
   <textarea class="s1-ta" id="disc-ta" oninput="onPromptInput()" onfocus="onTaFocus()" onblur="onTaBlur()" placeholder="e.g. Spoke to the Head of IT at a mid-size bank — auditors flagged orphaned accounts from people who left. Engineers routing around their PAM tool. Compliance deadline Q3. CFO mentioned cyber insurance renewal in August…"></textarea>
   <div class="ta-footer">
@@ -2265,6 +2267,30 @@ body{background:var(--bg);color:var(--t1);font-family:var(--body);min-height:100
     <span style="font-family:var(--mono);font-size:12px;color:var(--t2);letter-spacing:0.06em;">Select multiple offerings to compare plays</span>
   </div>
   <div id="why-wrap" style="display:none"><div class="why-box"><div class="why-lbl">Why this fits</div><div class="why-txt" id="why-txt"></div></div></div>
+
+  <!-- PROSPECT PROFILE -->
+  <div style="margin:18px 0;background:linear-gradient(145deg,rgba(32,245,147,0.06),rgba(32,245,147,0.02));border:1px solid rgba(32,245,147,0.2);border-radius:14px;padding:18px 22px;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+      <div style="width:3px;height:14px;border-radius:2px;background:linear-gradient(180deg,var(--teal),var(--purple));"></div>
+      <span style="font-family:var(--mono);font-size:11px;letter-spacing:0.12em;color:var(--teal2);text-transform:uppercase;">Prospect Profile</span>
+      <span style="font-size:11px;color:var(--t3);margin-left:auto;">Fills [Company], [First Name], [Exec] placeholders in all emails &amp; scripts</span>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
+      <div>
+        <label style="display:block;font-size:10px;color:var(--t3);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:4px;">Company</label>
+        <input id="pp-company" type="text" placeholder="Acme Corp" oninput="saveProspectProfile()" style="width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 12px;color:var(--t1);font-size:14px;font-family:var(--body);outline:none;" onfocus="this.style.borderColor='var(--teal)'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'">
+      </div>
+      <div>
+        <label style="display:block;font-size:10px;color:var(--t3);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:4px;">Contact First Name</label>
+        <input id="pp-firstname" type="text" placeholder="Sarah" oninput="saveProspectProfile()" style="width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 12px;color:var(--t1);font-size:14px;font-family:var(--body);outline:none;" onfocus="this.style.borderColor='var(--teal)'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'">
+      </div>
+      <div>
+        <label style="display:block;font-size:10px;color:var(--t3);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:4px;">Executive / Decision Maker</label>
+        <input id="pp-exec" type="text" placeholder="CISO Name" oninput="saveProspectProfile()" style="width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 12px;color:var(--t1);font-size:14px;font-family:var(--body);outline:none;" onfocus="this.style.borderColor='var(--teal)'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'">
+      </div>
+    </div>
+  </div>
+
   <div class="opt-row">
     <div class="opt-panel" id="ipanel">
       <div class="opt-lbl">Customer Industry <span class="opt-badge">OPTIONAL</span></div>
@@ -2345,16 +2371,7 @@ body{background:var(--bg);color:var(--t1);font-family:var(--body);min-height:100
       <div class="play-name" id="r-name"></div>
       <div class="play-one-liner" id="r-why-short"></div>
     </div>
-    <div class="play-card-meta">
-      <div class="mpill mw" id="r-win"></div>
-      <div class="mpill md" id="r-dur"></div>
-      <div class="mpill mc" id="r-cost"></div>
-      <div class="mpill mb" id="r-buyer"></div>
-    </div>
-    <div style="display:flex;align-items:center;gap:6px;margin-top:8px;">
-      <span style="font-family:var(--mono);font-size:11px;letter-spacing:0.1em;color:rgba(255,184,48,0.6);text-transform:uppercase;">⏳ Benchmarks coming soon</span>
-      <span style="font-size:11px;color:var(--t3);">— figures above are indicative estimates</span>
-    </div>
+    <div class="play-card-meta" id="r-meta-pills"></div>
   </div>
 
   <!-- MULTI-PLAY NAV -->
@@ -2373,6 +2390,9 @@ body{background:var(--bg);color:var(--t1);font-family:var(--body);min-height:100
     </button>
     <button class="play-nav-btn" onclick="exportPlayPDF()" style="border-color:rgba(105,0,255,0.3);color:var(--purple2);background:rgba(105,0,255,0.08);">
       <span style="font-size:16px;">📄</span> Export PDF
+    </button>
+    <button class="play-nav-btn" onclick="scheduleFollowUp()" style="border-color:rgba(255,184,48,0.3);color:var(--amber);background:rgba(255,184,48,0.08);">
+      <span style="font-size:16px;">📅</span> Schedule
     </button>
   </div>
 
@@ -2942,6 +2962,331 @@ var LIVE_INTEL_PA_URL = 'https://default5132dc45769d4b38a3a7635a520ea3.cd.enviro
 var LIVE_FILE_PA_URL = 'YOUR_FILE_FETCH_PA_URL_HERE';
 
 // ── CONTENT LIBRARY (hardcoded from SharePoint scrape) ───────────────────────
+
+// ── CALENDAR FOLLOW-UP ────────────────────────────────────────────────────
+function scheduleFollowUp() {
+  if(!selOff) return;
+  var profile = getProspectProfile();
+  var company = profile.company || '[Prospect]';
+  var firstName = profile.firstName || '[Contact]';
+
+  // Ask user for days out
+  var days = prompt('Follow up in how many days?', '3');
+  if(!days) return;
+  days = parseInt(days, 10);
+  if(isNaN(days) || days < 1) { alert('Please enter a valid number of days.'); return; }
+
+  // Start date = now + days
+  var startDate = new Date(Date.now() + days * 24 * 60 * 60 * 1000);
+  startDate.setHours(10, 0, 0, 0); // 10 AM default
+  var endDate = new Date(startDate.getTime() + 30 * 60 * 1000); // 30 min
+
+  // Build event body
+  var p = gp();
+  var bodyText = 'Follow-up on ' + selOff.name + ' conversation with ' + company + '.\n\n';
+  if(p.why) bodyText += 'Why this play: ' + p.why.split('.')[0] + '.\n\n';
+  if(p.next) bodyText += 'Agreed next step: ' + p.next + '\n\n';
+  if(p.tps && p.tps.length) {
+    bodyText += 'Talking points to revisit:\n';
+    bodyText += p.tps.slice(0,3).map(function(t,i){ return (i+1)+'. '+t; }).join('\n') + '\n\n';
+  }
+  bodyText += 'Generated by MajorKey Solution Plays';
+
+  var subject = 'Follow up: ' + selOff.short + ' - ' + company;
+
+  // Outlook Web calendar deeplink
+  var fmt = function(d) { return d.toISOString().replace(/[-:]/g,'').replace(/\.\d{3}/,''); };
+  var url = 'https://outlook.office.com/calendar/deeplink/compose' +
+    '?path=/calendar/action/compose' +
+    '&rru=addevent' +
+    '&subject=' + encodeURIComponent(subject) +
+    '&body=' + encodeURIComponent(bodyText) +
+    '&startdt=' + encodeURIComponent(startDate.toISOString()) +
+    '&enddt=' + encodeURIComponent(endDate.toISOString());
+
+  window.open(url, '_blank');
+
+  // Also save the follow-up date on the deal if one exists
+  var deals = getDeals();
+  var key = (profile.company || 'Unknown') + '::' + selOff.id;
+  var deal = deals.find(function(d){ return d.key === key; });
+  if(deal) {
+    deal.followUpDate = startDate.toISOString().slice(0,10);
+    deal.updatedAt = Date.now();
+    saveDeals(deals);
+  }
+
+  trackEvent('schedule_followup', days + ' days');
+}
+
+// ── MEETING TRANSCRIPT UPLOAD ─────────────────────────────────────────────
+function openTranscriptUpload() {
+  var existing = document.getElementById('transcript-modal');
+  if(existing) existing.remove();
+  var overlay = document.createElement('div');
+  overlay.id = 'transcript-modal';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(5,2,20,0.92);backdrop-filter:blur(8px);z-index:999999;display:flex;align-items:center;justify-content:center;padding:24px;animation:adm-popup-in 0.25s ease;';
+
+  var box = document.createElement('div');
+  box.style.cssText = 'background:linear-gradient(145deg,#1A0D40,#0A0118);border:1px solid rgba(105,0,255,0.3);border-radius:18px;max-width:700px;width:100%;max-height:90vh;display:flex;flex-direction:column;box-shadow:0 32px 100px rgba(0,0,0,0.7);overflow:hidden;';
+
+  box.innerHTML =
+    '<div style="padding:22px 28px 18px;border-bottom:1px solid rgba(255,255,255,0.08);flex-shrink:0;background:linear-gradient(135deg,rgba(105,0,255,0.08),transparent 70%);display:flex;align-items:center;justify-content:space-between;gap:12px;">' +
+      '<div><div style="font-family:var(--mono);font-size:11px;letter-spacing:0.14em;color:var(--purple2);text-transform:uppercase;margin-bottom:6px;">📋 Meeting Transcript</div>' +
+      '<div style="font-size:18px;font-weight:700;color:var(--t1);">Paste your Teams transcript</div>' +
+      '<div style="font-size:12px;color:var(--t3);margin-top:4px;">We extract pain points, tools mentioned, timing, and decision-makers automatically</div></div>' +
+      '<button id="trx-close" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:var(--t1);width:36px;height:36px;border-radius:10px;cursor:pointer;font-size:18px;">&#10005;</button>' +
+    '</div>' +
+    '<div style="padding:20px 28px;overflow-y:auto;flex:1;">' +
+      '<textarea id="trx-input" placeholder="Paste the full Teams meeting transcript here. Include timestamps, speaker names, and conversation text. We will extract the key discovery signals and populate your notes." style="width:100%;height:300px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:14px 16px;color:var(--t1);font-family:var(--body);font-size:13px;line-height:1.6;resize:vertical;outline:none;"></textarea>' +
+      '<div style="display:flex;align-items:center;gap:10px;margin-top:14px;padding:12px 16px;background:rgba(255,184,48,0.07);border:1px solid rgba(255,184,48,0.2);border-radius:10px;font-size:12px;color:#FFD580;">' +
+        '<span style="font-size:16px;">💡</span>' +
+        '<span>Get transcripts from Teams: Open recording → Transcript tab → "Download as .docx" then paste content here.</span>' +
+      '</div>' +
+    '</div>' +
+    '<div style="padding:16px 28px;display:flex;gap:10px;border-top:1px solid rgba(255,255,255,0.06);">' +
+      '<button id="trx-cancel" style="flex:1;padding:12px;border-radius:10px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);color:var(--t2);font-family:var(--body);font-size:13px;font-weight:500;cursor:pointer;">Cancel</button>' +
+      '<button id="trx-extract" style="flex:2;padding:12px;border-radius:10px;background:linear-gradient(135deg,var(--purple),#4B00B3);border:none;color:white;font-family:var(--body);font-size:14px;font-weight:700;cursor:pointer;">Extract Discovery Notes →</button>' +
+    '</div>';
+
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
+
+  document.getElementById('trx-close').addEventListener('click', function(){ overlay.remove(); });
+  document.getElementById('trx-cancel').addEventListener('click', function(){ overlay.remove(); });
+  overlay.addEventListener('click', function(e){ if(e.target===overlay) overlay.remove(); });
+  document.getElementById('trx-extract').addEventListener('click', function(){
+    var raw = document.getElementById('trx-input').value.trim();
+    if(raw.length < 100) { alert('Paste a transcript with at least 100 characters.'); return; }
+    var extracted = extractDiscoveryFromTranscript(raw);
+    var ta = document.getElementById('disc-ta');
+    if(ta) {
+      ta.value = extracted;
+      ta.dispatchEvent(new Event('input'));
+    }
+    overlay.remove();
+    trackEvent('transcript_extracted', raw.length + ' chars');
+  });
+}
+
+function extractDiscoveryFromTranscript(text) {
+  // Strip timestamps, speaker names
+  var cleaned = text
+    .replace(/^\d{1,2}:\d{2}(:\d{2})?\s+/gm, '')
+    .replace(/^[A-Z][a-z]+\s+[A-Z][a-z]+:\s+/gm, '')
+    .replace(/<v\s+[^>]+>/g, '')
+    .replace(/<\/v>/g, '');
+
+  var sentences = cleaned.split(/[.!?]+\s+/).map(function(s){ return s.trim(); }).filter(function(s){ return s.length > 20 && s.length < 400; });
+
+  // Score sentences for discovery signal value
+  var PAIN_WORDS = ['problem','issue','concern','challenge','struggle','worry','risk','breach','audit','finding','deadline','compliance','renew','budget','insurance','attack','vulnerab','expire','legacy','old','outdated','frustrat','painful','difficult'];
+  var TECH_WORDS = ['okta','ping','sailpoint','cyberark','beyondtrust','entra','azure','microsoft','sso','mfa','iam','pam','iga','mim','adfs','active directory','federation','ldap','saml','oauth','kerberos','certificate','password','service account','privileged','identity'];
+  var TIMING_WORDS = ['q1','q2','q3','q4','quarter','month','year','week','deadline','end of','before','by the','need to','must','urgent','asap','soon','fiscal','budget cycle','renewal'];
+  var PEOPLE_WORDS = ['ciso','cio','cto','cfo','vp','director','head of','manager','architect','engineer','lead','chief','officer','executive'];
+
+  var scored = sentences.map(function(s) {
+    var low = s.toLowerCase();
+    var score = 0;
+    PAIN_WORDS.forEach(function(w){ if(low.indexOf(w) !== -1) score += 3; });
+    TECH_WORDS.forEach(function(w){ if(low.indexOf(w) !== -1) score += 2; });
+    TIMING_WORDS.forEach(function(w){ if(low.indexOf(w) !== -1) score += 2; });
+    PEOPLE_WORDS.forEach(function(w){ if(low.indexOf(w) !== -1) score += 1; });
+    if(low.match(/\$[\d,]+|\d+%|\d+\s*(users|accounts|apps|employees)/)) score += 3;
+    return { text: s, score: score };
+  });
+
+  var top = scored.filter(function(x){ return x.score >= 3; }).sort(function(a,b){ return b.score - a.score; }).slice(0, 15);
+
+  if(top.length === 0) {
+    // Fallback: return the longest substantive sentences
+    top = scored.sort(function(a,b){ return b.text.length - a.text.length; }).slice(0, 8).map(function(x){ return { text: x.text, score: 0 }; });
+  }
+
+  return top.map(function(x){ return '- ' + x.text.replace(/\s+/g,' ') + '.'; }).join('\n');
+}
+
+// ── DEAL TRACKER ──────────────────────────────────────────────────────────
+function getDeals() {
+  try { return JSON.parse(localStorage.getItem('spa_deals') || '[]'); } catch(e) { return []; }
+}
+function saveDeals(arr) {
+  try { localStorage.setItem('spa_deals', JSON.stringify(arr)); } catch(e) {}
+  updateDealBadge();
+}
+function updateDealBadge() {
+  var badge = document.getElementById('deal-count-badge');
+  if(!badge) return;
+  var count = getDeals().length;
+  if(count > 0) { badge.style.display = 'inline-flex'; badge.textContent = count; }
+  else badge.style.display = 'none';
+}
+
+function saveCurrentDeal() {
+  if(!selOff) return;
+  var deals = getDeals();
+  var profile = getProspectProfile();
+  var ta = document.getElementById('disc-ta');
+  var notes = ta ? ta.value : '';
+  // Identify deal by company + offering; update if exists
+  var key = (profile.company || 'Unknown') + '::' + selOff.id;
+  var existingIdx = deals.findIndex(function(d){ return d.key === key; });
+  var deal = {
+    key: key,
+    company: profile.company || 'Unknown Prospect',
+    firstName: profile.firstName || '',
+    exec: profile.exec || '',
+    offeringId: selOff.id,
+    offeringName: selOff.name,
+    offeringIcon: selOff.icon,
+    industry: sI || '',
+    partner: sC || '',
+    discoveryNotes: notes.slice(0, 2000),
+    nextStep: '',
+    status: 'active',
+    followUpDate: '',
+    createdAt: existingIdx >= 0 ? deals[existingIdx].createdAt : Date.now(),
+    updatedAt: Date.now()
+  };
+  if(existingIdx >= 0) {
+    deal.nextStep = deals[existingIdx].nextStep || '';
+    deal.followUpDate = deals[existingIdx].followUpDate || '';
+    deal.status = deals[existingIdx].status || 'active';
+    deals[existingIdx] = deal;
+  } else {
+    deals.unshift(deal);
+  }
+  saveDeals(deals);
+  trackEvent('save_deal', deal.company + ' - ' + deal.offeringName);
+}
+
+function deleteDeal(key) {
+  if(!confirm('Remove this deal?')) return;
+  var deals = getDeals().filter(function(d){ return d.key !== key; });
+  saveDeals(deals);
+  openMyDeals();
+}
+
+function loadDeal(key) {
+  var deal = getDeals().find(function(d){ return d.key === key; });
+  if(!deal) return;
+  // Restore prospect profile
+  var pp = document.getElementById('pp-company'); if(pp) pp.value = deal.company;
+  var pf = document.getElementById('pp-firstname'); if(pf) pf.value = deal.firstName;
+  var pe = document.getElementById('pp-exec'); if(pe) pe.value = deal.exec;
+  saveProspectProfile();
+  // Restore notes
+  var ta = document.getElementById('disc-ta'); if(ta) { ta.value = deal.discoveryNotes; ta.dispatchEvent(new Event('input')); }
+  // Close modal and go to step 1
+  var m = document.getElementById('deals-modal'); if(m) m.remove();
+  goTo(1);
+  alert('Deal restored. Click "Match Offering" to continue where you left off.');
+}
+
+function updateDealField(key, field, value) {
+  var deals = getDeals();
+  var d = deals.find(function(x){ return x.key === key; });
+  if(!d) return;
+  d[field] = value;
+  d.updatedAt = Date.now();
+  saveDeals(deals);
+}
+
+function openMyDeals() {
+  var existing = document.getElementById('deals-modal');
+  if(existing) existing.remove();
+  var deals = getDeals();
+  var overlay = document.createElement('div');
+  overlay.id = 'deals-modal';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(5,2,20,0.92);backdrop-filter:blur(8px);z-index:999999;display:flex;align-items:center;justify-content:center;padding:24px;animation:adm-popup-in 0.25s ease;';
+
+  var box = document.createElement('div');
+  box.style.cssText = 'background:linear-gradient(145deg,#1A0D40,#0A0118);border:1px solid rgba(32,245,147,0.3);border-radius:18px;max-width:900px;width:100%;max-height:90vh;display:flex;flex-direction:column;box-shadow:0 32px 100px rgba(0,0,0,0.7);overflow:hidden;';
+
+  var html = '<div style="padding:22px 28px 18px;border-bottom:1px solid rgba(255,255,255,0.08);flex-shrink:0;background:linear-gradient(135deg,rgba(32,245,147,0.08),transparent 70%);display:flex;align-items:center;justify-content:space-between;gap:12px;">' +
+    '<div><div style="font-family:var(--mono);font-size:11px;letter-spacing:0.14em;color:var(--teal2);text-transform:uppercase;margin-bottom:6px;">📇 My Deals</div>' +
+    '<div style="font-size:18px;font-weight:700;color:var(--t1);">'+deals.length+' saved ' + (deals.length===1?'deal':'deals') + '</div></div>' +
+    '<button id="deals-close" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:var(--t1);width:36px;height:36px;border-radius:10px;cursor:pointer;font-size:18px;">&#10005;</button>' +
+  '</div>';
+
+  html += '<div style="padding:20px 28px;overflow-y:auto;flex:1;">';
+
+  if(deals.length === 0) {
+    html += '<div style="text-align:center;padding:60px 20px;color:var(--t3);">' +
+      '<div style="font-size:48px;margin-bottom:16px;opacity:0.3;">📇</div>' +
+      '<div style="font-size:16px;color:var(--t2);margin-bottom:8px;">No saved deals yet</div>' +
+      '<div style="font-size:13px;">Generate a solution play and it will automatically save here.</div>' +
+    '</div>';
+  } else {
+    deals.forEach(function(d) {
+      var updatedAgo = new Date(d.updatedAt).toLocaleDateString();
+      var statusColor = d.status === 'won' ? 'var(--teal2)' : d.status === 'lost' ? '#FF8A8A' : 'var(--purple2)';
+      var statusBg = d.status === 'won' ? 'rgba(32,245,147,0.15)' : d.status === 'lost' ? 'rgba(255,92,92,0.15)' : 'rgba(105,0,255,0.15)';
+      html += '<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:18px 22px;margin-bottom:12px;transition:all 0.2s;" onmouseover="this.style.borderColor=\'rgba(32,245,147,0.3)\'" onmouseout="this.style.borderColor=\'rgba(255,255,255,0.08)\'">' +
+        '<div style="display:flex;align-items:center;gap:14px;margin-bottom:12px;">' +
+          '<span style="font-size:28px;">'+escHtml(d.offeringIcon)+'</span>' +
+          '<div style="flex:1;min-width:0;">' +
+            '<div style="font-size:15px;font-weight:700;color:var(--t1);margin-bottom:2px;">'+escHtml(d.company)+'</div>' +
+            '<div style="font-size:12px;color:var(--t2);">'+escHtml(d.offeringName)+(d.industry ? ' · '+escHtml(d.industry) : '')+'</div>' +
+          '</div>' +
+          '<select onchange="updateDealField(\''+escHtml(d.key).replace(/\x27/g,"\\\x27")+'\',\'status\',this.value)" style="background:'+statusBg+';border:1px solid '+statusColor+';color:'+statusColor+';border-radius:6px;padding:4px 10px;font-family:var(--mono);font-size:10px;text-transform:uppercase;cursor:pointer;">' +
+            '<option value="active"' + (d.status==='active'?' selected':'') + '>Active</option>' +
+            '<option value="stalled"' + (d.status==='stalled'?' selected':'') + '>Stalled</option>' +
+            '<option value="won"' + (d.status==='won'?' selected':'') + '>Won</option>' +
+            '<option value="lost"' + (d.status==='lost'?' selected':'') + '>Lost</option>' +
+          '</select>' +
+          '<button onclick="deleteDeal(\''+escHtml(d.key).replace(/\x27/g,"\\\x27")+'\')" title="Remove" style="background:none;border:none;color:var(--t3);cursor:pointer;font-size:16px;padding:4px 8px;">🗑</button>' +
+        '</div>' +
+        (d.firstName || d.exec ? '<div style="font-size:12px;color:var(--t3);margin-bottom:10px;">Contacts: '+(d.firstName?escHtml(d.firstName):'-')+(d.exec?' · Exec: '+escHtml(d.exec):'')+'</div>' : '') +
+        '<div style="display:grid;grid-template-columns:1fr 180px;gap:10px;margin-bottom:12px;">' +
+          '<input type="text" placeholder="Next step..." value="'+escHtml(d.nextStep||'')+'" onblur="updateDealField(\''+escHtml(d.key).replace(/\x27/g,"\\\x27")+'\',\'nextStep\',this.value)" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:8px 12px;color:var(--t1);font-size:13px;outline:none;">' +
+          '<input type="date" value="'+escHtml(d.followUpDate||'')+'" onblur="updateDealField(\''+escHtml(d.key).replace(/\x27/g,"\\\x27")+'\',\'followUpDate\',this.value)" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:8px 12px;color:var(--t1);font-size:13px;outline:none;">' +
+        '</div>' +
+        '<div style="display:flex;align-items:center;gap:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.06);">' +
+          '<span style="font-family:var(--mono);font-size:10px;color:var(--t3);">Updated '+updatedAgo+'</span>' +
+          '<button onclick="loadDeal(\''+escHtml(d.key).replace(/\x27/g,"\\\x27")+'\')" style="margin-left:auto;background:linear-gradient(135deg,var(--teal),#5BFCB0);color:#0A0118;border:none;border-radius:8px;padding:6px 14px;font-weight:700;font-size:12px;cursor:pointer;">Resume Deal →</button>' +
+        '</div>' +
+      '</div>';
+    });
+  }
+
+  html += '</div>';
+  box.innerHTML = html;
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
+  document.getElementById('deals-close').addEventListener('click', function(){ overlay.remove(); });
+  overlay.addEventListener('click', function(e){ if(e.target===overlay) overlay.remove(); });
+}
+
+// ── PROSPECT PROFILE ──────────────────────────────────────────────────────
+function getProspectProfile() {
+  try { return JSON.parse(localStorage.getItem('spa_prospect') || '{}'); } catch(e) { return {}; }
+}
+function saveProspectProfile() {
+  var p = {
+    company: (document.getElementById('pp-company') || {}).value || '',
+    firstName: (document.getElementById('pp-firstname') || {}).value || '',
+    exec: (document.getElementById('pp-exec') || {}).value || ''
+  };
+  try { localStorage.setItem('spa_prospect', JSON.stringify(p)); } catch(e) {}
+}
+function loadProspectProfile() {
+  var p = getProspectProfile();
+  var c = document.getElementById('pp-company'); if(c) c.value = p.company || '';
+  var f = document.getElementById('pp-firstname'); if(f) f.value = p.firstName || '';
+  var e = document.getElementById('pp-exec'); if(e) e.value = p.exec || '';
+}
+// Replace placeholders in any text using the prospect profile
+function fillProspectPlaceholders(text) {
+  if(!text) return text;
+  var p = getProspectProfile();
+  return text
+    .replace(/\[Company Name\]/g, p.company || '[Company Name]')
+    .replace(/\[Company\]/g, p.company || '[Company]')
+    .replace(/\[First Name\]/g, p.firstName || '[First Name]')
+    .replace(/\[Executive Name\]/g, p.exec || '[Executive Name]')
+    .replace(/\[Champion Name\]/g, p.firstName || '[Champion Name]');
+}
 
 // ── TEAMS CONTEXT / AUTO-AUTH ─────────────────────────────────────────────
 // When running inside Microsoft Teams, auto-populate user identity
@@ -5144,6 +5489,8 @@ function wrapToolkitForAi(){
 function buildPlay(){
   console.log('BUILD MY PLAY clicked');
   trackEvent('build_play', selOff ? selOff.id : 'unknown');
+  // Auto-save this play as a deal
+  saveCurrentDeal();
 
   if(!sI)sI='Generic';
   if(!sC)sC='No Partner';
@@ -5393,9 +5740,23 @@ function render(){
   const st=(id,val)=>{const el=ge(id);if(el)el.textContent=val||'';};
   st('r-off',selOff?selOff.icon+' '+selOff.name:'');
   st('r-name',p.name);
-  st('r-win','65-75% win rate');
-  st('r-dur','4-6 month deal');
-  st('r-cost','$200K-$600K ACV');
+
+  // Replace fake benchmarks with real offering data: top 3 pain signals + match strength
+  const metaEl = ge('r-meta-pills');
+  if(metaEl && selOff) {
+    const matched = (Array.isArray(matches) ? matches.find(m => m.id === selOff.id) : null);
+    const pct = matched && typeof matched.pct === 'number' ? matched.pct : 0;
+    const pains = (selOff.problems || []).slice(0, 3);
+    var pillHtml = '';
+    if(pct > 0) {
+      pillHtml += '<div class="mpill" style="background:linear-gradient(135deg,rgba(105,0,255,0.15),rgba(105,0,255,0.05));border:1px solid rgba(105,0,255,0.3);color:var(--purple2);"><span style="font-family:var(--mono);font-weight:700;">' + pct + '%</span> match</div>';
+    }
+    pains.forEach(function(p) {
+      pillHtml += '<div class="mpill" style="background:rgba(255,184,48,0.08);border:1px solid rgba(255,184,48,0.25);color:rgba(255,184,48,0.9);">⚠ ' + escHtml(p) + '</div>';
+    });
+    metaEl.innerHTML = pillHtml;
+  }
+
   updateContentCounts();
   st('r-buyer',p.buyer);
   st('r-why',p.why);
@@ -5930,6 +6291,10 @@ document.addEventListener('DOMContentLoaded', function(){
 
   // Init objection bank count
   renderObjBank();
+
+  // Load saved prospect profile + deal count
+  loadProspectProfile();
+  updateDealBadge();
 
   // Restore Getting Started toggle preference
   try {
@@ -6882,14 +7247,16 @@ function renderEmailBody(tmpl){
       '</div>' +
     '</div>';
   }
+  var filledSubject = fillProspectPlaceholders(tmpl.subject);
+  var filledBody = fillProspectPlaceholders(tmpl.body);
   bodyEl.innerHTML = `
     <div class="em-field">
       <div class="em-field-lbl">Subject line</div>
-      <div class="em-subject">${tmpl.subject}</div>
+      <div class="em-subject">${filledSubject}</div>
     </div>
     <div class="em-field">
       <div class="em-field-lbl">Email body</div>
-      <div class="em-body-text">${tmpl.body}</div>
+      <div class="em-body-text">${filledBody}</div>
     </div>
     ${attachHtml}
     <div style="display:flex;align-items:flex-start;gap:10px;background:rgba(255,184,48,0.07);border:1px solid rgba(255,184,48,0.25);border-radius:8px;padding:10px 14px;margin-top:4px;">
@@ -8654,6 +9021,75 @@ function openAnalytics() {
     html += '<div style="font-size:14px;color:var(--t3);padding:12px 0;">No content browsed yet</div>';
   }
   html += '</div></div>';
+
+  // Content ratings - pull real rating data
+  var ratings = getContentRatings();
+  var ratedItems = Object.keys(ratings).map(function(k) {
+    var r = ratings[k];
+    var total = (r.stats && (r.stats.up + r.stats.down)) || 0;
+    return { key: k, up: (r.stats && r.stats.up) || 0, down: (r.stats && r.stats.down) || 0, total: total, score: total > 0 ? (r.stats.up / total) : 0 };
+  }).filter(function(x){ return x.total > 0; });
+
+  var topRated = ratedItems.slice().sort(function(a,b){ return b.up - a.up; }).slice(0, 5);
+  var worstRated = ratedItems.slice().sort(function(a,b){ return b.down - a.down; }).filter(function(x){ return x.down > 0; }).slice(0, 5);
+
+  // Deals pipeline
+  var deals = getDeals();
+  var dealsActive = deals.filter(function(d){ return d.status === 'active'; }).length;
+  var dealsWon = deals.filter(function(d){ return d.status === 'won'; }).length;
+  var dealsLost = deals.filter(function(d){ return d.status === 'lost'; }).length;
+  var dealsStalled = deals.filter(function(d){ return d.status === 'stalled'; }).length;
+
+  // Pipeline section
+  html += '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px;">';
+  [
+    { num: dealsActive, label: 'Active Deals', color: 'var(--purple2)' },
+    { num: dealsWon, label: 'Won', color: 'var(--teal2)' },
+    { num: dealsStalled, label: 'Stalled', color: 'var(--amber)' },
+    { num: dealsLost, label: 'Lost', color: '#FF8A8A' }
+  ].forEach(function(s) {
+    html += '<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:14px;padding:14px;text-align:center;">' +
+      '<div style="font-family:var(--mono);font-size:24px;font-weight:800;color:'+s.color+';">'+s.num+'</div>' +
+      '<div style="font-size:11px;color:var(--t3);margin-top:4px;">'+s.label+'</div>' +
+    '</div>';
+  });
+  html += '</div>';
+
+  // Content feedback section
+  if(ratedItems.length > 0) {
+    html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px;">';
+
+    html += '<div>';
+    html += '<div style="font-family:var(--mono);font-size:11px;letter-spacing:0.12em;color:var(--teal2);text-transform:uppercase;margin-bottom:12px;">👍 Top Rated Content</div>';
+    if(topRated.length) {
+      topRated.forEach(function(r) {
+        var title = r.key.replace(/-/g,' ').replace(/\b\w/g, function(c){ return c.toUpperCase(); }).slice(0, 50);
+        html += '<div style="display:flex;align-items:center;gap:10px;padding:6px 0;font-size:12px;">' +
+          '<div style="flex:1;color:var(--t1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + escHtml(title) + '</div>' +
+          '<span style="font-family:var(--mono);font-weight:700;color:var(--teal2);">' + r.up + '👍</span>' +
+        '</div>';
+      });
+    } else {
+      html += '<div style="font-size:13px;color:var(--t3);padding:10px 0;">No ratings yet</div>';
+    }
+    html += '</div>';
+
+    html += '<div>';
+    html += '<div style="font-family:var(--mono);font-size:11px;letter-spacing:0.12em;color:#FF8A8A;text-transform:uppercase;margin-bottom:12px;">👎 Needs Review</div>';
+    if(worstRated.length) {
+      worstRated.forEach(function(r) {
+        var title = r.key.replace(/-/g,' ').replace(/\b\w/g, function(c){ return c.toUpperCase(); }).slice(0, 50);
+        html += '<div style="display:flex;align-items:center;gap:10px;padding:6px 0;font-size:12px;">' +
+          '<div style="flex:1;color:var(--t1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + escHtml(title) + '</div>' +
+          '<span style="font-family:var(--mono);font-weight:700;color:#FF8A8A;">' + r.down + '👎</span>' +
+        '</div>';
+      });
+    } else {
+      html += '<div style="font-size:13px;color:var(--t3);padding:10px 0;">No negative feedback</div>';
+    }
+    html += '</div>';
+    html += '</div>';
+  }
 
   // Recent activity
   html += '<div style="font-family:var(--mono);font-size:11px;letter-spacing:0.12em;color:var(--t3);text-transform:uppercase;margin-bottom:12px;">Recent Activity</div>';
