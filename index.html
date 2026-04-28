@@ -7810,16 +7810,24 @@ function sendWithAttachments(btn){
     alert('Add at least one attachment from the SharePoint Library before sending. Open Qualify & Prove → Content Library and click 📎 Attach on the assets you want to include.');
     return;
   }
-  var subjEl = document.querySelector('.em-subject');
-  var bodyEl = document.querySelector('.em-body-text');
-  var subject = subjEl ? subjEl.textContent.trim() : '';
-  var body    = bodyEl ? bodyEl.textContent.trim() : '';
-  if(!subject || !body){
-    var templates = getEmailTemplates();
-    var t = templates[currentEmailTab || 0];
-    subject = subject || t.subject;
-    body = body || t.body;
+  var templates = getEmailTemplates();
+  var t = templates[currentEmailTab || 0] || {};
+  var rawSubject = (t.subject || '').trim();
+  var rawBody    = (t.body || '').trim();
+  if(typeof fillProspectPlaceholders === 'function'){
+    rawSubject = fillProspectPlaceholders(rawSubject);
+    rawBody    = fillProspectPlaceholders(rawBody);
   }
+  rawBody = rawBody.replace(/^Subject:.*\n+/i, '').trim();
+  var subject = rawSubject;
+  var bodyHtml = rawBody
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .split(/\n{2,}/)
+    .map(function(p){ return '<p style="margin:0 0 12px 0;line-height:1.55;font-family:Calibri,Arial,sans-serif;font-size:15px;color:#222;">' + p.replace(/\n/g,'<br>') + '</p>'; })
+    .join('');
+  bodyHtml = '<div style="font-family:Calibri,Arial,sans-serif;font-size:15px;color:#222;line-height:1.55;">' + bodyHtml + '</div>';
   var to = prompt('Send to (recipient email address):', '');
   if(!to || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)){
     if(to !== null) alert('Please enter a valid email address.');
@@ -7835,7 +7843,7 @@ function sendWithAttachments(btn){
   fetch(window.LOGIC_APP_SEND_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ to: to, subject: subject, body: body, assets: assets })
+    body: JSON.stringify({ to: to, subject: subject, body: bodyHtml, assets: assets })
   }).then(function(r){
     if(!r.ok) throw new Error('Logic App returned HTTP '+r.status);
     return r.json().catch(function(){ return {}; });
