@@ -2672,9 +2672,13 @@ body{background:var(--bg);color:var(--t1);font-family:var(--body);min-height:100
     <div class="em-tabs" id="em-tabs"></div>
     <div class="em-body" id="em-body"></div>
     <div style="padding:12px 24px 0 24px;border-top:1px solid rgba(255,255,255,0.06);">
-      <div style="display:flex;align-items:center;gap:10px;">
-        <label for="em-to-input" style="font-family:var(--mono);font-size:11px;letter-spacing:0.1em;color:var(--t3);text-transform:uppercase;flex-shrink:0;">Send to</label>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+        <label for="em-to-input" style="font-family:var(--mono);font-size:11px;letter-spacing:0.1em;color:var(--t3);text-transform:uppercase;flex-shrink:0;width:88px;">Send to</label>
         <input id="em-to-input" type="email" placeholder="prospect@company.com" autocomplete="email" style="flex:1;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.12);color:var(--t1);border-radius:8px;padding:8px 12px;font-size:13px;font-family:var(--body);outline:none;" onfocus="this.style.borderColor='rgba(105,0,255,0.5)'" onblur="this.style.borderColor='rgba(255,255,255,0.12)'">
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <label for="em-booking-input" style="font-family:var(--mono);font-size:11px;letter-spacing:0.1em;color:var(--t3);text-transform:uppercase;flex-shrink:0;width:88px;">Your link</label>
+        <input id="em-booking-input" type="url" placeholder="https://outlook.office.com/bookwithme/user/yourname@yourcompany.com" style="flex:1;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.12);color:var(--t1);border-radius:8px;padding:8px 12px;font-size:13px;font-family:var(--body);outline:none;" onfocus="this.style.borderColor='rgba(105,0,255,0.5)'" onblur="onBookingUrlBlur(this)" title="Your personal Outlook Bookings, Calendly, or HubSpot scheduler URL — used for the 'Book a meeting' button in emails">
       </div>
     </div>
     <div class="em-footer">
@@ -7746,6 +7750,19 @@ function openEmailModal(){
       if(last) toInput.value = last;
     } catch(e){}
   }
+  var bookingInput = document.getElementById('em-booking-input');
+  if(bookingInput){
+    bookingInput.value = senderBookingUrl();
+  }
+}
+
+function onBookingUrlBlur(input){
+  if(!input) return;
+  input.style.borderColor = 'rgba(255,255,255,0.12)';
+  var url = (input.value || '').trim();
+  var current = getSellerProfile();
+  current.bookingUrl = url;
+  saveSellerProfile(current);
 }
 
 function renderEmailBody(tmpl){
@@ -7882,7 +7899,12 @@ function senderPhone(){
 }
 function senderBookingUrl(){
   var s = (typeof getSellerProfile === 'function') ? getSellerProfile() : null;
-  return (s && s.bookingUrl) ? s.bookingUrl : 'https://outlook.office.com/bookwithme/user/jlynch@majorkeytech.com';
+  if(s && s.bookingUrl) return s.bookingUrl;
+  var email = senderEmailAddress();
+  if(email && email.indexOf('@') > 0){
+    return 'https://outlook.office.com/bookwithme/user/' + encodeURIComponent(email);
+  }
+  return '';
 }
 
 // Configure these once you build the helper Logic Apps
