@@ -2536,6 +2536,14 @@ body{background:var(--bg);color:var(--t1);font-family:var(--body);min-height:100
         <div class="sec-lbl" style="margin-bottom:14px">Proof points</div>
         <div class="case-ul" id="r-cases"></div>
       </div>
+
+      <div id="r-asset-library-wrap" style="margin-top:28px;padding-top:22px;border-top:1px solid rgba(255,255,255,0.06);">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+          <div class="sec-lbl">Content Library — SharePoint</div>
+          <div id="r-asset-count" style="font-family:var(--mono);font-size:11px;color:var(--t3);letter-spacing:0.08em;"></div>
+        </div>
+        <div id="r-asset-library"></div>
+      </div>
     </div>
 
     <!-- ═══ TAB 4: COMPETE ═══ -->
@@ -6143,6 +6151,10 @@ function render(){
     var mel = ge(tid);
     if(mel && mel.children.length > 0) addMockBanner(mel);
   });
+
+  if(selOff && typeof renderAssetLibrary === 'function'){
+    renderAssetLibrary(selOff.id);
+  }
 }
 }
 
@@ -7343,6 +7355,138 @@ goTo = function(n){
 
 // Sync ps-ta char count while typing
 
+
+// ── SHAREPOINT ASSET LIBRARY (assets.json) ─────────────────────────────────
+window.ASSETS_BY_OFFERING = null;
+window.ASSETS_LOAD_STATE = 'pending';
+window.ASSETS_GENERATED = null;
+
+function loadAssetsJson() {
+  var CACHE_KEY = 'mk_assets_json_v1';
+  var TTL_MS = 60 * 60 * 1000;
+  var cached = null;
+  try {
+    var raw = localStorage.getItem(CACHE_KEY);
+    if(raw){
+      var parsed = JSON.parse(raw);
+      if(parsed && parsed.ts && (Date.now() - parsed.ts) < TTL_MS && parsed.data){
+        cached = parsed.data;
+      }
+    }
+  } catch(e){}
+  if(cached){
+    indexAssets(cached);
+    return Promise.resolve(cached);
+  }
+  return fetch('assets.json', {cache:'no-cache'})
+    .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+    .then(function(data){
+      try { localStorage.setItem(CACHE_KEY, JSON.stringify({ts:Date.now(), data:data})); } catch(e){}
+      indexAssets(data);
+      return data;
+    })
+    .catch(function(err){
+      window.ASSETS_LOAD_STATE = 'error';
+      console.warn('assets.json load failed', err);
+    });
+}
+
+function indexAssets(data){
+  if(!data || !data.assets){ window.ASSETS_LOAD_STATE='empty'; return; }
+  window.ASSETS_GENERATED = data.generated || null;
+  var idx = {};
+  data.assets.forEach(function(a){
+    (a.offerings||[]).forEach(function(off){
+      if(!idx[off]) idx[off] = [];
+      idx[off].push(a);
+    });
+  });
+  window.ASSETS_BY_OFFERING = idx;
+  window.ASSETS_LOAD_STATE = 'ready';
+  if(typeof selOff !== 'undefined' && selOff && typeof renderAssetLibrary === 'function'){
+    renderAssetLibrary(selOff.id);
+  }
+}
+
+function renderAssetLibrary(offId){
+  var wrap = document.getElementById('r-asset-library-wrap');
+  var box  = document.getElementById('r-asset-library');
+  var cnt  = document.getElementById('r-asset-count');
+  if(!box) return;
+  if(window.ASSETS_LOAD_STATE !== 'ready' || !window.ASSETS_BY_OFFERING){
+    box.innerHTML = '<div style="font-size:13px;color:var(--t3);font-style:italic;padding:12px 0;">Loading SharePoint library...</div>';
+    if(cnt) cnt.textContent = '';
+    return;
+  }
+  var assets = (window.ASSETS_BY_OFFERING[offId] || []);
+  if(assets.length === 0){
+    box.innerHTML = '<div style="font-size:13px;color:var(--t3);font-style:italic;padding:12px 0;">No SharePoint assets tagged for this offering yet. Tag content in SharePoint Documents library to populate.</div>';
+    if(cnt) cnt.textContent = '0 assets';
+    return;
+  }
+  if(cnt) cnt.textContent = assets.length + ' asset' + (assets.length===1?'':'s');
+  var TYPE_META = {
+    pdf:        { emoji:'📄', label:'PDF',          color:'#FF6B6B' },
+    blog:       { emoji:'✍️',  label:'Blog',         color:'#A366FF' },
+    'case-study':{emoji:'⭐', label:'Success Story', color:'#20F593' },
+    webinar:    { emoji:'🎥', label:'Webinar',      color:'#FFB830' },
+    doc:        { emoji:'📎', label:'Doc',          color:'#7FB8FF' }
+  };
+  var groups = {};
+  assets.forEach(function(a){ if(!groups[a.type]) groups[a.type]=[]; groups[a.type].push(a); });
+  var order = ['case-study','pdf','webinar','blog','doc'];
+  var html = '';
+  order.forEach(function(t){
+    var arr = groups[t]; if(!arr || !arr.length) return;
+    var meta = TYPE_META[t] || TYPE_META.doc;
+    html += '<div style="margin-bottom:18px;">';
+    html += '<div style="font-family:var(--mono);font-size:11px;letter-spacing:0.12em;color:'+meta.color+';margin-bottom:10px;text-transform:uppercase;font-weight:600;">'+meta.emoji+' '+meta.label+' &middot; '+arr.length+'</div>';
+    html += '<div style="display:flex;flex-direction:column;gap:8px;">';
+    arr.forEach(function(a){
+      var safeName = escHtml(a.name);
+      var safeUrl  = escHtml(a.url);
+      var displayName = a.name.replace(/\.[^.]+$/,'').replace(/[-_]/g,' ');
+      displayName = displayName.charAt(0).toUpperCase() + displayName.slice(1);
+      html += '<div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:10px 12px;transition:all 0.15s;" onmouseover="this.style.borderColor=\'rgba(105,0,255,0.4)\';this.style.background=\'rgba(105,0,255,0.06)\'" onmouseout="this.style.borderColor=\'rgba(255,255,255,0.06)\';this.style.background=\'rgba(255,255,255,0.03)\'">';
+      html += '<div style="flex:1;min-width:0;font-size:13px;color:var(--t1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="'+safeName+'">'+escHtml(displayName)+'</div>';
+      html += '<a href="'+safeUrl+'" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;background:rgba(105,0,255,0.12);border:1px solid rgba(105,0,255,0.3);color:var(--purple2);border-radius:7px;padding:6px 12px;text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:0.06em;white-space:nowrap;font-weight:600;">Open ↗</a>';
+      html += '<button onclick="copyAssetLink(\''+safeUrl.replace(/'/g,"\\'")+'\',\''+safeName.replace(/'/g,"\\'")+'\',this)" style="display:inline-flex;align-items:center;gap:6px;background:rgba(32,245,147,0.1);border:1px solid rgba(32,245,147,0.3);color:var(--teal2);border-radius:7px;padding:6px 12px;cursor:pointer;font-family:var(--mono);font-size:11px;letter-spacing:0.06em;white-space:nowrap;font-weight:600;">Copy Link</button>';
+      html += '</div>';
+    });
+    html += '</div></div>';
+  });
+  if(window.ASSETS_GENERATED){
+    var d = new Date(window.ASSETS_GENERATED);
+    html += '<div style="margin-top:14px;padding-top:12px;border-top:1px dashed rgba(255,255,255,0.08);font-family:var(--mono);font-size:10px;letter-spacing:0.08em;color:var(--t3);">SYNCED FROM SHAREPOINT &middot; '+d.toLocaleDateString()+' '+d.toLocaleTimeString()+'</div>';
+  }
+  box.innerHTML = html;
+}
+
+function copyAssetLink(url, name, btn){
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(url).then(function(){
+      var orig = btn.innerHTML;
+      btn.innerHTML = '✓ Copied';
+      btn.style.background = 'rgba(32,245,147,0.25)';
+      setTimeout(function(){ btn.innerHTML = orig; btn.style.background = 'rgba(32,245,147,0.1)'; }, 1600);
+    });
+  } else {
+    var ta = document.createElement('textarea');
+    ta.value = url; document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); } catch(e){}
+    document.body.removeChild(ta);
+    btn.innerHTML = '✓ Copied';
+    setTimeout(function(){ btn.innerHTML = 'Copy Link'; }, 1600);
+  }
+}
+
+if(typeof window !== 'undefined'){
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', loadAssetsJson);
+  } else {
+    loadAssetsJson();
+  }
+}
 
 // ── SELLER TOOLKIT ────────────────────────────────────────────────────────
 
