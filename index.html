@@ -3658,6 +3658,16 @@ function fillProspectPlaceholders(text) {
     .replace(/\[Champion Name\]/gi, prospect || '[Champion Name]')
     .replace(/\[Your Name\]/gi, yourName)
     .replace(/\[Your First Name\]/gi, yourFirst)
+    // Parenthesis-style placeholders
+    .replace(/\(Company Name\)/gi, company || '(Company Name)')
+    .replace(/\(Company\)/gi, company || '(Company)')
+    .replace(/\(First Name\)/gi, prospect || '(First Name)')
+    .replace(/\(Prospect Name\)/gi, prospect || '(Prospect Name)')
+    .replace(/\(Executive Name\)/gi, exec || '(Executive Name)')
+    .replace(/\(Champion Name\)/gi, prospect || '(Champion Name)')
+    .replace(/\(Your Name\)/gi, yourName)
+    .replace(/\(Your First Name\)/gi, yourFirst)
+    .replace(/\(Name\)/gi, prospect || '(Name)')
     // Curly-brace placeholders
     .replace(/\{\{\s*Name\s*\}\}/gi, prospect || '[First Name]')
     .replace(/\{\{\s*FirstName\s*\}\}/gi, prospect || '[First Name]')
