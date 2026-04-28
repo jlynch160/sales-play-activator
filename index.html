@@ -2671,6 +2671,12 @@ body{background:var(--bg);color:var(--t1);font-family:var(--body);min-height:100
     </div>
     <div class="em-tabs" id="em-tabs"></div>
     <div class="em-body" id="em-body"></div>
+    <div style="padding:12px 24px 0 24px;border-top:1px solid rgba(255,255,255,0.06);">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <label for="em-to-input" style="font-family:var(--mono);font-size:11px;letter-spacing:0.1em;color:var(--t3);text-transform:uppercase;flex-shrink:0;">Send to</label>
+        <input id="em-to-input" type="email" placeholder="prospect@company.com" autocomplete="email" style="flex:1;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.12);color:var(--t1);border-radius:8px;padding:8px 12px;font-size:13px;font-family:var(--body);outline:none;" onfocus="this.style.borderColor='rgba(105,0,255,0.5)'" onblur="this.style.borderColor='rgba(255,255,255,0.12)'">
+      </div>
+    </div>
     <div class="em-footer">
       <button class="em-cancel-btn" onclick="closeEmailModal()">Close</button>
       <button class="em-copy-btn" onclick="copyEmailTemplate()" style="background:rgba(255,255,255,0.05);color:var(--t1);border:1px solid rgba(255,255,255,0.15);flex:0 0 auto;padding:11px 18px;">⎘ Copy</button>
@@ -3595,9 +3601,16 @@ function getSellerProfile(){
 function saveSellerProfile(profile){
   try { localStorage.setItem('spa_seller', JSON.stringify(profile || {})); } catch(e){}
 }
+function isInTeams(){
+  return typeof microsoftTeams !== 'undefined' && (typeof __teamsUser !== 'undefined' && __teamsUser);
+}
 function promptForSellerProfileIfNeeded(){
   var s = getSellerProfile();
-  if(s.title && s.phone) return;
+  if(s.title) return;
+  if(isInTeams()){
+    saveSellerProfile({ title: 'Senior Account Executive', phone: s.phone || '' });
+    return;
+  }
   var title = s.title || prompt('One-time setup — your job title for email signatures (e.g. "Senior Account Executive"):', 'Senior Account Executive');
   var phone = s.phone || prompt('Your direct phone for email signatures (optional, leave blank to skip):', '');
   saveSellerProfile({ title: (title||'').trim(), phone: (phone||'').trim() });
@@ -7726,6 +7739,13 @@ function openEmailModal(){
   renderEmailBody(templates[0]);
   document.getElementById('email-modal').style.display='flex';
   document.body.style.overflow='hidden';
+  var toInput = document.getElementById('em-to-input');
+  if(toInput){
+    try {
+      var last = localStorage.getItem('spa_last_recipient') || '';
+      if(last) toInput.value = last;
+    } catch(e){}
+  }
 }
 
 function renderEmailBody(tmpl){
@@ -7965,9 +7985,28 @@ function buildBrandedEmailHtml(rawBody, prospectName){
   return html;
 }
 
+function showInlineMsg(msg, isError){
+  var box = document.getElementById('em-inline-msg');
+  if(!box){
+    var footer = document.querySelector('.em-footer');
+    if(!footer) return;
+    box = document.createElement('div');
+    box.id = 'em-inline-msg';
+    box.style.cssText = 'padding:8px 14px;margin:0 24px 8px;border-radius:8px;font-size:12px;font-family:var(--body);';
+    footer.parentNode.insertBefore(box, footer);
+  }
+  box.style.background = isError ? 'rgba(255,92,92,0.12)' : 'rgba(32,245,147,0.12)';
+  box.style.border = '1px solid ' + (isError ? 'rgba(255,92,92,0.4)' : 'rgba(32,245,147,0.4)');
+  box.style.color = isError ? '#FFB0B0' : '#A6F0CC';
+  box.textContent = msg;
+  box.style.display = 'block';
+  clearTimeout(box.__hideTimer);
+  box.__hideTimer = setTimeout(function(){ box.style.display = 'none'; }, 6000);
+}
+
 function sendWithAttachments(btn){
   if(!__selectedAttachments || __selectedAttachments.length === 0){
-    alert('Add at least one attachment from the SharePoint Library before sending. Open Qualify & Prove → Content Library and click 📎 Attach on the assets you want to include.');
+    showInlineMsg('Add at least one attachment first — Qualify & Prove → Content Library → 📎 Attach.', true);
     return;
   }
   if(typeof promptForSellerProfileIfNeeded === 'function') promptForSellerProfileIfNeeded();
@@ -7987,11 +8026,26 @@ function sendWithAttachments(btn){
   }
   var subject  = rawSubject;
   var bodyHtml = buildBrandedEmailHtml(rawBody);
-  var to = prompt('Send to (recipient email address):', '');
-  if(!to || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)){
-    if(to !== null) alert('Please enter a valid email address.');
+  var toInput = document.getElementById('em-to-input');
+  var to = toInput ? (toInput.value || '').trim() : '';
+  if(!to){
+    if(toInput){
+      toInput.style.borderColor = '#FF5C5C';
+      toInput.placeholder = 'Required — enter the recipient email';
+      toInput.focus();
+      setTimeout(function(){ toInput.style.borderColor = 'rgba(255,255,255,0.12)'; }, 2500);
+    }
     return;
   }
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)){
+    if(toInput){
+      toInput.style.borderColor = '#FF5C5C';
+      toInput.focus();
+      setTimeout(function(){ toInput.style.borderColor = 'rgba(255,255,255,0.12)'; }, 2500);
+    }
+    return;
+  }
+  try { localStorage.setItem('spa_last_recipient', to); } catch(e){}
   var assets = __selectedAttachments.map(function(a){
     return { name: decodeURIComponent((a.path||'').split('/').pop().replace(/\+/g,' ')), url: a.path };
   });
@@ -8009,6 +8063,7 @@ function sendWithAttachments(btn){
   }).then(function(){
     btn.innerHTML = '✓ Sent ('+assets.length+' attached)';
     btn.style.background = 'linear-gradient(135deg,#20F593,#0D9488)';
+    showInlineMsg('Sent to '+to+' with '+assets.length+' attachment'+(assets.length===1?'':'s')+'.', false);
     trackEvent('send_with_attachments', assets.length + ' files to ' + to);
     setTimeout(function(){
       btn.innerHTML = origLabel;
@@ -8020,7 +8075,7 @@ function sendWithAttachments(btn){
     console.error('sendWithAttachments error', err);
     btn.innerHTML = '✕ Failed - retry';
     btn.style.background = 'linear-gradient(135deg,#FF5C5C,#B91C1C)';
-    alert('Send failed: '+err.message+'\n\nCheck the Logic App run history in Azure Portal for details.');
+    showInlineMsg('Send failed: '+err.message+'. Check Logic App run history in Azure for details.', true);
     setTimeout(function(){
       btn.innerHTML = origLabel;
       btn.disabled = false;
