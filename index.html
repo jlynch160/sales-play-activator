@@ -7880,6 +7880,47 @@ function senderPhone(){
   var s = (typeof getSellerProfile === 'function') ? getSellerProfile() : null;
   return (s && s.phone) ? s.phone : '';
 }
+function senderBookingUrl(){
+  var s = (typeof getSellerProfile === 'function') ? getSellerProfile() : null;
+  return (s && s.bookingUrl) ? s.bookingUrl : 'https://outlook.office.com/bookwithme/user/jlynch@majorkeytech.com';
+}
+
+// Configure these once you build the helper Logic Apps
+window.AI_OPENER_URL = '';   // Logic App that returns { opener: "..." }
+window.TRACKING_PIXEL_URL = ''; // Logic App that logs pixel hits, e.g. https://prod-XX.../triggers/manual/.../invoke?...
+
+function buildCtaButtonHtml(){
+  var url = senderBookingUrl();
+  if(!url) return '';
+  var label = 'Book a 30-minute working session';
+  return '<table cellpadding="0" cellspacing="0" border="0" style="margin:22px 0 8px 0;"><tr><td style="background:linear-gradient(135deg,#6900FF 0%,#A366FF 100%);border-radius:8px;text-align:center;">' +
+    '<a href="'+escEmailHtml(url)+'" target="_blank" style="display:inline-block;padding:13px 28px;font-family:Calibri,Arial,sans-serif;font-size:14px;font-weight:700;color:#ffffff;text-decoration:none;letter-spacing:0.02em;">▶ '+escEmailHtml(label)+'</a>' +
+    '</td></tr></table>' +
+    '<p style="margin:0 0 18px 0;font-size:12px;color:#888;font-family:Calibri,Arial,sans-serif;line-height:1.5;">Or reply directly with a couple of times that work for you.</p>';
+}
+
+function buildTrackingPixelHtml(recipient, subject){
+  if(!window.TRACKING_PIXEL_URL) return '';
+  var sep = window.TRACKING_PIXEL_URL.indexOf('?') >= 0 ? '&' : '?';
+  var pxUrl = window.TRACKING_PIXEL_URL + sep +
+    'r=' + encodeURIComponent(recipient || '') +
+    '&s=' + encodeURIComponent((subject || '').slice(0, 80)) +
+    '&t=' + Date.now() +
+    '&u=' + encodeURIComponent(senderEmailAddress());
+  return '<img src="'+escEmailHtml(pxUrl)+'" width="1" height="1" alt="" style="display:none;" />';
+}
+
+function fetchAiOpener(opts){
+  if(!window.AI_OPENER_URL) return Promise.resolve(null);
+  return fetch(window.AI_OPENER_URL, {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify(opts)
+  })
+  .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+  .then(function(data){ return (data && data.opener) ? String(data.opener).trim() : null; })
+  .catch(function(err){ console.warn('AI opener failed', err); return null; });
+}
 
 function buildAttachmentCardsHtml(){
   var atts = (typeof __selectedAttachments !== 'undefined' && __selectedAttachments) ? __selectedAttachments : [];
@@ -7966,6 +8007,7 @@ function buildBrandedEmailHtml(rawBody, prospectName){
     bodyParas.push('<p style="margin:0 0 14px 0;font-size:15px;color:#222;line-height:1.65;font-family:Calibri,Arial,sans-serif;">'+escEmailHtml(trimmed).replace(/\n/g,'<br>')+'</p>');
   });
   var signatureHtml = buildPolishedSignature();
+  var ctaHtml = buildCtaButtonHtml();
   var html = ''
     + '<!DOCTYPE html><html><body style="margin:0;padding:0;background:#F5F3F8;">'
     + '<table cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#F5F3F8;padding:24px 0;">'
@@ -7975,8 +8017,10 @@ function buildBrandedEmailHtml(rawBody, prospectName){
     + '<tr><td style="padding:32px 36px 28px 36px;">'
     + greetingHtml
     + bodyParas.join('')
+    + ctaHtml
     + buildAttachmentCardsHtml()
     + signatureHtml
+    + (window.__currentTrackingPixel || '')
     + '</td></tr>'
     + '<tr><td style="padding:14px 36px;background:#FAFAFB;border-top:1px solid #E8E6EB;font-family:Calibri,Arial,sans-serif;font-size:11px;color:#888;letter-spacing:0.04em;text-transform:uppercase;">MajorKey Technologies &middot; Identity Security That Works</td></tr>'
     + '</table>'
@@ -8025,7 +8069,6 @@ function sendWithAttachments(btn){
     rawBody    = fillProspectPlaceholders(rawBody);
   }
   var subject  = rawSubject;
-  var bodyHtml = buildBrandedEmailHtml(rawBody);
   var toInput = document.getElementById('em-to-input');
   var to = toInput ? (toInput.value || '').trim() : '';
   if(!to){
@@ -8046,17 +8089,49 @@ function sendWithAttachments(btn){
     return;
   }
   try { localStorage.setItem('spa_last_recipient', to); } catch(e){}
+
+  window.__currentTrackingPixel = buildTrackingPixelHtml(to, subject);
+
+  var profile = (typeof getProspectProfile === 'function') ? getProspectProfile() : {};
+  var discNotes = (document.getElementById('disc-ta') && document.getElementById('disc-ta').value) || '';
+  var openerOpts = {
+    offering: (typeof selOff !== 'undefined' && selOff) ? (selOff.name || selOff.short || '') : '',
+    offeringWhy: (typeof selOff !== 'undefined' && selOff && selOff.why) ? selOff.why : '',
+    industry: (typeof sI !== 'undefined') ? sI : '',
+    competitor: (typeof sC !== 'undefined') ? sC : '',
+    prospectFirstName: profile.firstName || '',
+    prospectCompany: profile.company || '',
+    discoveryNotes: discNotes.slice(0, 1500),
+    senderName: senderDisplayName()
+  };
   var assets = __selectedAttachments.map(function(a){
     return { name: decodeURIComponent((a.path||'').split('/').pop().replace(/\+/g,' ')), url: a.path };
   });
   var origLabel = btn.innerHTML;
   btn.disabled = true;
   btn.style.opacity = '0.7';
-  btn.innerHTML = '⏳ Sending…';
-  fetch(window.LOGIC_APP_SEND_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ to: to, subject: subject, body: bodyHtml, assets: assets })
+  btn.innerHTML = window.AI_OPENER_URL ? '✨ Personalizing…' : '⏳ Sending…';
+
+  var openerPromise = window.AI_OPENER_URL ? fetchAiOpener(openerOpts) : Promise.resolve(null);
+  openerPromise.then(function(aiOpener){
+    var finalBody = rawBody;
+    if(aiOpener){
+      var lines = finalBody.split(/\n/);
+      var greetingIdx = lines.findIndex(function(l){ return /^(Hi|Hello|Hey|Dear)\b/i.test(l.trim()); });
+      if(greetingIdx >= 0){
+        lines.splice(greetingIdx + 1, 0, '', aiOpener);
+        finalBody = lines.join('\n');
+      } else {
+        finalBody = aiOpener + '\n\n' + finalBody;
+      }
+    }
+    var bodyHtml = buildBrandedEmailHtml(finalBody);
+    btn.innerHTML = '⏳ Sending…';
+    return fetch(window.LOGIC_APP_SEND_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ to: to, subject: subject, body: bodyHtml, assets: assets })
+    });
   }).then(function(r){
     if(!r.ok) throw new Error('Logic App returned HTTP '+r.status);
     return r.json().catch(function(){ return {}; });
