@@ -2674,7 +2674,8 @@ body{background:var(--bg);color:var(--t1);font-family:var(--body);min-height:100
     <div class="em-footer">
       <button class="em-cancel-btn" onclick="closeEmailModal()">Close</button>
       <button class="em-copy-btn" onclick="copyEmailTemplate()" style="background:rgba(255,255,255,0.05);color:var(--t1);border:1px solid rgba(255,255,255,0.15);flex:0 0 auto;padding:11px 18px;">⎘ Copy</button>
-      <button class="em-copy-btn" onclick="sendViaOutlook()" style="flex:1;background:linear-gradient(135deg,#0078D4,#005A9E);color:#fff;">📧 Send via Outlook</button>
+      <button class="em-copy-btn" onclick="sendViaOutlook()" style="flex:1;background:linear-gradient(135deg,#0078D4,#005A9E);color:#fff;">📧 Open in Outlook</button>
+      <button class="em-copy-btn" id="em-send-attach-btn" onclick="sendWithAttachments(this)" style="flex:1;background:linear-gradient(135deg,#6900FF,#A366FF);color:#fff;">📎 Send with Attachments</button>
     </div>
   </div>
 </div>
@@ -7799,6 +7800,67 @@ function sendViaOutlook() {
   }
   window.open(url, '_blank');
   trackEvent('send_outlook', __selectedAttachments.length + ' attachments');
+}
+
+// Send email with REAL binary attachments via Logic App
+window.LOGIC_APP_SEND_URL = 'https://prod-09.centralus.logic.azure.com:443/workflows/365371ce16284056a493b52e3f62b136/triggers/manual/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=Gdd7nmjib2-gAEien_vFK5EZUnehcD4UhDSMDYwUWlY';
+
+function sendWithAttachments(btn){
+  if(!__selectedAttachments || __selectedAttachments.length === 0){
+    alert('Add at least one attachment from the SharePoint Library before sending. Open Qualify & Prove → Content Library and click 📎 Attach on the assets you want to include.');
+    return;
+  }
+  var subjEl = document.querySelector('.em-subject');
+  var bodyEl = document.querySelector('.em-body-text');
+  var subject = subjEl ? subjEl.textContent.trim() : '';
+  var body    = bodyEl ? bodyEl.textContent.trim() : '';
+  if(!subject || !body){
+    var templates = getEmailTemplates();
+    var t = templates[currentEmailTab || 0];
+    subject = subject || t.subject;
+    body = body || t.body;
+  }
+  var to = prompt('Send to (recipient email address):', '');
+  if(!to || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)){
+    if(to !== null) alert('Please enter a valid email address.');
+    return;
+  }
+  var assets = __selectedAttachments.map(function(a){
+    return { name: decodeURIComponent((a.path||'').split('/').pop().replace(/\+/g,' ')), url: a.path };
+  });
+  var origLabel = btn.innerHTML;
+  btn.disabled = true;
+  btn.style.opacity = '0.7';
+  btn.innerHTML = '⏳ Sending…';
+  fetch(window.LOGIC_APP_SEND_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ to: to, subject: subject, body: body, assets: assets })
+  }).then(function(r){
+    if(!r.ok) throw new Error('Logic App returned HTTP '+r.status);
+    return r.json().catch(function(){ return {}; });
+  }).then(function(){
+    btn.innerHTML = '✓ Sent ('+assets.length+' attached)';
+    btn.style.background = 'linear-gradient(135deg,#20F593,#0D9488)';
+    trackEvent('send_with_attachments', assets.length + ' files to ' + to);
+    setTimeout(function(){
+      btn.innerHTML = origLabel;
+      btn.disabled = false;
+      btn.style.opacity = '1';
+      btn.style.background = 'linear-gradient(135deg,#6900FF,#A366FF)';
+    }, 3500);
+  }).catch(function(err){
+    console.error('sendWithAttachments error', err);
+    btn.innerHTML = '✕ Failed - retry';
+    btn.style.background = 'linear-gradient(135deg,#FF5C5C,#B91C1C)';
+    alert('Send failed: '+err.message+'\n\nCheck the Logic App run history in Azure Portal for details.');
+    setTimeout(function(){
+      btn.innerHTML = origLabel;
+      btn.disabled = false;
+      btn.style.opacity = '1';
+      btn.style.background = 'linear-gradient(135deg,#6900FF,#A366FF)';
+    }, 3500);
+  });
 }
 
 
