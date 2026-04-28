@@ -7889,6 +7889,25 @@ function buildAttachmentCardsHtml(){
   return html;
 }
 
+function buildPolishedSignature(){
+  var sName = senderDisplayName();
+  var sTitle = senderTitle();
+  var sPhone = senderPhone();
+  var sEmail = senderEmailAddress();
+  var sigParts = [];
+  sigParts.push('<span style="color:#0A0118;">Best,</span>');
+  sigParts.push('<strong style="color:#0A0118;font-size:15px;">'+escEmailHtml(sName)+'</strong>');
+  if(sTitle) sigParts.push('<span style="color:#666;">'+escEmailHtml(sTitle)+'</span>');
+  sigParts.push('<span style="color:#6900FF;font-weight:600;letter-spacing:0.02em;">MajorKey Technologies</span>');
+  var contactBits = [];
+  if(sEmail) contactBits.push('<a href="mailto:'+escEmailHtml(sEmail)+'" style="color:#6900FF;text-decoration:none;">'+escEmailHtml(sEmail)+'</a>');
+  if(sPhone) contactBits.push('<span style="color:#888;">'+escEmailHtml(sPhone)+'</span>');
+  if(contactBits.length) sigParts.push('<span style="color:#888;font-size:13px;">'+contactBits.join(' &middot; ')+'</span>');
+  return '<table cellpadding="0" cellspacing="0" border="0" style="margin-top:24px;border-top:2px solid #6900FF;padding-top:14px;"><tr><td style="font-family:Calibri,Arial,sans-serif;font-size:14px;color:#444;line-height:1.55;">' +
+    sigParts.join('<br>') +
+    '</td></tr></table>';
+}
+
 function buildBrandedEmailHtml(rawBody, prospectName){
   var cleaned = (rawBody || '')
     .replace(/^Subject:.*$/im, '')
@@ -7896,36 +7915,18 @@ function buildBrandedEmailHtml(rawBody, prospectName){
     .trim();
   var paragraphs = cleaned.split(/\n{2,}/);
   var greetingHtml = '';
-  var signatureHtml = '';
   var bodyParas = [];
+  // Match signature openers: Best/Thanks/Regards/etc. — strips the entire paragraph
+  var SIG_OPENER_RE = /^(Best|Thanks|Thank you|Regards|Cheers|Sincerely|Looking forward|Many thanks)\b/i;
   paragraphs.forEach(function(p, idx){
     var trimmed = p.trim();
+    if(!trimmed) return;
     if(idx === 0 && /^(Hi|Hello|Hey|Dear)\b/i.test(trimmed)){
       greetingHtml = '<p style="margin:0 0 18px 0;font-size:16px;color:#0A0118;font-weight:600;font-family:Calibri,Arial,sans-serif;">'+escEmailHtml(trimmed)+'</p>';
       return;
     }
-    if(idx === paragraphs.length - 1 && /^(Best|Thanks|Regards|Cheers|Sincerely)/i.test(trimmed)){
-      var rawLines = trimmed.split('\n').map(function(l){ return l.trim(); });
-      var closer = rawLines[0] || 'Best,';
-      var sName = senderDisplayName();
-      var sTitle = senderTitle();
-      var sPhone = senderPhone();
-      var sEmail = senderEmailAddress();
-      var sigParts = [];
-      sigParts.push('<span style="color:#0A0118;">'+escEmailHtml(closer)+'</span>');
-      sigParts.push('<strong style="color:#0A0118;font-size:15px;">'+escEmailHtml(sName)+'</strong>');
-      if(sTitle) sigParts.push('<span style="color:#666;">'+escEmailHtml(sTitle)+'</span>');
-      sigParts.push('<span style="color:#6900FF;font-weight:600;letter-spacing:0.02em;">MajorKey Technologies</span>');
-      var contactBits = [];
-      if(sEmail) contactBits.push('<a href="mailto:'+escEmailHtml(sEmail)+'" style="color:#6900FF;text-decoration:none;">'+escEmailHtml(sEmail)+'</a>');
-      if(sPhone) contactBits.push('<span style="color:#888;">'+escEmailHtml(sPhone)+'</span>');
-      if(contactBits.length) sigParts.push('<span style="color:#888;font-size:13px;">'+contactBits.join(' &middot; ')+'</span>');
-      signatureHtml =
-        '<table cellpadding="0" cellspacing="0" border="0" style="margin-top:24px;border-top:2px solid #6900FF;padding-top:14px;"><tr><td style="font-family:Calibri,Arial,sans-serif;font-size:14px;color:#444;line-height:1.55;">' +
-        sigParts.join('<br>') +
-        '</td></tr></table>';
-      return;
-    }
+    // Drop any signature-looking paragraph — we'll inject our polished one at the end
+    if(SIG_OPENER_RE.test(trimmed)) return;
     var listMatch = trimmed.match(/(?:^|\s)(\d\))\s/g);
     if(listMatch && listMatch.length >= 2){
       var intro = trimmed.split(/\s*\d\)\s+/)[0].trim();
@@ -7944,6 +7945,7 @@ function buildBrandedEmailHtml(rawBody, prospectName){
     }
     bodyParas.push('<p style="margin:0 0 14px 0;font-size:15px;color:#222;line-height:1.65;font-family:Calibri,Arial,sans-serif;">'+escEmailHtml(trimmed).replace(/\n/g,'<br>')+'</p>');
   });
+  var signatureHtml = buildPolishedSignature();
   var html = ''
     + '<!DOCTYPE html><html><body style="margin:0;padding:0;background:#F5F3F8;">'
     + '<table cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#F5F3F8;padding:24px 0;">'
