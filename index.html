@@ -7874,13 +7874,19 @@ function sendWithAttachments(btn){
     alert('Add at least one attachment from the SharePoint Library before sending. Open Qualify & Prove → Content Library and click 📎 Attach on the assets you want to include.');
     return;
   }
-  var templates = getEmailTemplates();
-  var t = templates[currentEmailTab || 0] || {};
-  var rawSubject = (t.subject || '').trim();
-  var rawBody    = (t.body || '').trim();
-  if(typeof fillProspectPlaceholders === 'function'){
-    rawSubject = fillProspectPlaceholders(rawSubject);
-    rawBody    = fillProspectPlaceholders(rawBody);
+  var subjEl = document.querySelector('.em-subject');
+  var bodyEl = document.querySelector('.em-body-text');
+  var rawSubject = subjEl ? (subjEl.innerText || subjEl.textContent || '').trim() : '';
+  var rawBody    = bodyEl ? (bodyEl.innerText || bodyEl.textContent || '').trim() : '';
+  if(!rawSubject || !rawBody){
+    var templates = getEmailTemplates();
+    var t = templates[currentEmailTab || 0] || {};
+    rawSubject = rawSubject || (t.subject || '').trim();
+    rawBody    = rawBody    || (t.body    || '').trim();
+    if(typeof fillProspectPlaceholders === 'function'){
+      rawSubject = fillProspectPlaceholders(rawSubject);
+      rawBody    = fillProspectPlaceholders(rawBody);
+    }
   }
   var subject  = rawSubject;
   var bodyHtml = buildBrandedEmailHtml(rawBody);
