@@ -4068,7 +4068,7 @@ function getTeamsUserInfo() {
 // ── SELECTED ATTACHMENTS FOR EMAIL ─────────────────────────────────────────
 var __selectedAttachments = [];
 
-window.MAX_BINARY_ATTACHMENTS = 4;
+window.MAX_BINARY_ATTACHMENTS = 3;
 function toggleAttachment(path, title, category, btn) {
   var idx = __selectedAttachments.findIndex(function(a){ return a.path === path; });
   if(idx >= 0) {
@@ -8677,8 +8677,28 @@ function sendWithAttachments(btn){
     if(!r.ok){
       return r.text().then(function(txt){
         var msg = 'Logic App returned HTTP '+r.status;
-        if(r.status === 400 && /MessageSizeExceeded|maximum supported size/i.test(txt)){
-          msg = 'Email too large — Outlook caps total message size at ~25 MB. Remove some attachments and try again.';
+        var isSizeErr = (r.status === 400 && /MessageSizeExceeded|maximum supported size/i.test(txt));
+        if(isSizeErr){
+          // Auto-retry: send without binary attachments, add SharePoint links to body instead
+          btn.innerHTML = '🔁 Retrying as links…';
+          var linksHtml = '<table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin:18px 0;"><tr><td>' +
+            '<div style="font-family:Calibri,Arial,sans-serif;font-size:11px;letter-spacing:0.12em;color:#888;margin-bottom:10px;font-weight:600;text-transform:uppercase;">Resources (too large to attach)</div>';
+          assets.forEach(function(a){
+            linksHtml += '<div style="margin-bottom:8px;font-family:Calibri,Arial,sans-serif;font-size:13px;"><a href="'+escEmailHtml(a.url)+'" style="color:#6900FF;text-decoration:none;">📎 '+escEmailHtml(a.name)+'</a></div>';
+          });
+          linksHtml += '</td></tr></table>';
+          var fallbackBody = (window.__cachedFinalHtml || '').replace('<!--ATTACHMENTS_PLACEHOLDER-->', '');
+          var bodyWithLinks = buildBrandedEmailHtml((rawBody || '') + '\n\n[ATTACHMENTS_PLACEHOLDER]')
+            .replace('[ATTACHMENTS_PLACEHOLDER]', linksHtml);
+          return fetch(window.LOGIC_APP_SEND_URL, {
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({ to: to, subject: subject, body: bodyWithLinks, assets: [] })
+          }).then(function(r2){
+            if(!r2.ok) throw new Error('Fallback retry also failed: HTTP '+r2.status);
+            showInlineMsg('Files were too large for binary attachment — sent as SharePoint links instead.', false);
+            return r2.json().catch(function(){ return {}; });
+          });
         }
         var err = new Error(msg);
         err.raw = txt;
