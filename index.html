@@ -3516,6 +3516,7 @@ function saveCurrentDeal() {
   // Identify deal by company + offering; update if exists
   var key = (profile.company || 'Unknown') + '::' + selOff.id;
   var existingIdx = deals.findIndex(function(d){ return d.key === key; });
+  var preserved = existingIdx >= 0 ? deals[existingIdx] : {};
   var deal = {
     key: key,
     company: profile.company || 'Unknown Prospect',
@@ -3527,22 +3528,79 @@ function saveCurrentDeal() {
     industry: sI || '',
     partner: sC || '',
     discoveryNotes: notes.slice(0, 2000),
-    nextStep: '',
-    status: 'active',
-    followUpDate: '',
-    createdAt: existingIdx >= 0 ? deals[existingIdx].createdAt : Date.now(),
+    nextStep: preserved.nextStep || '',
+    status: preserved.status || 'active',
+    stage: preserved.stage || 'Discovery',
+    dealValue: preserved.dealValue || '',
+    closeDate: preserved.closeDate || '',
+    followUpDate: preserved.followUpDate || '',
+    activities: preserved.activities || [],
+    createdAt: preserved.createdAt || Date.now(),
     updatedAt: Date.now()
   };
-  if(existingIdx >= 0) {
-    deal.nextStep = deals[existingIdx].nextStep || '';
-    deal.followUpDate = deals[existingIdx].followUpDate || '';
-    deal.status = deals[existingIdx].status || 'active';
-    deals[existingIdx] = deal;
-  } else {
-    deals.unshift(deal);
-  }
+  if(existingIdx >= 0) deals[existingIdx] = deal;
+  else deals.unshift(deal);
   saveDeals(deals);
   trackEvent('save_deal', deal.company + ' - ' + deal.offeringName);
+  logDealActivity(key, 'play_generated', selOff.name);
+}
+
+// ── DEAL ACTIVITIES (timeline + audit log) ────────────────────────────────
+function logDealActivity(dealKey, type, details){
+  if(!dealKey) return;
+  var deals = getDeals();
+  var d = deals.find(function(x){ return x.key === dealKey; });
+  if(!d) return;
+  d.activities = d.activities || [];
+  d.activities.unshift({ ts: Date.now(), type: type, details: details || '' });
+  if(d.activities.length > 50) d.activities = d.activities.slice(0, 50);
+  d.updatedAt = Date.now();
+  saveDeals(deals);
+  appendAuditLog({ ts: Date.now(), dealKey: dealKey, company: d.company, offering: d.offeringName, type: type, details: details || '' });
+}
+function findActiveDealKey(){
+  if(!selOff) return null;
+  var profile = (typeof getProspectProfile === 'function') ? getProspectProfile() : {};
+  return (profile.company || 'Unknown') + '::' + selOff.id;
+}
+function appendAuditLog(entry){
+  try {
+    var log = JSON.parse(localStorage.getItem('spa_audit_log') || '[]');
+    log.unshift(entry);
+    if(log.length > 500) log = log.slice(0, 500);
+    localStorage.setItem('spa_audit_log', JSON.stringify(log));
+  } catch(e){}
+}
+function getAuditLog(){
+  try { return JSON.parse(localStorage.getItem('spa_audit_log') || '[]'); } catch(e){ return []; }
+}
+
+var DEAL_STAGES = [
+  { id:'Discovery',      color:'#7FB8FF', tint:'rgba(127,184,255,0.12)' },
+  { id:'Demo',           color:'#A366FF', tint:'rgba(163,102,255,0.12)' },
+  { id:'Proposal',       color:'#FFB830', tint:'rgba(255,184,48,0.12)' },
+  { id:'Negotiation',    color:'#FF8A8A', tint:'rgba(255,138,138,0.12)' },
+  { id:'Closed-Won',     color:'#20F593', tint:'rgba(32,245,147,0.15)' },
+  { id:'Closed-Lost',    color:'#666',    tint:'rgba(120,120,120,0.12)' }
+];
+function stageMeta(stage){
+  return DEAL_STAGES.find(function(s){ return s.id === stage; }) || DEAL_STAGES[0];
+}
+function formatActivity(act){
+  var dt = new Date(act.ts);
+  var when = dt.toLocaleDateString() + ' · ' + dt.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+  var icon = ({
+    play_generated:'🎯', email_sent:'✉️', attachment_added:'📎',
+    note_added:'📝', stage_changed:'🔄', call_logged:'📞',
+    follow_up_scheduled:'📅'
+  })[act.type] || '•';
+  var label = act.type.replace(/_/g,' ').replace(/\b\w/g, function(c){ return c.toUpperCase(); });
+  return '<div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px dashed rgba(255,255,255,0.05);">' +
+    '<div style="width:22px;font-size:14px;flex-shrink:0;">'+icon+'</div>' +
+    '<div style="flex:1;min-width:0;"><div style="font-size:12px;color:var(--t1);font-weight:600;">'+label+'</div>' +
+    (act.details ? '<div style="font-size:11px;color:var(--t3);margin-top:2px;line-height:1.4;">'+escHtml(act.details)+'</div>' : '') +
+    '<div style="font-family:var(--mono);font-size:10px;color:var(--t3);margin-top:3px;">'+when+'</div></div>' +
+    '</div>';
 }
 
 function deleteDeal(key) {
@@ -3577,6 +3635,21 @@ function updateDealField(key, field, value) {
   saveDeals(deals);
 }
 
+function updateDealStage(key, newStage){
+  var deals = getDeals();
+  var d = deals.find(function(x){ return x.key === key; });
+  if(!d) return;
+  var oldStage = d.stage || 'Discovery';
+  if(oldStage === newStage) return;
+  d.stage = newStage;
+  d.updatedAt = Date.now();
+  saveDeals(deals);
+  if(typeof logDealActivity === 'function'){
+    logDealActivity(key, 'stage_changed', oldStage + ' → ' + newStage);
+  }
+  if(document.getElementById('deals-modal')) openMyDeals();
+}
+
 function openMyDeals() {
   var existing = document.getElementById('deals-modal');
   if(existing) existing.remove();
@@ -3603,33 +3676,79 @@ function openMyDeals() {
       '<div style="font-size:13px;">Generate a solution play and it will automatically save here.</div>' +
     '</div>';
   } else {
+    // Pipeline summary stats
+    var totalValue = 0;
+    var byStage = {};
+    DEAL_STAGES.forEach(function(s){ byStage[s.id] = { count:0, value:0 }; });
+    deals.forEach(function(d){
+      var v = parseFloat((d.dealValue || '').toString().replace(/[$,]/g,'')) || 0;
+      var stg = d.stage || 'Discovery';
+      if(!byStage[stg]) byStage[stg] = { count:0, value:0 };
+      byStage[stg].count++;
+      byStage[stg].value += v;
+      if(stg !== 'Closed-Lost') totalValue += v;
+    });
+    var pipelineSummary = '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px;padding:14px 16px;background:rgba(105,0,255,0.05);border:1px solid rgba(105,0,255,0.15);border-radius:12px;">' +
+      '<div style="margin-right:auto;"><div style="font-family:var(--mono);font-size:10px;letter-spacing:0.12em;color:var(--t3);text-transform:uppercase;margin-bottom:2px;">Pipeline Value</div>' +
+      '<div style="font-family:var(--display);font-size:22px;font-weight:800;color:var(--teal2);">$'+(totalValue.toLocaleString())+'</div></div>';
+    DEAL_STAGES.forEach(function(s){
+      var cnt = byStage[s.id].count;
+      if(cnt === 0) return;
+      pipelineSummary += '<div style="background:'+s.tint+';border:1px solid '+s.color+'40;border-radius:8px;padding:6px 10px;min-width:78px;">' +
+        '<div style="font-family:var(--mono);font-size:9px;color:'+s.color+';font-weight:600;letter-spacing:0.06em;text-transform:uppercase;">'+s.id+'</div>' +
+        '<div style="font-size:14px;font-weight:700;color:var(--t1);margin-top:2px;">'+cnt+'</div></div>';
+    });
+    pipelineSummary += '</div>';
+    html += pipelineSummary;
+
     deals.forEach(function(d) {
       var updatedAgo = new Date(d.updatedAt).toLocaleDateString();
       var statusColor = d.status === 'won' ? 'var(--teal2)' : d.status === 'lost' ? '#FF8A8A' : 'var(--purple2)';
       var statusBg = d.status === 'won' ? 'rgba(32,245,147,0.15)' : d.status === 'lost' ? 'rgba(255,92,92,0.15)' : 'rgba(105,0,255,0.15)';
-      html += '<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:18px 22px;margin-bottom:12px;transition:all 0.2s;" onmouseover="this.style.borderColor=\'rgba(32,245,147,0.3)\'" onmouseout="this.style.borderColor=\'rgba(255,255,255,0.08)\'">' +
+      var stage = d.stage || 'Discovery';
+      var sm = stageMeta(stage);
+      var keyEsc = escHtml(d.key).replace(/\x27/g,"\\\x27");
+      var stageOpts = DEAL_STAGES.map(function(s){
+        return '<option value="'+s.id+'"'+(s.id===stage?' selected':'')+'>'+s.id+'</option>';
+      }).join('');
+      var activitiesHtml = '';
+      if(d.activities && d.activities.length){
+        var recent = d.activities.slice(0, 6);
+        activitiesHtml = '<details style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.06);">' +
+          '<summary style="cursor:pointer;font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--t3);outline:none;">📜 Activity Timeline · '+d.activities.length+' event'+(d.activities.length===1?'':'s')+'</summary>' +
+          '<div style="margin-top:8px;max-height:220px;overflow-y:auto;padding-right:6px;">'+recent.map(formatActivity).join('')+'</div>' +
+          '</details>';
+      }
+      html += '<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-left:4px solid '+sm.color+';border-radius:14px;padding:18px 22px;margin-bottom:12px;transition:all 0.2s;" onmouseover="this.style.borderColor=\'rgba(32,245,147,0.3)\';this.style.borderLeftColor=\''+sm.color+'\'" onmouseout="this.style.borderColor=\'rgba(255,255,255,0.08)\';this.style.borderLeftColor=\''+sm.color+'\'">' +
         '<div style="display:flex;align-items:center;gap:14px;margin-bottom:12px;">' +
           '<span style="font-size:28px;">'+escHtml(d.offeringIcon)+'</span>' +
           '<div style="flex:1;min-width:0;">' +
             '<div style="font-size:15px;font-weight:700;color:var(--t1);margin-bottom:2px;">'+escHtml(d.company)+'</div>' +
             '<div style="font-size:12px;color:var(--t2);">'+escHtml(d.offeringName)+(d.industry ? ' · '+escHtml(d.industry) : '')+'</div>' +
           '</div>' +
-          '<select onchange="updateDealField(\''+escHtml(d.key).replace(/\x27/g,"\\\x27")+'\',\'status\',this.value)" style="background:'+statusBg+';border:1px solid '+statusColor+';color:'+statusColor+';border-radius:6px;padding:4px 10px;font-family:var(--mono);font-size:10px;text-transform:uppercase;cursor:pointer;">' +
+          '<select onchange="updateDealStage(\''+keyEsc+'\',this.value)" style="background:'+sm.tint+';border:1px solid '+sm.color+';color:'+sm.color+';border-radius:6px;padding:4px 10px;font-family:var(--mono);font-size:10px;font-weight:600;text-transform:uppercase;cursor:pointer;">'+stageOpts+'</select>' +
+          '<select onchange="updateDealField(\''+keyEsc+'\',\'status\',this.value)" style="background:'+statusBg+';border:1px solid '+statusColor+';color:'+statusColor+';border-radius:6px;padding:4px 10px;font-family:var(--mono);font-size:10px;text-transform:uppercase;cursor:pointer;">' +
             '<option value="active"' + (d.status==='active'?' selected':'') + '>Active</option>' +
             '<option value="stalled"' + (d.status==='stalled'?' selected':'') + '>Stalled</option>' +
             '<option value="won"' + (d.status==='won'?' selected':'') + '>Won</option>' +
             '<option value="lost"' + (d.status==='lost'?' selected':'') + '>Lost</option>' +
           '</select>' +
-          '<button onclick="deleteDeal(\''+escHtml(d.key).replace(/\x27/g,"\\\x27")+'\')" title="Remove" style="background:none;border:none;color:var(--t3);cursor:pointer;font-size:16px;padding:4px 8px;">🗑</button>' +
+          '<button onclick="deleteDeal(\''+keyEsc+'\')" title="Remove" style="background:none;border:none;color:var(--t3);cursor:pointer;font-size:16px;padding:4px 8px;">🗑</button>' +
         '</div>' +
         (d.firstName || d.exec ? '<div style="font-size:12px;color:var(--t3);margin-bottom:10px;">Contacts: '+(d.firstName?escHtml(d.firstName):'-')+(d.exec?' · Exec: '+escHtml(d.exec):'')+'</div>' : '') +
-        '<div style="display:grid;grid-template-columns:1fr 180px;gap:10px;margin-bottom:12px;">' +
-          '<input type="text" placeholder="Next step..." value="'+escHtml(d.nextStep||'')+'" onblur="updateDealField(\''+escHtml(d.key).replace(/\x27/g,"\\\x27")+'\',\'nextStep\',this.value)" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:8px 12px;color:var(--t1);font-size:13px;outline:none;">' +
-          '<input type="date" value="'+escHtml(d.followUpDate||'')+'" onblur="updateDealField(\''+escHtml(d.key).replace(/\x27/g,"\\\x27")+'\',\'followUpDate\',this.value)" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:8px 12px;color:var(--t1);font-size:13px;outline:none;">' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px;">' +
+          '<div><div style="font-family:var(--mono);font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px;">Deal Value ($)</div>' +
+            '<input type="text" placeholder="0" value="'+escHtml(d.dealValue||'')+'" onblur="updateDealField(\''+keyEsc+'\',\'dealValue\',this.value)" style="width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:7px 10px;color:var(--t1);font-size:13px;outline:none;font-family:var(--mono);"></div>' +
+          '<div><div style="font-family:var(--mono);font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px;">Close Date</div>' +
+            '<input type="date" value="'+escHtml(d.closeDate||'')+'" onblur="updateDealField(\''+keyEsc+'\',\'closeDate\',this.value)" style="width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:7px 10px;color:var(--t1);font-size:13px;outline:none;"></div>' +
+          '<div><div style="font-family:var(--mono);font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px;">Next Step Date</div>' +
+            '<input type="date" value="'+escHtml(d.followUpDate||'')+'" onblur="updateDealField(\''+keyEsc+'\',\'followUpDate\',this.value)" style="width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:7px 10px;color:var(--t1);font-size:13px;outline:none;"></div>' +
         '</div>' +
+        '<input type="text" placeholder="Next step (e.g. send proposal, follow-up call)..." value="'+escHtml(d.nextStep||'')+'" onblur="updateDealField(\''+keyEsc+'\',\'nextStep\',this.value)" style="width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:8px 12px;color:var(--t1);font-size:13px;outline:none;margin-bottom:8px;">' +
+        activitiesHtml +
         '<div style="display:flex;align-items:center;gap:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.06);">' +
           '<span style="font-family:var(--mono);font-size:10px;color:var(--t3);">Updated '+updatedAgo+'</span>' +
-          '<button onclick="loadDeal(\''+escHtml(d.key).replace(/\x27/g,"\\\x27")+'\')" style="margin-left:auto;background:linear-gradient(135deg,var(--teal),#5BFCB0);color:#0A0118;border:none;border-radius:8px;padding:6px 14px;font-weight:700;font-size:12px;cursor:pointer;">Resume Deal →</button>' +
+          '<button onclick="loadDeal(\''+keyEsc+'\')" style="margin-left:auto;background:linear-gradient(135deg,var(--teal),#5BFCB0);color:#0A0118;border:none;border-radius:8px;padding:6px 14px;font-weight:700;font-size:12px;cursor:pointer;">Resume Deal →</button>' +
         '</div>' +
       '</div>';
     });
@@ -3793,6 +3912,8 @@ function toggleAttachment(path, title, category, btn) {
     }
     __selectedAttachments.push({ path: path, title: title, category: category });
     if(btn) { btn.classList.add('on'); btn.innerHTML = '<span>✓</span><span style="font-size:10px;font-weight:600;">Added</span>'; btn.style.background='rgba(32,245,147,0.18)'; btn.style.borderColor='rgba(32,245,147,0.5)'; btn.style.color='var(--teal2)'; }
+    var dealKeyAtt = (typeof findActiveDealKey === 'function') ? findActiveDealKey() : null;
+    if(dealKeyAtt && typeof logDealActivity === 'function') logDealActivity(dealKeyAtt, 'attachment_added', title);
   }
   updateAttachmentBadge();
   trackEvent('toggle_attachment', title);
@@ -8233,6 +8354,12 @@ function sendWithAttachments(btn){
     btn.style.background = 'linear-gradient(135deg,#20F593,#0D9488)';
     showInlineMsg('Sent to '+to+' with '+assets.length+' attachment'+(assets.length===1?'':'s')+'.', false);
     trackEvent('send_with_attachments', assets.length + ' files to ' + to);
+    var dealKey = (typeof findActiveDealKey === 'function') ? findActiveDealKey() : null;
+    if(dealKey && typeof logDealActivity === 'function'){
+      var attLabels = assets.map(function(a){ return a.name; }).slice(0,3).join(', ');
+      var attTail = assets.length > 3 ? ' (+'+(assets.length-3)+' more)' : '';
+      logDealActivity(dealKey, 'email_sent', 'To '+to+' — '+assets.length+' attached: '+attLabels+attTail);
+    }
     setTimeout(function(){
       btn.innerHTML = origLabel;
       btn.disabled = false;
