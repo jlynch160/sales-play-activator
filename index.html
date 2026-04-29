@@ -2678,7 +2678,7 @@ body{background:var(--bg);color:var(--t1);font-family:var(--body);min-height:100
       </div>
       <div style="display:flex;align-items:center;gap:10px;">
         <label for="em-booking-input" style="font-family:var(--mono);font-size:11px;letter-spacing:0.1em;color:var(--t3);text-transform:uppercase;flex-shrink:0;width:88px;">Your link</label>
-        <input id="em-booking-input" type="url" placeholder="https://outlook.office.com/bookwithme/user/yourname@yourcompany.com" style="flex:1;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.12);color:var(--t1);border-radius:8px;padding:8px 12px;font-size:13px;font-family:var(--body);outline:none;" onfocus="this.style.borderColor='rgba(105,0,255,0.5)'" onblur="onBookingUrlBlur(this)" title="Your personal Outlook Bookings, Calendly, or HubSpot scheduler URL — used for the 'Book a meeting' button in emails">
+        <input id="em-booking-input" type="url" placeholder="Paste your Calendly / HubSpot / scheduler link (optional)" style="flex:1;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.12);color:var(--t1);border-radius:8px;padding:8px 12px;font-size:13px;font-family:var(--body);outline:none;" onfocus="this.style.borderColor='rgba(105,0,255,0.5)'" onblur="onBookingUrlBlur(this)" title="Your personal scheduler URL (Calendly, HubSpot Meetings, etc.) — used for the 'Book a meeting' button in emails. Leave blank to hide the button.">
       </div>
     </div>
     <div class="em-footer">
@@ -7918,12 +7918,7 @@ function senderPhone(){
 }
 function senderBookingUrl(){
   var s = (typeof getSellerProfile === 'function') ? getSellerProfile() : null;
-  if(s && s.bookingUrl) return s.bookingUrl;
-  var email = senderEmailAddress();
-  if(email && email.indexOf('@') > 0){
-    return 'https://outlook.office.com/bookwithme/user/' + encodeURIComponent(email);
-  }
-  return '';
+  return (s && s.bookingUrl) ? s.bookingUrl : '';
 }
 
 // Configure these once you build the helper Logic Apps
@@ -7939,6 +7934,8 @@ function buildCtaButtonHtml(){
     '</td></tr></table>' +
     '<p style="margin:0 0 18px 0;font-size:12px;color:#888;font-family:Calibri,Arial,sans-serif;line-height:1.5;">Or reply directly with a couple of times that work for you.</p>';
 }
+
+window.MK_TEAM_BOOKING_URL = '';
 
 function buildTrackingPixelHtml(recipient, subject){
   if(!window.TRACKING_PIXEL_URL) return '';
