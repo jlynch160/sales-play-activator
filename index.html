@@ -2682,6 +2682,11 @@ body{background:var(--bg);color:var(--t1);font-family:var(--body);min-height:100
         <input id="em-booking-input" type="url" placeholder="Paste your Calendly / HubSpot / scheduler link (optional)" style="flex:1;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.12);color:var(--t1);border-radius:8px;padding:8px 12px;font-size:13px;font-family:var(--body);outline:none;" onfocus="this.style.borderColor='rgba(105,0,255,0.5)'" onblur="onBookingUrlBlur(this)" title="Your personal scheduler URL (Calendly, HubSpot Meetings, etc.) — used for the 'Book a meeting' button in emails. Leave blank to hide the button.">
       </div>
     </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;padding:8px 24px 0;">
+      <button onclick="suggestSubjectVariants(this)" title="AI generates 3 subject line options" style="background:rgba(105,0,255,0.1);border:1px solid rgba(105,0,255,0.3);color:var(--purple2);border-radius:7px;padding:6px 12px;cursor:pointer;font-family:var(--mono);font-size:11px;letter-spacing:0.04em;font-weight:600;">🎲 AI Subjects</button>
+      <button onclick="generateFollowup(this)" title="AI drafts a follow-up referencing their reply" style="background:rgba(127,184,255,0.1);border:1px solid rgba(127,184,255,0.3);color:#7FB8FF;border-radius:7px;padding:6px 12px;cursor:pointer;font-family:var(--mono);font-size:11px;letter-spacing:0.04em;font-weight:600;">✨ Generate Follow-up</button>
+      <button onclick="saveCurrentEmailAsTemplate()" title="Save the current subject + body as a reusable template for this offering" style="background:rgba(255,184,48,0.1);border:1px solid rgba(255,184,48,0.3);color:var(--amber);border-radius:7px;padding:6px 12px;cursor:pointer;font-family:var(--mono);font-size:11px;letter-spacing:0.04em;font-weight:600;">💾 Save as Template</button>
+    </div>
     <div class="em-footer">
       <button class="em-cancel-btn" onclick="closeEmailModal()">Close</button>
       <button class="em-copy-btn" onclick="copyEmailTemplate()" style="background:rgba(255,255,255,0.05);color:var(--t1);border:1px solid rgba(255,255,255,0.15);flex:0 0 auto;padding:11px 18px;">⎘ Copy</button>
@@ -8091,6 +8096,23 @@ function openEmailModal(){
     tabsEl.appendChild(btn);
   });
 
+  // Saved templates per seller — filter to current offering, fall back to all if none
+  var saved = (typeof getSavedTemplates === 'function') ? getSavedTemplates() : [];
+  var relevant = saved.filter(function(t){ return !selOff || !t.offeringId || t.offeringId === selOff.id; });
+  relevant.forEach(function(t){
+    var btn = document.createElement('button');
+    btn.className = 'em-tab';
+    btn.style.position = 'relative';
+    btn.innerHTML = '⭐ ' + escHtml(t.name) +
+      '<span onclick="event.stopPropagation();if(confirm(\'Delete this saved template?\')){deleteSavedTemplate(\''+t.id+'\');}" style="margin-left:8px;color:rgba(255,255,255,0.4);cursor:pointer;font-size:11px;" title="Delete">✕</span>';
+    btn.onclick = function(){
+      tabsEl.querySelectorAll('.em-tab').forEach(function(b){ b.classList.remove('on'); });
+      btn.classList.add('on');
+      applySavedTemplate(t.id);
+    };
+    tabsEl.appendChild(btn);
+  });
+
   currentEmailTab = 0;
   renderEmailBody(templates[0]);
   document.getElementById('email-modal').style.display='flex';
@@ -8255,8 +8277,10 @@ function senderBookingUrl(){
 }
 
 // Configure these once you build the helper Logic Apps
-window.AI_OPENER_URL = '';   // Logic App that returns { opener: "..." }
-window.TRACKING_PIXEL_URL = ''; // Logic App that logs pixel hits, e.g. https://prod-XX.../triggers/manual/.../invoke?...
+window.AI_OPENER_URL = '';   // Logic App: takes offering+notes, returns { opener: "..." }
+window.AI_SUBJECT_VARIANTS_URL = '';  // Logic App: takes offering+body, returns { variants: ["s1","s2","s3"] }
+window.AI_FOLLOWUP_URL = '';  // Logic App: takes original_subject+original_body+their_reply, returns { followup: "..." }
+window.TRACKING_PIXEL_URL = ''; // Logic App that logs pixel hits
 
 function buildCtaButtonHtml(){
   var url = senderBookingUrl();
@@ -8291,6 +8315,151 @@ function fetchAiOpener(opts){
   .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
   .then(function(data){ return (data && data.opener) ? String(data.opener).trim() : null; })
   .catch(function(err){ console.warn('AI opener failed', err); return null; });
+}
+
+// ── SAVED EMAIL TEMPLATES (per seller) ────────────────────────────────────
+function getSavedTemplates(){
+  try { return JSON.parse(localStorage.getItem('spa_saved_templates') || '[]'); } catch(e){ return []; }
+}
+function saveTemplateList(arr){
+  try { localStorage.setItem('spa_saved_templates', JSON.stringify(arr || [])); } catch(e){}
+}
+function saveCurrentEmailAsTemplate(){
+  var subjEl = document.querySelector('.em-subject');
+  var bodyEl = document.querySelector('.em-body-text');
+  var subject = subjEl ? (subjEl.innerText || subjEl.textContent || '').trim() : '';
+  var body    = bodyEl ? (bodyEl.innerText || bodyEl.textContent || '').trim() : '';
+  if(!subject || !body){ showInlineMsg('Nothing to save — open an email template first.', true); return; }
+  var name = prompt('Name this template (e.g. "Cold opener — entra-mig — direct"):',
+    (selOff ? selOff.short : 'Custom') + ' template ' + new Date().toLocaleDateString());
+  if(!name) return;
+  var saved = getSavedTemplates();
+  saved.unshift({
+    id: 'tpl_' + Date.now(),
+    name: name.trim(),
+    offeringId: selOff ? selOff.id : '',
+    subject: subject,
+    body: body,
+    createdAt: Date.now()
+  });
+  if(saved.length > 50) saved = saved.slice(0, 50);
+  saveTemplateList(saved);
+  showInlineMsg('Saved as "'+name+'" — available on next play in this offering.', false);
+  trackEvent('save_template', name);
+}
+function deleteSavedTemplate(id){
+  var saved = getSavedTemplates().filter(function(t){ return t.id !== id; });
+  saveTemplateList(saved);
+  if(typeof openEmailModal === 'function') openEmailModal();
+}
+function applySavedTemplate(id){
+  var t = getSavedTemplates().find(function(x){ return x.id === id; });
+  if(!t || typeof renderEmailBody !== 'function') return;
+  renderEmailBody({ label: t.name, subject: t.subject, body: t.body });
+  trackEvent('apply_template', t.name);
+}
+
+// ── AI SUBJECT LINE VARIANTS ──────────────────────────────────────────────
+function fetchSubjectVariants(opts){
+  if(!window.AI_SUBJECT_VARIANTS_URL) return Promise.resolve(null);
+  return fetch(window.AI_SUBJECT_VARIANTS_URL, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify(opts)
+  })
+  .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+  .then(function(data){ return (data && Array.isArray(data.variants)) ? data.variants.slice(0,3) : null; })
+  .catch(function(err){ console.warn('subject variants failed', err); return null; });
+}
+function suggestSubjectVariants(btn){
+  if(!window.AI_SUBJECT_VARIANTS_URL){
+    showInlineMsg('AI subject variants not configured. Set window.AI_SUBJECT_VARIANTS_URL to your Logic App URL.', true);
+    return;
+  }
+  var subjEl = document.querySelector('.em-subject');
+  var bodyEl = document.querySelector('.em-body-text');
+  var current = subjEl ? subjEl.innerText.trim() : '';
+  var body    = bodyEl ? bodyEl.innerText.trim() : '';
+  var origLabel = btn.innerHTML;
+  btn.disabled = true; btn.innerHTML = '✨ Thinking…';
+  fetchSubjectVariants({
+    offering: selOff ? (selOff.name || selOff.short) : '',
+    industry: typeof sI !== 'undefined' ? sI : '',
+    currentSubject: current,
+    body: body.slice(0, 1000)
+  }).then(function(variants){
+    btn.disabled = false; btn.innerHTML = origLabel;
+    if(!variants || variants.length === 0){
+      showInlineMsg('No variants returned — check the Logic App run history.', true);
+      return;
+    }
+    showSubjectVariantsPicker(variants, subjEl);
+  });
+}
+function showSubjectVariantsPicker(variants, targetSubjEl){
+  var existing = document.getElementById('mk-subj-picker');
+  if(existing) existing.remove();
+  var picker = document.createElement('div');
+  picker.id = 'mk-subj-picker';
+  picker.style.cssText = 'background:rgba(105,0,255,0.08);border:1px solid rgba(105,0,255,0.3);border-radius:10px;padding:12px 14px;margin:8px 0;';
+  picker.innerHTML = '<div style="font-family:var(--mono);font-size:10px;letter-spacing:0.12em;color:var(--purple2);text-transform:uppercase;margin-bottom:8px;font-weight:600;">✨ AI Suggestions — click to apply</div>' +
+    variants.map(function(v, i){
+      return '<div onclick="applySubjectVariant(this,'+i+')" data-variant="'+escHtml(v).replace(/"/g,'&quot;')+'" style="padding:8px 10px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:6px;cursor:pointer;font-size:13px;color:var(--t1);margin-bottom:6px;transition:all 0.15s;" onmouseover="this.style.background=\'rgba(105,0,255,0.15)\';this.style.borderColor=\'rgba(105,0,255,0.4)\'" onmouseout="this.style.background=\'rgba(255,255,255,0.04)\';this.style.borderColor=\'rgba(255,255,255,0.08)\'">'+escHtml(v)+'</div>';
+    }).join('') +
+    '<button onclick="document.getElementById(\'mk-subj-picker\').remove()" style="background:none;border:none;color:var(--t3);cursor:pointer;font-size:11px;padding:4px 0;font-family:var(--mono);">Dismiss</button>';
+  if(targetSubjEl && targetSubjEl.parentNode){
+    targetSubjEl.parentNode.insertBefore(picker, targetSubjEl.nextSibling);
+  }
+}
+function applySubjectVariant(el, idx){
+  var v = el.getAttribute('data-variant');
+  var subjEl = document.querySelector('.em-subject');
+  if(subjEl) subjEl.textContent = v;
+  var picker = document.getElementById('mk-subj-picker');
+  if(picker) picker.remove();
+  trackEvent('apply_subject_variant', v);
+}
+
+// ── AI FOLLOW-UP WRITER ───────────────────────────────────────────────────
+function fetchFollowup(opts){
+  if(!window.AI_FOLLOWUP_URL) return Promise.resolve(null);
+  return fetch(window.AI_FOLLOWUP_URL, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify(opts)
+  })
+  .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+  .then(function(data){ return (data && data.followup) ? data : null; })
+  .catch(function(err){ console.warn('followup failed', err); return null; });
+}
+function generateFollowup(btn){
+  if(!window.AI_FOLLOWUP_URL){
+    showInlineMsg('AI follow-up writer not configured. Set window.AI_FOLLOWUP_URL to your Logic App URL.', true);
+    return;
+  }
+  var theirReply = prompt('Paste their last reply (or describe what they said):', '');
+  if(!theirReply) return;
+  var subjEl = document.querySelector('.em-subject');
+  var bodyEl = document.querySelector('.em-body-text');
+  var origSubject = subjEl ? subjEl.innerText.trim() : '';
+  var origBody    = bodyEl ? bodyEl.innerText.trim() : '';
+  var origLabel = btn.innerHTML;
+  btn.disabled = true; btn.innerHTML = '✨ Drafting…';
+  fetchFollowup({
+    offering: selOff ? (selOff.name || selOff.short) : '',
+    offeringWhy: selOff ? (selOff.why || '') : '',
+    originalSubject: origSubject,
+    originalBody: origBody,
+    theirReply: theirReply,
+    senderName: senderDisplayName(),
+    prospectFirstName: (getProspectProfile().firstName || '')
+  }).then(function(data){
+    btn.disabled = false; btn.innerHTML = origLabel;
+    if(!data){ showInlineMsg('No follow-up returned — check the Logic App run history.', true); return; }
+    var newSubject = data.subject || ('Re: ' + origSubject);
+    if(subjEl) subjEl.textContent = newSubject;
+    if(bodyEl) bodyEl.innerText = data.followup;
+    showInlineMsg('Follow-up drafted from their reply. Review before sending.', false);
+    trackEvent('generate_followup', '');
+  });
 }
 
 function buildAttachmentCardsHtml(){
