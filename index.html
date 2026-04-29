@@ -2122,7 +2122,6 @@ body{background:var(--bg);color:var(--t1);font-family:var(--body);min-height:100
     <button onclick="openPlaysMap()" class="hdr-action">🗺 Plays Map</button>
     <button onclick="openMyDeals()" class="hdr-action">🎯 Active Plays<span id="deal-count-badge" style="display:none;min-width:16px;padding:0 5px;border-radius:10px;background:var(--purple2);color:#0A0118;font-family:var(--mono);font-size:9px;font-weight:800;margin-left:4px;"></span></button>
     <button onclick="openDashboard()" class="hdr-action">📈 Trends</button>
-    <button onclick="openAdmin()" class="hdr-action">⚡ Admin</button>
   </div>
 </header>
 
@@ -3837,8 +3836,8 @@ function openDashboard(){
   if(existing) existing.remove();
 
   var auditLog = getAuditLog();
-  var activity = getPlayActivity();
   var sellerName = senderDisplayName();
+  var firstName = sellerName.split(/\s+/)[0] || sellerName;
 
   var DAY_MS = 24 * 60 * 60 * 1000;
   var now = Date.now();
@@ -3848,19 +3847,19 @@ function openDashboard(){
   function inWindow(a, from, to){ return a.ts >= from && a.ts < to; }
   function countByType(events, type){ return events.filter(function(e){ return e.type === type; }).length; }
   function delta(thisWk, prevWk){
-    if(prevWk === 0) return thisWk > 0 ? { dir:'up', label:'New' } : { dir:'flat', label:'—' };
+    if(prevWk === 0) return thisWk > 0 ? { dir:'up', label:'New', pct:null } : { dir:'flat', label:'—', pct:0 };
     var diff = thisWk - prevWk;
     var pct = Math.round((diff / prevWk) * 100);
-    return { dir: diff > 0 ? 'up' : (diff < 0 ? 'down' : 'flat'), label: (diff > 0 ? '+' : '') + pct + '%' };
+    return { dir: diff > 0 ? 'up' : (diff < 0 ? 'down' : 'flat'), label: (diff > 0 ? '+' : '') + pct + '%', pct: pct };
   }
 
   var thisWeek = auditLog.filter(function(a){ return inWindow(a, weekStart, now); });
   var prevWeek = auditLog.filter(function(a){ return inWindow(a, prevWeekStart, weekStart); });
 
   var KPIS = [
-    { key:'play_generated',    label:'Plays Generated', icon:'🎯', color:'#A366FF', gradient:'linear-gradient(135deg,#6900FF,#A366FF)' },
-    { key:'email_sent',        label:'Emails Sent',     icon:'✉️',  color:'#20F593', gradient:'linear-gradient(135deg,#0D9488,#20F593)' },
-    { key:'attachment_added',  label:'Files Attached',  icon:'📎', color:'#FFB830', gradient:'linear-gradient(135deg,#D97706,#FFB830)' }
+    { key:'play_generated',    label:'Plays',    icon:'🎯', color:'#A366FF' },
+    { key:'email_sent',        label:'Emails',   icon:'✉️',  color:'#20F593' },
+    { key:'attachment_added',  label:'Files',    icon:'📎', color:'#FFB830' }
   ];
   var kpiData = KPIS.map(function(k){
     var t = countByType(thisWeek, k.key);
@@ -3868,7 +3867,7 @@ function openDashboard(){
     return Object.assign({}, k, { thisWk:t, prevWk:p, delta:delta(t,p) });
   });
 
-  // 7-day daily counts for sparkline
+  // 7-day daily counts
   var DAY_LABELS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
   var today = new Date(); today.setHours(0,0,0,0);
   var days = [];
@@ -3880,6 +3879,7 @@ function openDashboard(){
     days.push({ label: DAY_LABELS[d.getDay()], date: d.getDate(), count: anyEvents, isToday: i === 0 });
   }
   var maxDay = Math.max.apply(null, days.map(function(d){ return d.count; })) || 1;
+  var bestDay = days.slice().sort(function(a,b){ return b.count - a.count; })[0];
 
   // Top offerings this week vs prior
   var thisOfferings = {};
@@ -3899,151 +3899,283 @@ function openDashboard(){
     .sort(function(a,b){ return b.count - a.count; })
     .slice(0, 5);
 
-  // Recent activity (last 7 days)
+  // Recent activity
   var recent = thisWeek.slice(0, 8);
+
+  // ── Generate Copilot-style narrative summary ─────────────────────────
+  function buildCopilotSummary(){
+    var bullets = [];
+    if(thisWeek.length === 0){
+      return {
+        headline: 'Quiet week so far, ' + firstName + '.',
+        body: 'No activity logged in the last 7 days. Generate a solution play to start the rhythm — your trends will populate as you go.',
+        suggestions: ['Pick a recent prospect and generate a play to break the streak', 'Pin your top 3 offerings for one-click access from the Plays Map']
+      };
+    }
+    // Find biggest mover
+    var biggestMover = kpiData.slice().sort(function(a,b){
+      var ap = a.delta.pct === null ? 100 : Math.abs(a.delta.pct);
+      var bp = b.delta.pct === null ? 100 : Math.abs(b.delta.pct);
+      return bp - ap;
+    })[0];
+    var moverPhrase;
+    if(biggestMover.delta.dir === 'up' && biggestMover.delta.pct !== null){
+      moverPhrase = biggestMover.label.toLowerCase() + ' jumped ' + biggestMover.delta.label + ' (' + biggestMover.thisWk + ' this week vs ' + biggestMover.prevWk + ' last)';
+    } else if(biggestMover.delta.dir === 'down'){
+      moverPhrase = biggestMover.label.toLowerCase() + ' dropped ' + biggestMover.delta.label.replace('-','') + ' (' + biggestMover.thisWk + ' vs ' + biggestMover.prevWk + ')';
+    } else {
+      moverPhrase = biggestMover.thisWk + ' ' + biggestMover.label.toLowerCase() + ' generated';
+    }
+    var anyUp = kpiData.some(function(k){ return k.delta.dir === 'up'; });
+    var anyDown = kpiData.some(function(k){ return k.delta.dir === 'down'; });
+    var headline;
+    if(anyUp && !anyDown) headline = "You're trending up across the board, " + firstName + ".";
+    else if(anyDown && !anyUp) headline = "Activity dipped this week, " + firstName + ".";
+    else if(anyUp && anyDown) headline = "Mixed signals this week, " + firstName + ".";
+    else headline = "Steady week, " + firstName + ".";
+
+    var body = moverPhrase.charAt(0).toUpperCase() + moverPhrase.slice(1) + '.';
+    if(bestDay && bestDay.count > 0){
+      body += ' ' + bestDay.label + ' was your strongest day with ' + bestDay.count + ' event' + (bestDay.count === 1 ? '' : 's') + '.';
+    }
+    if(topOfferings.length > 0){
+      var top = topOfferings[0];
+      body += ' ' + top.name + ' is your hottest offering at ' + top.count + ' play' + (top.count === 1 ? '' : 's');
+      if(top.count > top.prev) body += ', up from ' + top.prev + ' last week';
+      body += '.';
+    }
+    if(topAssets.length > 0){
+      var ta = topAssets[0];
+      var name = ta.name.length > 60 ? ta.name.slice(0,60) + '…' : ta.name;
+      body += ' Most-attached asset: ' + name + ' (' + ta.count + 'x).';
+    }
+
+    var suggestions = [];
+    var emailKpi = kpiData.find(function(k){ return k.key === 'email_sent'; });
+    var attachKpi = kpiData.find(function(k){ return k.key === 'attachment_added'; });
+    if(attachKpi && attachKpi.delta.dir === 'down'){
+      suggestions.push('File attachments dropped — prospects may be missing proof points. Add 1-2 case studies on your next play.');
+    }
+    if(emailKpi && emailKpi.thisWk === 0){
+      suggestions.push('No emails sent this week. Open an email modal on your top play and click 📎 Send with Attachments.');
+    }
+    if(topOfferings.length > 0 && topOfferings.length < 3){
+      suggestions.push('All your activity is on ' + topOfferings.length + ' offering' + (topOfferings.length===1?'':'s') + '. Diversifying to 3-4 plays widens your funnel.');
+    }
+    if(suggestions.length === 0){
+      suggestions.push('Solid rhythm. Worth pinning your top offerings for faster access from the Plays Map.');
+    }
+
+    return { headline: headline, body: body, suggestions: suggestions };
+  }
+  var summary = buildCopilotSummary();
 
   var overlay = document.createElement('div');
   overlay.id = 'dash-modal';
   overlay.style.cssText = 'position:fixed;inset:0;background:#0A0118;z-index:999999;overflow-y:auto;animation:adm-popup-in 0.3s ease;';
 
-  // Header
-  var html = '<div style="position:sticky;top:0;background:linear-gradient(180deg,rgba(10,1,24,0.98),rgba(10,1,24,0.92));backdrop-filter:blur(20px);border-bottom:1px solid rgba(105,0,255,0.25);z-index:10;padding:24px 44px;display:flex;align-items:center;gap:22px;">' +
-    '<div style="width:60px;height:60px;border-radius:16px;background:linear-gradient(135deg,#6900FF,#20F593);display:flex;align-items:center;justify-content:center;font-size:32px;box-shadow:0 12px 32px rgba(105,0,255,0.4),inset 0 1px 0 rgba(255,255,255,0.2);">📈</div>' +
-    '<div>' +
-      '<div style="font-family:var(--mono);font-size:12px;letter-spacing:0.18em;color:var(--purple2);text-transform:uppercase;margin-bottom:4px;font-weight:600;">Trends</div>' +
-      '<div style="font-family:var(--display);font-size:32px;font-weight:800;color:var(--t1);letter-spacing:-0.02em;line-height:1.1;">'+escHtml(sellerName)+'</div>' +
-      '<div style="font-size:13px;color:var(--t3);margin-top:6px;">Last 7 days &middot; compared to prior 7 days</div>' +
-    '</div>' +
-    '<div style="flex:1;"></div>' +
-    '<button id="dash-close" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:var(--t1);width:46px;height:46px;border-radius:14px;cursor:pointer;font-size:22px;">&#10005;</button>' +
+  // Ambient background glow
+  var html = '<div style="position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;">' +
+    '<div style="position:absolute;top:-300px;right:-200px;width:900px;height:900px;border-radius:50%;background:radial-gradient(circle,rgba(105,0,255,0.18),transparent 60%);filter:blur(120px);"></div>' +
+    '<div style="position:absolute;bottom:-200px;left:-200px;width:700px;height:700px;border-radius:50%;background:radial-gradient(circle,rgba(32,245,147,0.1),transparent 60%);filter:blur(120px);"></div>' +
   '</div>';
 
-  html += '<div style="padding:36px 44px 60px;max-width:1300px;margin:0 auto;">';
+  // Header
+  html += '<div style="position:sticky;top:0;background:linear-gradient(180deg,rgba(10,1,24,0.98),rgba(10,1,24,0.92));backdrop-filter:blur(24px);border-bottom:1px solid rgba(105,0,255,0.25);z-index:10;padding:26px 48px;display:flex;align-items:center;gap:22px;">' +
+    '<div style="width:60px;height:60px;border-radius:18px;background:linear-gradient(135deg,#6900FF,#20F593);display:flex;align-items:center;justify-content:center;font-size:30px;box-shadow:0 14px 36px rgba(105,0,255,0.45),inset 0 1px 0 rgba(255,255,255,0.2);">📈</div>' +
+    '<div>' +
+      '<div style="font-family:var(--mono);font-size:11px;letter-spacing:0.2em;color:var(--purple2);text-transform:uppercase;margin-bottom:6px;font-weight:600;">Trends &middot; Last 7 Days</div>' +
+      '<div style="font-family:var(--display);font-size:30px;font-weight:800;color:var(--t1);letter-spacing:-0.02em;line-height:1.1;">'+escHtml(sellerName)+'</div>' +
+    '</div>' +
+    '<div style="flex:1;"></div>' +
+    '<button id="dash-close" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);color:var(--t1);width:46px;height:46px;border-radius:14px;cursor:pointer;font-size:22px;transition:all 0.18s;" onmouseover="this.style.background=\'rgba(255,92,92,0.12)\';this.style.borderColor=\'rgba(255,92,92,0.35)\'" onmouseout="this.style.background=\'rgba(255,255,255,0.06)\';this.style.borderColor=\'rgba(255,255,255,0.12)\'">&#10005;</button>' +
+  '</div>';
 
-  // KPI cards with deltas
+  html += '<div style="position:relative;z-index:1;padding:36px 48px 64px;max-width:1200px;margin:0 auto;">';
+
+  // ── COPILOT SUMMARY (hero) ─────────────────────────────────────────
+  html += '<div style="background:linear-gradient(145deg,rgba(105,0,255,0.12),rgba(32,245,147,0.04));border:1px solid rgba(105,0,255,0.3);border-radius:22px;padding:32px 36px;margin-bottom:32px;position:relative;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,0.3);">' +
+    '<div style="position:absolute;top:-100px;right:-60px;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(105,0,255,0.22),transparent 70%);pointer-events:none;"></div>' +
+    '<div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#6900FF,#A366FF,#20F593);border-radius:22px 22px 0 0;"></div>' +
+    '<div style="position:relative;z-index:1;">' +
+      '<div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;">' +
+        '<div style="width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,#6900FF,#A366FF);display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 4px 12px rgba(105,0,255,0.4);">✨</div>' +
+        '<div style="font-family:var(--mono);font-size:11px;letter-spacing:0.2em;color:var(--purple2);text-transform:uppercase;font-weight:700;">AI Insights</div>' +
+      '</div>' +
+      '<div style="font-family:var(--display);font-size:26px;font-weight:800;color:var(--t1);line-height:1.3;letter-spacing:-0.01em;margin-bottom:14px;">'+escHtml(summary.headline)+'</div>' +
+      '<div style="font-size:16px;color:var(--t2);line-height:1.7;margin-bottom:20px;max-width:880px;">'+escHtml(summary.body)+'</div>';
+  if(summary.suggestions.length > 0){
+    html += '<div style="padding-top:18px;border-top:1px solid rgba(255,255,255,0.06);">' +
+      '<div style="font-family:var(--mono);font-size:10px;letter-spacing:0.16em;color:var(--t3);text-transform:uppercase;font-weight:600;margin-bottom:10px;">Suggestions</div>';
+    summary.suggestions.forEach(function(s){
+      html += '<div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:8px;">' +
+        '<span style="color:var(--purple2);font-size:14px;flex-shrink:0;line-height:1.55;">→</span>' +
+        '<span style="font-size:14px;color:var(--t1);line-height:1.55;">'+escHtml(s)+'</span>' +
+      '</div>';
+    });
+    html += '</div>';
+  }
+  html += '</div></div>';
+
+  // ── KPI cards ─────────────────────────────────────────────────────
   html += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-bottom:32px;">';
   kpiData.forEach(function(k){
     var arrowColor = k.delta.dir === 'up' ? '#20F593' : (k.delta.dir === 'down' ? '#FF8A8A' : '#888');
     var arrowChar = k.delta.dir === 'up' ? '▲' : (k.delta.dir === 'down' ? '▼' : '—');
-    html += '<div style="background:rgba(255,255,255,0.025);border:1px solid '+k.color+'22;border-radius:18px;padding:28px 30px;position:relative;overflow:hidden;">' +
-      '<div style="position:absolute;top:-40px;right:-40px;width:140px;height:140px;border-radius:50%;background:radial-gradient(circle,'+k.color+'22,transparent 70%);pointer-events:none;"></div>' +
+    var deltaBg = k.delta.dir === 'up' ? 'rgba(32,245,147,0.14)' : (k.delta.dir === 'down' ? 'rgba(255,138,138,0.14)' : 'rgba(255,255,255,0.04)');
+    var deltaBorder = k.delta.dir === 'up' ? 'rgba(32,245,147,0.4)' : (k.delta.dir === 'down' ? 'rgba(255,138,138,0.4)' : 'rgba(255,255,255,0.1)');
+    html += '<div style="background:linear-gradient(160deg,rgba(255,255,255,0.04),rgba(255,255,255,0.015));border:1px solid '+k.color+'25;border-radius:20px;padding:30px 32px;position:relative;overflow:hidden;box-shadow:0 12px 36px rgba(0,0,0,0.25);">' +
+      '<div style="position:absolute;top:-50px;right:-50px;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,'+k.color+'25,transparent 65%);pointer-events:none;"></div>' +
+      '<div style="position:absolute;top:0;left:0;height:3px;width:60px;background:'+k.color+';border-radius:0 0 3px 0;"></div>' +
       '<div style="position:relative;z-index:1;">' +
-        '<div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;">' +
-          '<div style="font-size:24px;">'+k.icon+'</div>' +
-          '<div style="font-family:var(--mono);font-size:11px;letter-spacing:0.14em;color:var(--t3);text-transform:uppercase;font-weight:600;">'+k.label+'</div>' +
+        '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;">' +
+          '<div style="display:flex;align-items:center;gap:10px;">' +
+            '<div style="font-size:22px;">'+k.icon+'</div>' +
+            '<div style="font-family:var(--mono);font-size:11px;letter-spacing:0.16em;color:var(--t3);text-transform:uppercase;font-weight:600;">'+k.label+'</div>' +
+          '</div>' +
+          '<div style="display:inline-flex;align-items:center;gap:4px;background:'+deltaBg+';border:1px solid '+deltaBorder+';color:'+arrowColor+';border-radius:6px;padding:3px 8px;font-family:var(--mono);font-size:11px;font-weight:700;">'+arrowChar+' '+k.delta.label+'</div>' +
         '</div>' +
-        '<div style="font-family:var(--display);font-size:54px;font-weight:800;color:var(--t1);line-height:1;letter-spacing:-0.03em;margin-bottom:12px;">'+k.thisWk+'</div>' +
-        '<div style="display:flex;align-items:center;gap:8px;">' +
-          '<span style="font-family:var(--mono);font-size:14px;font-weight:700;color:'+arrowColor+';">'+arrowChar+' '+k.delta.label+'</span>' +
-          '<span style="font-size:13px;color:var(--t3);">vs '+k.prevWk+' last week</span>' +
-        '</div>' +
+        '<div style="font-family:var(--display);font-size:64px;font-weight:800;color:var(--t1);line-height:1;letter-spacing:-0.04em;margin-bottom:10px;">'+k.thisWk+'</div>' +
+        '<div style="font-size:13px;color:var(--t3);">vs <span style="color:var(--t2);font-weight:600;">'+k.prevWk+'</span> last week</div>' +
       '</div>' +
     '</div>';
   });
   html += '</div>';
 
-  // 7-day activity sparkline
-  html += '<div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:18px;padding:26px 30px;margin-bottom:24px;">' +
-    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;">' +
-      '<div style="font-family:var(--display);font-size:18px;font-weight:700;color:var(--t1);">📅 Daily Activity</div>' +
-      '<div style="font-family:var(--mono);font-size:11px;color:var(--t3);letter-spacing:0.1em;">'+thisWeek.length+' EVENTS THIS WEEK</div>' +
-    '</div>' +
-    '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:14px;align-items:end;height:180px;">';
-  days.forEach(function(d){
-    var pct = d.count === 0 ? 4 : Math.max(8, (d.count / maxDay) * 100);
-    var bg = d.isToday
-      ? 'linear-gradient(180deg,#A366FF,#6900FF)'
-      : (d.count > 0 ? 'linear-gradient(180deg,rgba(163,102,255,0.6),rgba(105,0,255,0.4))' : 'rgba(255,255,255,0.05)');
-    html += '<div style="display:flex;flex-direction:column;align-items:center;gap:8px;height:100%;">' +
-      '<div style="font-family:var(--mono);font-size:13px;font-weight:'+(d.count>0?'700':'400')+';color:'+(d.count>0?'var(--t1)':'var(--t3)')+';">'+(d.count||'—')+'</div>' +
-      '<div style="flex:1;width:100%;display:flex;align-items:flex-end;">' +
-        '<div title="'+d.label+' · '+d.count+' events" style="width:100%;height:'+pct+'%;background:'+bg+';border-radius:8px 8px 4px 4px;transition:height 0.5s ease;"></div>' +
+  // ── Daily activity bar chart ──────────────────────────────────────
+  html += '<div style="background:linear-gradient(160deg,rgba(255,255,255,0.03),rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.06);border-radius:20px;padding:30px 32px;margin-bottom:24px;box-shadow:0 12px 36px rgba(0,0,0,0.2);">' +
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">' +
+      '<div>' +
+        '<div style="font-family:var(--display);font-size:20px;font-weight:700;color:var(--t1);margin-bottom:4px;">Daily Activity</div>' +
+        '<div style="font-size:13px;color:var(--t3);">Events logged each day this week</div>' +
       '</div>' +
-      '<div style="font-family:var(--mono);font-size:11px;color:'+(d.isToday?'var(--purple2)':'var(--t3)')+';font-weight:'+(d.isToday?'700':'500')+';letter-spacing:0.06em;">'+d.label+'</div>' +
+      '<div style="text-align:right;">' +
+        '<div style="font-family:var(--display);font-size:22px;font-weight:800;color:var(--t1);">'+thisWeek.length+'</div>' +
+        '<div style="font-family:var(--mono);font-size:10px;letter-spacing:0.14em;color:var(--t3);text-transform:uppercase;">Total</div>' +
+      '</div>' +
+    '</div>' +
+    '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:14px;align-items:end;height:200px;">';
+  days.forEach(function(d){
+    var pct = d.count === 0 ? 4 : Math.max(10, (d.count / maxDay) * 100);
+    var bg, glow;
+    if(d.isToday){ bg = 'linear-gradient(180deg,#A366FF,#6900FF)'; glow = '0 0 24px rgba(163,102,255,0.5)'; }
+    else if(d.count > 0){ bg = 'linear-gradient(180deg,rgba(163,102,255,0.55),rgba(105,0,255,0.35))'; glow = 'none'; }
+    else { bg = 'rgba(255,255,255,0.05)'; glow = 'none'; }
+    html += '<div style="display:flex;flex-direction:column;align-items:center;gap:10px;height:100%;">' +
+      '<div style="font-family:var(--display);font-size:'+(d.count>0?'17':'14')+'px;font-weight:'+(d.count>0?'800':'400')+';color:'+(d.count>0?'var(--t1)':'var(--t3)')+';">'+(d.count||'·')+'</div>' +
+      '<div style="flex:1;width:100%;display:flex;align-items:flex-end;">' +
+        '<div title="'+d.label+' · '+d.count+' events" style="width:100%;height:'+pct+'%;background:'+bg+';border-radius:10px 10px 4px 4px;transition:height 0.6s cubic-bezier(0.34,1.4,0.64,1);box-shadow:'+glow+';"></div>' +
+      '</div>' +
+      '<div style="font-family:var(--mono);font-size:11px;color:'+(d.isToday?'var(--purple2)':'var(--t3)')+';font-weight:'+(d.isToday?'800':'600')+';letter-spacing:0.08em;text-transform:uppercase;">'+d.label+'</div>' +
       '</div>';
   });
   html += '</div></div>';
 
-  // Two-column section: Top Offerings + Top Assets
+  // ── Two-column section: Top Offerings + Top Assets ─────────────────
   html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px;">';
 
   // Top offerings
-  html += '<div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:18px;padding:26px 30px;">' +
-    '<div style="font-family:var(--display);font-size:18px;font-weight:700;color:var(--t1);margin-bottom:20px;">🎯 Top Offerings This Week</div>';
+  html += '<div style="background:linear-gradient(160deg,rgba(255,255,255,0.03),rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.06);border-radius:20px;padding:28px 30px;box-shadow:0 12px 36px rgba(0,0,0,0.2);">' +
+    '<div style="display:flex;align-items:center;gap:10px;margin-bottom:22px;">' +
+      '<div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#6900FF,#A366FF);display:flex;align-items:center;justify-content:center;font-size:16px;">🎯</div>' +
+      '<div>' +
+        '<div style="font-family:var(--display);font-size:18px;font-weight:700;color:var(--t1);">Top Offerings</div>' +
+        '<div style="font-size:11px;color:var(--t3);font-family:var(--mono);letter-spacing:0.1em;text-transform:uppercase;">This Week</div>' +
+      '</div>' +
+    '</div>';
   if(topOfferings.length === 0){
-    html += '<div style="font-size:14px;color:var(--t3);font-style:italic;padding:16px 0;">No plays generated this week. Try one to start tracking.</div>';
+    html += '<div style="font-size:14px;color:var(--t3);font-style:italic;padding:18px 0;text-align:center;">No plays generated this week.</div>';
   } else {
     var maxOff = topOfferings[0].count || 1;
-    topOfferings.forEach(function(o){
+    topOfferings.forEach(function(o, idx){
       var pct = (o.count / maxOff) * 100;
       var ddir = o.count > o.prev ? 'up' : (o.count < o.prev ? 'down' : 'flat');
-      var dchar = ddir === 'up' ? '▲' : (ddir === 'down' ? '▼' : '·');
+      var dchar = ddir === 'up' ? '↑' : (ddir === 'down' ? '↓' : '·');
       var dcolor = ddir === 'up' ? '#20F593' : (ddir === 'down' ? '#FF8A8A' : 'var(--t3)');
-      html += '<div style="margin-bottom:16px;">' +
-        '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:10px;">' +
-          '<div style="font-size:15px;color:var(--t1);font-weight:500;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+escHtml(o.name)+'</div>' +
-          '<span style="font-family:var(--mono);font-size:11px;color:'+dcolor+';font-weight:700;">'+dchar+'</span>' +
-          '<div style="font-family:var(--display);font-size:18px;color:var(--t1);font-weight:800;min-width:30px;text-align:right;">'+o.count+'</div>' +
+      var rankBg = idx === 0 ? 'linear-gradient(135deg,#6900FF,#A366FF)' : 'rgba(255,255,255,0.06)';
+      var rankColor = idx === 0 ? '#fff' : 'var(--t3)';
+      html += '<div style="margin-bottom:18px;">' +
+        '<div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">' +
+          '<div style="width:24px;height:24px;border-radius:6px;background:'+rankBg+';color:'+rankColor+';display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;font-weight:700;flex-shrink:0;">'+(idx+1)+'</div>' +
+          '<div style="font-size:14px;color:var(--t1);font-weight:500;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+escHtml(o.name)+'</div>' +
+          '<span style="font-family:var(--mono);font-size:13px;color:'+dcolor+';font-weight:700;">'+dchar+'</span>' +
+          '<div style="font-family:var(--display);font-size:18px;color:var(--t1);font-weight:800;min-width:28px;text-align:right;">'+o.count+'</div>' +
         '</div>' +
-        '<div style="height:8px;background:rgba(255,255,255,0.04);border-radius:4px;overflow:hidden;">' +
-          '<div style="width:'+pct+'%;height:100%;background:linear-gradient(90deg,#6900FF,#A366FF);border-radius:4px;transition:width 0.5s;"></div>' +
+        '<div style="height:6px;background:rgba(255,255,255,0.04);border-radius:3px;overflow:hidden;margin-left:36px;">' +
+          '<div style="width:'+pct+'%;height:100%;background:linear-gradient(90deg,#6900FF,#A366FF);border-radius:3px;transition:width 0.6s ease;"></div>' +
         '</div></div>';
     });
   }
   html += '</div>';
 
   // Top assets
-  html += '<div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:18px;padding:26px 30px;">' +
-    '<div style="font-family:var(--display);font-size:18px;font-weight:700;color:var(--t1);margin-bottom:20px;">📎 Top Assets This Week</div>';
+  html += '<div style="background:linear-gradient(160deg,rgba(255,255,255,0.03),rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.06);border-radius:20px;padding:28px 30px;box-shadow:0 12px 36px rgba(0,0,0,0.2);">' +
+    '<div style="display:flex;align-items:center;gap:10px;margin-bottom:22px;">' +
+      '<div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#D97706,#FFB830);display:flex;align-items:center;justify-content:center;font-size:16px;">📎</div>' +
+      '<div>' +
+        '<div style="font-family:var(--display);font-size:18px;font-weight:700;color:var(--t1);">Top Assets</div>' +
+        '<div style="font-size:11px;color:var(--t3);font-family:var(--mono);letter-spacing:0.1em;text-transform:uppercase;">This Week</div>' +
+      '</div>' +
+    '</div>';
   if(topAssets.length === 0){
-    html += '<div style="font-size:14px;color:var(--t3);font-style:italic;padding:16px 0;">No assets attached this week.</div>';
+    html += '<div style="font-size:14px;color:var(--t3);font-style:italic;padding:18px 0;text-align:center;">No assets attached this week.</div>';
   } else {
     var maxAsset = topAssets[0].count || 1;
-    topAssets.forEach(function(a){
+    topAssets.forEach(function(a, idx){
       var pct = (a.count / maxAsset) * 100;
       var name = a.name.length > 50 ? a.name.slice(0,50) + '…' : a.name;
-      html += '<div style="margin-bottom:16px;">' +
-        '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:10px;">' +
-          '<div style="font-size:14px;color:var(--t1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0;">'+escHtml(name)+'</div>' +
-          '<div style="font-family:var(--display);font-size:18px;color:var(--t1);font-weight:800;min-width:30px;text-align:right;">'+a.count+'</div>' +
+      var rankBg = idx === 0 ? 'linear-gradient(135deg,#D97706,#FFB830)' : 'rgba(255,255,255,0.06)';
+      var rankColor = idx === 0 ? '#fff' : 'var(--t3)';
+      html += '<div style="margin-bottom:18px;">' +
+        '<div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">' +
+          '<div style="width:24px;height:24px;border-radius:6px;background:'+rankBg+';color:'+rankColor+';display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;font-weight:700;flex-shrink:0;">'+(idx+1)+'</div>' +
+          '<div style="font-size:13px;color:var(--t1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0;">'+escHtml(name)+'</div>' +
+          '<div style="font-family:var(--display);font-size:18px;color:var(--t1);font-weight:800;min-width:28px;text-align:right;">'+a.count+'</div>' +
         '</div>' +
-        '<div style="height:8px;background:rgba(255,255,255,0.04);border-radius:4px;overflow:hidden;">' +
-          '<div style="width:'+pct+'%;height:100%;background:linear-gradient(90deg,#FFB830,#FF8A8A);border-radius:4px;"></div>' +
+        '<div style="height:6px;background:rgba(255,255,255,0.04);border-radius:3px;overflow:hidden;margin-left:36px;">' +
+          '<div style="width:'+pct+'%;height:100%;background:linear-gradient(90deg,#D97706,#FFB830);border-radius:3px;"></div>' +
         '</div></div>';
     });
   }
   html += '</div></div>';
 
-  // Recent activity
-  html += '<div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:18px;padding:26px 30px;margin-bottom:28px;">' +
+  // ── Recent activity ───────────────────────────────────────────────
+  html += '<div style="background:linear-gradient(160deg,rgba(255,255,255,0.03),rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.06);border-radius:20px;padding:28px 30px;margin-bottom:28px;box-shadow:0 12px 36px rgba(0,0,0,0.2);">' +
     '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">' +
-      '<div style="font-family:var(--display);font-size:18px;font-weight:700;color:var(--t1);">🕒 This Week\'s Activity</div>' +
-      '<div style="font-family:var(--mono);font-size:11px;color:var(--t3);letter-spacing:0.1em;">'+thisWeek.length+' EVENTS</div>' +
+      '<div style="display:flex;align-items:center;gap:10px;">' +
+        '<div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#0D9488,#20F593);display:flex;align-items:center;justify-content:center;font-size:16px;">🕒</div>' +
+        '<div>' +
+          '<div style="font-family:var(--display);font-size:18px;font-weight:700;color:var(--t1);">Recent Activity</div>' +
+          '<div style="font-size:11px;color:var(--t3);font-family:var(--mono);letter-spacing:0.1em;text-transform:uppercase;">Last 7 Days</div>' +
+        '</div>' +
+      '</div>' +
+      '<div style="font-family:var(--mono);font-size:11px;color:var(--t3);letter-spacing:0.1em;font-weight:600;">'+thisWeek.length+' EVENTS</div>' +
     '</div>';
   if(recent.length === 0){
-    html += '<div style="font-size:14px;color:var(--t3);font-style:italic;padding:16px 0;">Nothing happening yet this week. Generate a play to start the trend line.</div>';
+    html += '<div style="font-size:14px;color:var(--t3);font-style:italic;padding:18px 0;text-align:center;">Nothing happening yet this week. Generate a play to start the trend line.</div>';
   } else {
     recent.forEach(function(a){
-      var dt = new Date(a.ts);
       var hoursAgo = Math.round((now - a.ts) / (60*60*1000));
       var when = hoursAgo < 1 ? 'Just now' : (hoursAgo < 24 ? hoursAgo+'h ago' : Math.floor(hoursAgo/24)+'d ago');
-      var icon = ({ play_generated:'🎯', email_sent:'✉️', attachment_added:'📎', stage_changed:'🔄' })[a.type] || '•';
+      var iconMap = { play_generated:{i:'🎯',c:'#A366FF'}, email_sent:{i:'✉️',c:'#20F593'}, attachment_added:{i:'📎',c:'#FFB830'}, stage_changed:{i:'🔄',c:'#7FB8FF'} };
+      var ico = iconMap[a.type] || { i:'•', c:'#888' };
       var label = a.type.replace(/_/g,' ').replace(/\b\w/g, function(c){ return c.toUpperCase(); });
-      html += '<div style="display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px dashed rgba(255,255,255,0.05);">' +
-        '<div style="width:32px;height:32px;border-radius:8px;background:rgba(105,0,255,0.1);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;">'+icon+'</div>' +
+      html += '<div style="display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px dashed rgba(255,255,255,0.06);">' +
+        '<div style="width:36px;height:36px;border-radius:10px;background:'+ico.c+'18;border:1px solid '+ico.c+'30;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;">'+ico.i+'</div>' +
         '<div style="flex:1;min-width:0;">' +
-          '<div style="font-size:14px;color:var(--t1);font-weight:500;">'+label+(a.company ? ' &middot; <span style="color:var(--t2);">'+escHtml(a.company)+'</span>' : '')+'</div>' +
+          '<div style="font-size:14px;color:var(--t1);font-weight:600;">'+label+(a.company ? ' &middot; <span style="color:var(--t2);font-weight:500;">'+escHtml(a.company)+'</span>' : '')+'</div>' +
           (a.details ? '<div style="font-size:12px;color:var(--t3);margin-top:3px;line-height:1.4;">'+escHtml(a.details)+'</div>' : '') +
         '</div>' +
-        '<div style="font-family:var(--mono);font-size:11px;color:var(--t3);white-space:nowrap;font-weight:600;">'+when+'</div>' +
+        '<div style="font-family:var(--mono);font-size:11px;color:var(--t3);white-space:nowrap;font-weight:600;letter-spacing:0.04em;">'+when+'</div>' +
       '</div>';
     });
   }
   html += '</div>';
 
   // SFDC integration note
-  html += '<div style="background:rgba(105,0,255,0.06);border:1px solid rgba(105,0,255,0.18);border-radius:14px;padding:16px 20px;font-size:13px;color:var(--t2);line-height:1.6;">' +
-    '<strong style="color:var(--purple2);">Coming with Salesforce sync:</strong> Pipeline $, win rate, and stage progression will pull from Salesforce. Cross-cuts like &quot;win rate by asset attached&quot; and &quot;average days to close per offering&quot; become possible once the two systems are connected.' +
+  html += '<div style="background:rgba(105,0,255,0.06);border:1px solid rgba(105,0,255,0.2);border-radius:14px;padding:16px 22px;font-size:13px;color:var(--t2);line-height:1.6;display:flex;gap:12px;">' +
+    '<span style="font-size:18px;flex-shrink:0;">🔗</span>' +
+    '<span><strong style="color:var(--purple2);">Coming with Salesforce sync:</strong> Pipeline $, win rate, and stage progression will pull from Salesforce. Cross-cuts like &quot;win rate by asset attached&quot; become possible once the two systems are connected.</span>' +
     '</div>';
 
   html += '</div>';
