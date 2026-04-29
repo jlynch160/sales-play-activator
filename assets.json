@@ -1,5 +1,5 @@
 {
-  "generated": "2026-04-28T15:41:54.643Z",
+  "generated": "2026-04-29T13:53:39.708Z",
   "source": "sharepoint:salesplayactivator",
   "count": 148,
   "assets": [
@@ -10,6 +10,7 @@
       "offerings": [
         "nhi-gov"
       ],
+      "sizeMB": 5.32,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/pdfs/2025_Combined_Federal_Capabilities_Statement.pdf"
     },
     {
@@ -22,6 +23,7 @@
         "mim-entra",
         "cloud-first"
       ],
+      "sizeMB": 0.65,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/pdfs/2026%20Microsoft%20Services%20Portfolio%20-%20Customer-Facing.pdf"
     },
     {
@@ -31,6 +33,7 @@
       "offerings": [
         "cert-lifecycle"
       ],
+      "sizeMB": 1.3,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/pdfs/47-Day%20Certificate%20Automation%20Readiness%20Checklist.pdf"
     },
     {
@@ -41,6 +44,7 @@
         "mna",
         "mim-entra"
       ],
+      "sizeMB": 0.2,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/pdfs/AD%20Consolidation%20-%20From%20Rust%20to%20Resilience%20-%20Offering%20v2.pdf"
     },
     {
@@ -50,6 +54,7 @@
       "offerings": [
         "cloud-first"
       ],
+      "sizeMB": 2.57,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/pdfs/AI%20Readiness%20Advisory%20Assessment%20-%20Security%20Copilot.pdf"
     },
     {
@@ -59,6 +64,7 @@
       "offerings": [
         "credsafe"
       ],
+      "sizeMB": 0.23,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/pdfs/CredSafe%20Tool%20Overview.pdf"
     },
     {
@@ -68,6 +74,7 @@
       "offerings": [
         "pam-integration"
       ],
+      "sizeMB": 0.1,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/pdfs/CyberArk%20PAM%20Data%20Sheet.pdf"
     },
     {
@@ -77,6 +84,7 @@
       "offerings": [
         "nhi-gov"
       ],
+      "sizeMB": 15.93,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/pdfs/Dec2025%20NomadID%20Whitepaper.pdf"
     },
     {
@@ -86,6 +94,7 @@
       "offerings": [
         "entra-gov"
       ],
+      "sizeMB": 0.27,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/pdfs/HorizonID%20Overview.pdf"
     },
     {
@@ -96,6 +105,7 @@
         "idproof-remote",
         "idproof-helpdesk"
       ],
+      "sizeMB": 33.78,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/pdfs/IDProof%20eBook.pdf"
     },
     {
@@ -106,6 +116,7 @@
         "idproof-remote",
         "idproof-helpdesk"
       ],
+      "sizeMB": 0.18,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/pdfs/IDProof%2B%20Overview%20Data%20Sheet.pdf"
     },
     {
@@ -116,6 +127,7 @@
         "isc-iga",
         "entra-gov"
       ],
+      "sizeMB": 0.32,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/pdfs/IGA%20Services%20Data%20Sheet.pdf"
     },
     {
@@ -125,6 +137,7 @@
       "offerings": [
         "identityscout"
       ],
+      "sizeMB": 6.55,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/pdfs/IdentityLens%20Overview%20Whitepaper.pdf"
     },
     {
@@ -134,6 +147,7 @@
       "offerings": [
         "identityscout"
       ],
+      "sizeMB": 0.25,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/pdfs/IdentityLens%20Product%20Overview.pdf"
     },
     {
@@ -143,6 +157,7 @@
       "offerings": [
         "identityscout"
       ],
+      "sizeMB": 0.22,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/pdfs/IdentityScout%20Product%20Overview.pdf"
     },
     {
@@ -152,6 +167,7 @@
       "offerings": [
         "entra-mig"
       ],
+      "sizeMB": 0.36,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/pdfs/LessFrictionMoreFlow%20-%20Okta%20to%20Entra%20-%20Advisory%20v2.pdf"
     },
     {
@@ -162,6 +178,7 @@
         "cloud-first",
         "secure-nhi"
       ],
+      "sizeMB": 1.41,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/pdfs/Leveraging%20Artificial%20Intelligence%20in%20Identity%20Security.pdf"
     },
     {
@@ -171,6 +188,7 @@
       "offerings": [
         "mim-entra"
       ],
+      "sizeMB": 0.27,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/pdfs/MIM-to-Microsoft%20Entra%20ID%20Readiness%20and%20Roadmap.pdf"
     },
     {
@@ -181,6 +199,7 @@
         "entra-mig",
         "entra-gov"
       ],
+      "sizeMB": 0.27,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/pdfs/Microsoft%20Entra%20ID%20Readiness%20%26%20Roadmap%20-%20Commercial.pdf"
     },
     {
@@ -192,6 +211,7 @@
         "entra-gov",
         "cloud-first"
       ],
+      "sizeMB": 0.2,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/pdfs/Microsoft%20Entra%20Suite%20Workshop.pdf"
     },
     {
@@ -202,6 +222,7 @@
         "pam-integration",
         "pam-orchestratid"
       ],
+      "sizeMB": 43.09,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/pdfs/Modernize%20Your%20Privileged%20Access%20Management%20Program%20ebook.pdf"
     },
     {
@@ -211,6 +232,7 @@
       "offerings": [
         "nhi-gov"
       ],
+      "sizeMB": 0.27,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/pdfs/NomadID%20Overview%20Data%20Sheet.pdf"
     },
     {
@@ -221,6 +243,7 @@
         "orchestratid-apps",
         "pam-orchestratid"
       ],
+      "sizeMB": 0.26,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/pdfs/OrchestratID%20Product%20Overview.pdf"
     },
     {
@@ -231,6 +254,7 @@
         "pam-integration",
         "pam-orchestratid"
       ],
+      "sizeMB": 9.15,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/pdfs/PAM%20Automation%20Guide.pdf"
     },
     {
@@ -241,6 +265,7 @@
         "cert-lifecycle",
         "pam-integration"
       ],
+      "sizeMB": 7.36,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/pdfs/PKI%20Meets%20PAM.pdf"
     },
     {
@@ -250,6 +275,7 @@
       "offerings": [
         "entra-mig"
       ],
+      "sizeMB": 0.4,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/pdfs/Ping%20Data%20Sheet.pdf"
     },
     {
@@ -260,6 +286,7 @@
         "isc-iga",
         "rbac"
       ],
+      "sizeMB": 0.59,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/pdfs/SailPoint%20ARM%20Data%20Sheet.pdf"
     },
     {
@@ -269,6 +296,7 @@
       "offerings": [
         "isc-iga"
       ],
+      "sizeMB": 0.41,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/pdfs/SailPoint%20IIQ%20to%20ISC%20Data%20Sheet.pdf"
     },
     {
@@ -278,6 +306,7 @@
       "offerings": [
         "isc-iga"
       ],
+      "sizeMB": 0.15,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/pdfs/SailPoint%20MSP%20Program%20Data%20Sheet.pdf"
     },
     {
@@ -288,6 +317,7 @@
         "isc-iga",
         "secure-nhi"
       ],
+      "sizeMB": 0.26,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/pdfs/SailPoint%20NERM%20Data%20Sheet.pdf"
     },
     {
@@ -297,6 +327,7 @@
       "offerings": [
         "isc-iga"
       ],
+      "sizeMB": 0.11,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/pdfs/Saviynt%20Partner%20on%20a%20Page.pdf"
     },
     {
@@ -307,6 +338,7 @@
         "isc-iga",
         "entra-gov"
       ],
+      "sizeMB": 21.51,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/pdfs/Signs%20Your%20IGA%20Program%20Needs%20a%20Reboot%20ebook.pdf"
     },
     {
@@ -316,6 +348,7 @@
       "offerings": [
         "skydock"
       ],
+      "sizeMB": 0.51,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/pdfs/SkyDock%20Tool%20Overview.pdf"
     },
     {
@@ -326,6 +359,7 @@
         "entra-gov",
         "isc-iga"
       ],
+      "sizeMB": 58.33,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/pdfs/The%20Next%20Evolution%20of%20Identity%20Governance.pdf"
     },
     {
@@ -337,6 +371,7 @@
         "isc-iga",
         "rbac"
       ],
+      "sizeMB": 0.19,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/5-common-access-review-pitfalls-how-to-fix-them.html"
     },
     {
@@ -346,6 +381,7 @@
       "offerings": [
         "cloud-first"
       ],
+      "sizeMB": 0.18,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/5-signs-zero-trust-is-right-for-your-organizat.html"
     },
     {
@@ -355,6 +391,7 @@
       "offerings": [
         "isc-iga"
       ],
+      "sizeMB": 0.18,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/6-highlights-from-sailpoint-navigate-2025.html"
     },
     {
@@ -364,6 +401,7 @@
       "offerings": [
         "cloud-first"
       ],
+      "sizeMB": 0.18,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/7-benefits-of-zero-trust.html"
     },
     {
@@ -374,6 +412,7 @@
         "pam-integration",
         "pam-orchestratid"
       ],
+      "sizeMB": 0.18,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/accelerating-privileged-access-security-practical-steps-for-pam-automation-success.html"
     },
     {
@@ -384,6 +423,7 @@
         "entra-gov",
         "isc-iga"
       ],
+      "sizeMB": 0.18,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/auditing-identity-and-access-management.html"
     },
     {
@@ -394,6 +434,7 @@
         "idproof-remote",
         "workforce-creds"
       ],
+      "sizeMB": 0.18,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/biometric-authentication-iam-guide.html"
     },
     {
@@ -403,6 +444,7 @@
       "offerings": [
         "entra-gov"
       ],
+      "sizeMB": 0.18,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/business-case-for-lifecycle-workflows-microsoft-entra-id.html"
     },
     {
@@ -412,6 +454,7 @@
       "offerings": [
         "cloud-first"
       ],
+      "sizeMB": 0.19,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/cloud-entitlement-discovery-and-inventory.html"
     },
     {
@@ -421,6 +464,7 @@
       "offerings": [
         "cloud-first"
       ],
+      "sizeMB": 0.18,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/cloud-infrastructure-entitlements-key-elements.html"
     },
     {
@@ -431,6 +475,7 @@
         "pam-integration",
         "pam-orchestratid"
       ],
+      "sizeMB": 0.18,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/cyberark-webinar-series-transforming-identity-security-through-intelligent-automation.html"
     },
     {
@@ -440,6 +485,7 @@
       "offerings": [
         "idproof-remote"
       ],
+      "sizeMB": 0.19,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/digital-trust-reimagined-verifiable-credentials-face-check-help-stop-fraud.html"
     },
     {
@@ -449,6 +495,7 @@
       "offerings": [
         "idproof-remote"
       ],
+      "sizeMB": 0.18,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/enhancing-remote-workforce-security-how-idproof-is-transforming-identity-verification.html"
     },
     {
@@ -458,6 +505,7 @@
       "offerings": [
         "pam-integration"
       ],
+      "sizeMB": 0.18,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/features-to-consider-when-evaluating-pam-vendor.html"
     },
     {
@@ -468,6 +516,7 @@
         "isc-iga",
         "entra-gov"
       ],
+      "sizeMB": 0.18,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/five-common-identity-governance-administration-iga-challenges-how-managed-services-help-solve-them.html"
     },
     {
@@ -478,6 +527,7 @@
         "idproof-remote",
         "idproof-helpdesk"
       ],
+      "sizeMB": 0.19,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/from-deepfakes-to-fraudulent-employees-securing-remote-work.html"
     },
     {
@@ -488,6 +538,7 @@
         "secure-nhi",
         "nhi-gov"
       ],
+      "sizeMB": 0.19,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/from-shadow-to-certainty-securing-machine-identities-with-confidence-2025-navigate-session-recap.html"
     },
     {
@@ -498,6 +549,7 @@
         "entra-gov",
         "isc-iga"
       ],
+      "sizeMB": 0.18,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/iam-compliance.html"
     },
     {
@@ -507,6 +559,7 @@
       "offerings": [
         "nhi-gov"
       ],
+      "sizeMB": 0.18,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/iam-for-government.html"
     },
     {
@@ -517,6 +570,7 @@
         "entra-gov",
         "isc-iga"
       ],
+      "sizeMB": 0.18,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/iam-in-financial-services.html"
     },
     {
@@ -527,6 +581,7 @@
         "idproof-remote",
         "idproof-helpdesk"
       ],
+      "sizeMB": 0.19,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/identity-assurance-made-simple-remote-hiring-third-party-access-and-call-center-protection.html"
     },
     {
@@ -536,6 +591,7 @@
       "offerings": [
         "cloud-first"
       ],
+      "sizeMB": 0.19,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/identity-is-the-new-perimeter-security-in-a-cloud-first-world.html"
     },
     {
@@ -545,6 +601,7 @@
       "offerings": [
         "cloud-first"
       ],
+      "sizeMB": 0.18,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/identity-modernization-foundation-ai-readiness-healthcare.html"
     },
     {
@@ -554,6 +611,7 @@
       "offerings": [
         "idproof-remote"
       ],
+      "sizeMB": 0.2,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/identity-proofing-101.html"
     },
     {
@@ -563,6 +621,7 @@
       "offerings": [
         "mna"
       ],
+      "sizeMB": 0.19,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/identity-silos-complexity.html"
     },
     {
@@ -573,6 +632,7 @@
         "isc-iga",
         "entra-gov"
       ],
+      "sizeMB": 0.2,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/iga-change-management-guide-to-successful-engagements.html"
     },
     {
@@ -583,6 +643,7 @@
         "rbac",
         "cloud-first"
       ],
+      "sizeMB": 0.18,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/importance-of-role-based-access-control-in-ciem.html"
     },
     {
@@ -592,6 +653,7 @@
       "offerings": [
         "cloud-first"
       ],
+      "sizeMB": 0.19,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/improve-security-with-a-zero-trust-access-model.html"
     },
     {
@@ -601,6 +663,7 @@
       "offerings": [
         "cloud-first"
       ],
+      "sizeMB": 0.18,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/introduction-to-cloud-infrastructure-entitlement-management-ciem.html"
     },
     {
@@ -610,6 +673,7 @@
       "offerings": [
         "pam-integration"
       ],
+      "sizeMB": 0.19,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/key-components-of-privileged-access-solutions.html"
     },
     {
@@ -619,6 +683,7 @@
       "offerings": [
         "orchestratid-apps"
       ],
+      "sizeMB": 0.19,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/kpis-for-app-onboarding-what-to-measure-and-why-it-matters.html"
     },
     {
@@ -629,6 +694,7 @@
         "cert-lifecycle",
         "pam-integration"
       ],
+      "sizeMB": 0.18,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/mastering-certificate-renewal-how-automation-bridges-pki-and-privileged-access.html"
     },
     {
@@ -639,6 +705,7 @@
         "secure-nhi",
         "nhi-gov"
       ],
+      "sizeMB": 0.18,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/mastering-non-human-identity-management-challenges-strategies-and-executive-alignment.html"
     },
     {
@@ -648,6 +715,7 @@
       "offerings": [
         "entra-gov"
       ],
+      "sizeMB": 0.19,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/microsoft-entra-id-governance-whats-new-and-why-it-matters.html"
     },
     {
@@ -657,6 +725,7 @@
       "offerings": [
         "entra-gov"
       ],
+      "sizeMB": 0.18,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/modernizing-identity-governance-majorkey-horizonid-microsoft-entra-suite.html"
     },
     {
@@ -667,6 +736,7 @@
         "entra-gov",
         "isc-iga"
       ],
+      "sizeMB": 0.18,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/modernizing-identity-governance-streamlining-access-for-a-secure-enterprise.html"
     },
     {
@@ -676,6 +746,7 @@
       "offerings": [
         "cloud-first"
       ],
+      "sizeMB": 0.18,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/navigating-ai-adoption-identity-security-considerations-for-microsoft-copilot.html"
     },
     {
@@ -685,6 +756,7 @@
       "offerings": [
         "nhi-gov"
       ],
+      "sizeMB": 0.18,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/nomadid-majorkey-strata-icam-ddil-disconnected-identity.html"
     },
     {
@@ -695,6 +767,7 @@
         "entra-gov",
         "isc-iga"
       ],
+      "sizeMB": 0.18,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/nydfs-amendment-user-access-reviews.html"
     },
     {
@@ -704,6 +777,7 @@
       "offerings": [
         "pam-integration"
       ],
+      "sizeMB": 0.19,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/on-premises-privileged-access-management-pam-versus-pam-as-a-service.html"
     },
     {
@@ -714,6 +788,7 @@
         "secure-nhi",
         "cloud-first"
       ],
+      "sizeMB": 0.18,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/preparing-for-ai-driven-identity-threats.html"
     },
     {
@@ -725,6 +800,7 @@
         "isc-iga",
         "orchestratid-apps"
       ],
+      "sizeMB": 0.18,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/provisioning-and-deprovisioning-in-iam.html"
     },
     {
@@ -734,6 +810,7 @@
       "offerings": [
         "orchestratid-apps"
       ],
+      "sizeMB": 0.18,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/rethinking-application-onboarding-a-value-based-approach-for-real-business-impact-2025-navigate-session-recap.html"
     },
     {
@@ -743,6 +820,7 @@
       "offerings": [
         "cloud-first"
       ],
+      "sizeMB": 0.18,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/role-of-ciem-in-cloud-compliance.html"
     },
     {
@@ -752,6 +830,7 @@
       "offerings": [
         "cloud-first"
       ],
+      "sizeMB": 0.18,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/role-of-iam-in-cloud.html"
     },
     {
@@ -761,6 +840,7 @@
       "offerings": [
         "entra-mig"
       ],
+      "sizeMB": 0.18,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/role-of-single-sign-on-sso-in-iam.html"
     },
     {
@@ -770,6 +850,7 @@
       "offerings": [
         "entra-gov"
       ],
+      "sizeMB": 0.19,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/securing-modern-identities-how-microsoft-entra-id-governance-transforms-access-management.html"
     },
     {
@@ -780,6 +861,7 @@
         "rbac",
         "isc-iga"
       ],
+      "sizeMB": 0.18,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/segregation-of-duties-challenges-and-mitigation-strategies.html"
     },
     {
@@ -789,6 +871,7 @@
       "offerings": [
         "rbac"
       ],
+      "sizeMB": 0.18,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/segregation-of-duties-finance-and-accounting.html"
     },
     {
@@ -798,6 +881,7 @@
       "offerings": [
         "rbac"
       ],
+      "sizeMB": 0.18,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/segregation-of-duties-role-of-technology.html"
     },
     {
@@ -807,6 +891,7 @@
       "offerings": [
         "rbac"
       ],
+      "sizeMB": 0.18,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/segregation-of-duties.html"
     },
     {
@@ -816,6 +901,7 @@
       "offerings": [
         "mim-entra"
       ],
+      "sizeMB": 0.19,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/transitioning-beyond-mim-revisited-part-1-current-mim-landscape.html"
     },
     {
@@ -825,6 +911,7 @@
       "offerings": [
         "identityscout"
       ],
+      "sizeMB": 0.18,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/unlocking-operational-insight-how-identitylens-is-transforming-managed-services.html"
     },
     {
@@ -835,6 +922,7 @@
         "cloud-first",
         "entra-mig"
       ],
+      "sizeMB": 0.19,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/vpns-to-identity-driven-access-microsoft-entra-global-secure-access-advantage.html"
     },
     {
@@ -844,6 +932,7 @@
       "offerings": [
         "entra-mig"
       ],
+      "sizeMB": 0.18,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/what-is-federated-identity.html"
     },
     {
@@ -853,6 +942,7 @@
       "offerings": [
         "isc-iga"
       ],
+      "sizeMB": 0.18,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/what-is-harbor-pilot-an-intro-to-sailpoints-new-iam-ai-agent.html"
     },
     {
@@ -862,6 +952,7 @@
       "offerings": [
         "pam-integration"
       ],
+      "sizeMB": 0.19,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/what-is-privileged-access-management-pam.html"
     },
     {
@@ -871,6 +962,7 @@
       "offerings": [
         "rbac"
       ],
+      "sizeMB": 0.18,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/what-is-role-based-access-control-rbac.html"
     },
     {
@@ -880,6 +972,7 @@
       "offerings": [
         "skydock"
       ],
+      "sizeMB": 0.18,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/what-is-skydock-a-comprehensive-solution-for-cyberark-object-migration.html"
     },
     {
@@ -889,6 +982,7 @@
       "offerings": [
         "cloud-first"
       ],
+      "sizeMB": 0.18,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/what-is-zero-trust.html"
     },
     {
@@ -899,6 +993,7 @@
         "pam-integration",
         "pam-orchestratid"
       ],
+      "sizeMB": 0.18,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/what-we-learned-at-cyberark-impact-2025.html"
     },
     {
@@ -908,6 +1003,7 @@
       "offerings": [
         "cloud-first"
       ],
+      "sizeMB": 0.18,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/zero-trust-explained.html"
     },
     {
@@ -917,6 +1013,7 @@
       "offerings": [
         "cloud-first"
       ],
+      "sizeMB": 0.18,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/zero-trust-isnt-just-for-the-cloud-it-works-for-on-premises-too.html"
     },
     {
@@ -926,6 +1023,7 @@
       "offerings": [
         "cloud-first"
       ],
+      "sizeMB": 0.18,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/blogs/zero-trust-security-and-iam-in-access-control.html"
     },
     {
@@ -935,6 +1033,7 @@
       "offerings": [
         "isc-iga"
       ],
+      "sizeMB": 0.26,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/success-stories/a-modern-scalable-iga-solution-for-a-large-healthcare-network.html"
     },
     {
@@ -945,6 +1044,7 @@
         "orchestratid-apps",
         "isc-iga"
       ],
+      "sizeMB": 0.26,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/success-stories/application-governance-vendor-selection-and-implementation.html"
     },
     {
@@ -954,6 +1054,7 @@
       "offerings": [
         "cloud-first"
       ],
+      "sizeMB": 0.26,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/success-stories/cloud-security-assessment-google-cloud.html"
     },
     {
@@ -963,6 +1064,7 @@
       "offerings": [
         "entra-gov"
       ],
+      "sizeMB": 0.26,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/success-stories/consolidating-identity-processes-improving-security-and-reducing-costs-with-microsoft-entra-id-governance.html"
     },
     {
@@ -972,6 +1074,7 @@
       "offerings": [
         "rbac"
       ],
+      "sizeMB": 0.26,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/success-stories/fastpath-delinea-seperation-of-duties-toolset-update.html"
     },
     {
@@ -981,6 +1084,7 @@
       "offerings": [
         "cloud-first"
       ],
+      "sizeMB": 0.26,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/success-stories/helping-community-colleges-improve-security-with-microsoft-365-security-services.html"
     },
     {
@@ -990,6 +1094,7 @@
       "offerings": [
         "orchestratid-apps"
       ],
+      "sizeMB": 0.26,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/success-stories/hospital-system-user-onboarding.html"
     },
     {
@@ -999,6 +1104,7 @@
       "offerings": [
         "mna"
       ],
+      "sizeMB": 0.26,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/success-stories/identity-integration-and-consolidation-post-acquisition.html"
     },
     {
@@ -1009,6 +1115,7 @@
         "orchestratid-apps",
         "isc-iga"
       ],
+      "sizeMB": 0.26,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/success-stories/modernizing-global-heavy-equipment-manufacturer-identity-application-governance.html"
     },
     {
@@ -1018,6 +1125,7 @@
       "offerings": [
         "orchestratid-apps"
       ],
+      "sizeMB": 0.26,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/success-stories/non-user-starts-automation-supply-chain.html"
     },
     {
@@ -1027,6 +1135,7 @@
       "offerings": [
         "pam-integration"
       ],
+      "sizeMB": 0.26,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/success-stories/recovering-a-cyberark-implementation-for-a-healthcare-fintech-leader.html"
     },
     {
@@ -1036,6 +1145,7 @@
       "offerings": [
         "rbac"
       ],
+      "sizeMB": 0.26,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/success-stories/recovering-stalled-fastpath-implementation.html"
     },
     {
@@ -1045,6 +1155,7 @@
       "offerings": [
         "isc-iga"
       ],
+      "sizeMB": 0.26,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/success-stories/sailpoint-rescue-fortune-500-bank.html"
     },
     {
@@ -1054,6 +1165,7 @@
       "offerings": [
         "isc-iga"
       ],
+      "sizeMB": 0.26,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/success-stories/saviynt-rescue-services.html"
     },
     {
@@ -1064,6 +1176,7 @@
         "entra-mig",
         "nhi-gov"
       ],
+      "sizeMB": 0.27,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/success-stories/saying-goodbye-adfs-migrating-a-federal-agency-to-microsoft-entra-id-for-a-zero-trust-cloud-first-future.html"
     },
     {
@@ -1073,6 +1186,7 @@
       "offerings": [
         "isc-iga"
       ],
+      "sizeMB": 0.26,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/success-stories/streamlining-access-reviews-and-identity-governance-with-saviynt-eic-for-a-large-retailer.html"
     },
     {
@@ -1082,6 +1196,7 @@
       "offerings": [
         "pam-integration"
       ],
+      "sizeMB": 0.26,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/success-stories/transforming-privileged-access-management-with-cyberark.html"
     },
     {
@@ -1091,6 +1206,7 @@
       "offerings": [
         "orchestratid-apps"
       ],
+      "sizeMB": 0.26,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/success-stories/user-onboarding-hospital.html"
     },
     {
@@ -1101,6 +1217,7 @@
         "pam-integration",
         "pam-orchestratid"
       ],
+      "sizeMB": 0,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/webinar_texts/all-access-is-privileged-taking-a-pam-first-approach-towards-your-identity-secur.html"
     },
     {
@@ -1110,6 +1227,7 @@
       "offerings": [
         "entra-gov"
       ],
+      "sizeMB": 0,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/webinar_texts/automate-the-identity-lifecycle-with-microsoft-entra-id-governance-en-us.html"
     },
     {
@@ -1119,6 +1237,7 @@
       "offerings": [
         "entra-mig"
       ],
+      "sizeMB": 0,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/webinar_texts/configuring-and-using-custom-claims-in-microsoft-entra-id-en-us.html"
     },
     {
@@ -1129,6 +1248,7 @@
         "entra-gov",
         "entra-mig"
       ],
+      "sizeMB": 0,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/webinar_texts/creating-transformative-identity-governance-solutions-with-microsoft-entra-suite.html"
     },
     {
@@ -1138,6 +1258,7 @@
       "offerings": [
         "workforce-creds"
       ],
+      "sizeMB": 0,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/webinar_texts/demystifying-modern-authentication-en-us.html"
     },
     {
@@ -1148,6 +1269,7 @@
         "entra-mig",
         "entra-gov"
       ],
+      "sizeMB": 0,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/webinar_texts/discover-the-microsoft-entra-suite-unlocking-unified-identity-and-access-managem.html"
     },
     {
@@ -1157,6 +1279,7 @@
       "offerings": [
         "cloud-first"
       ],
+      "sizeMB": 0,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/webinar_texts/exploring-microsoft-s-security-service-edge-sse-solution-en-us.html"
     },
     {
@@ -1166,6 +1289,7 @@
       "offerings": [
         "workforce-creds"
       ],
+      "sizeMB": 0,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/webinar_texts/fortifying-your-cyber-defenses-using-microsoft-defender-to-prevent-token-theft-a.html"
     },
     {
@@ -1175,6 +1299,7 @@
       "offerings": [
         "entra-gov"
       ],
+      "sizeMB": 0,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/webinar_texts/from-legacy-to-legendary-reinvent-iam-with-horizonid-microsoft-entra-2-en-us.html"
     },
     {
@@ -1184,6 +1309,7 @@
       "offerings": [
         "entra-gov"
       ],
+      "sizeMB": 0,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/webinar_texts/from-legacy-to-legendary-reinvent-iam-with-horizonid-microsoft-entra-en-us.html"
     },
     {
@@ -1193,6 +1319,7 @@
       "offerings": [
         "isc-iga"
       ],
+      "sizeMB": 0,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/webinar_texts/from-sailpoint-iiq-to-isc-creating-value-in-your-iam-program-with-cloud-en-us-1-.html"
     },
     {
@@ -1202,6 +1329,7 @@
       "offerings": [
         "workforce-creds"
       ],
+      "sizeMB": 0,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/webinar_texts/going-passwordless-achieving-a-frictionless-secure-and-passwordless-user-authent.html"
     },
     {
@@ -1212,6 +1340,7 @@
         "mim-entra",
         "cloud-first"
       ],
+      "sizeMB": 0,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/webinar_texts/how-misconfigured-hybrid-identity-setups-can-compromise-cybersecurity-en-us.html"
     },
     {
@@ -1221,6 +1350,7 @@
       "offerings": [
         "idproof-remote"
       ],
+      "sizeMB": 0,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/webinar_texts/how-to-bolster-security-and-create-business-value-through-third-party-iam-en-us.html"
     },
     {
@@ -1231,6 +1361,7 @@
         "cloud-first",
         "entra-mig"
       ],
+      "sizeMB": 0,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/webinar_texts/how-to-get-the-most-out-of-your-microsoft-365-investments-en-us.html"
     },
     {
@@ -1240,6 +1371,7 @@
       "offerings": [
         "cloud-first"
       ],
+      "sizeMB": 0,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/webinar_texts/introduction-to-microsoft-s-security-service-edge-for-identity-centric-network-a.html"
     },
     {
@@ -1250,6 +1382,7 @@
         "secure-nhi",
         "nhi-gov"
       ],
+      "sizeMB": 0,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/webinar_texts/machine-identities-uncovering-the-hidden-risks-in-your-environment-en-us.html"
     },
     {
@@ -1259,6 +1392,7 @@
       "offerings": [
         "entra-mig"
       ],
+      "sizeMB": 0,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/webinar_texts/migrating-from-adfs-to-azure-active-directory-benefits-and-best-practices-en-us.html"
     },
     {
@@ -1268,6 +1402,7 @@
       "offerings": [
         "mim-entra"
       ],
+      "sizeMB": 0,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/webinar_texts/migrating-from-mim-sync-user-provisioning-with-microsoft-entra-id-en-us.html"
     },
     {
@@ -1278,6 +1413,7 @@
         "mim-entra",
         "entra-gov"
       ],
+      "sizeMB": 0,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/webinar_texts/moving-from-mim-to-microsoft-entra-id-governance-to-future-proof-identity-manage.html"
     },
     {
@@ -1287,6 +1423,7 @@
       "offerings": [
         "mim-entra"
       ],
+      "sizeMB": 0,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/webinar_texts/moving-mim-group-functionality-to-azure-ad-for-on-premises-group-attestation-en-.html"
     },
     {
@@ -1297,6 +1434,7 @@
         "cert-lifecycle",
         "pam-integration"
       ],
+      "sizeMB": 0,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/webinar_texts/pki-meets-pam-automation-strategies-for-the-new-tls-certificate-lifespan-en-us.html"
     },
     {
@@ -1306,6 +1444,7 @@
       "offerings": [
         "credsafe"
       ],
+      "sizeMB": 0,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/webinar_texts/powering-business-resilience-through-identity-security-and-service-management-en.html"
     },
     {
@@ -1316,6 +1455,7 @@
         "mim-entra",
         "entra-gov"
       ],
+      "sizeMB": 0,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/webinar_texts/preparing-for-life-after-mim-modernizing-identity-with-microsoft-entra-id-govern.html"
     },
     {
@@ -1326,6 +1466,7 @@
         "secure-nhi",
         "nhi-gov"
       ],
+      "sizeMB": 0,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/webinar_texts/securing-the-unseen-governance-for-machine-identities-en-us.html"
     },
     {
@@ -1336,6 +1477,7 @@
         "orchestratid-apps",
         "isc-iga"
       ],
+      "sizeMB": 0,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/webinar_texts/the-great-convergence-bridging-the-gap-between-identity-and-app-governance-en-us.html"
     },
     {
@@ -1346,6 +1488,7 @@
         "secure-nhi",
         "cloud-first"
       ],
+      "sizeMB": 0,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/webinar_texts/the-rise-of-ai-threats-identity-management-en-us.html"
     },
     {
@@ -1355,6 +1498,7 @@
       "offerings": [
         "cloud-first"
       ],
+      "sizeMB": 0,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/webinar_texts/transform-your-security-strategy-with-microsoft-sentinel-and-a-modern-managed-so.html"
     },
     {
@@ -1364,6 +1508,7 @@
       "offerings": [
         "mim-entra"
       ],
+      "sizeMB": 0,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/webinar_texts/transitioning-from-the-mim-portal-to-microsoft-entra-id-mim-retirement-series-pa.html"
     },
     {
@@ -1373,6 +1518,7 @@
       "offerings": [
         "pam-integration"
       ],
+      "sizeMB": 0,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/webinar_texts/understanding-privileged-access-management-pam-en-us.html"
     },
     {
@@ -1383,6 +1529,7 @@
         "secure-nhi",
         "nhi-gov"
       ],
+      "sizeMB": 0,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/webinar_texts/unmasking-invisible-threats-securing-non-human-identities-en-us.html"
     },
     {
@@ -1393,6 +1540,7 @@
         "idproof-remote",
         "idproof-helpdesk"
       ],
+      "sizeMB": 0,
       "url": "https://columnit.sharepoint.com/sites/salesplayactivator/Shared%20Documents/webinar_texts/using-microsoft-entra-verified-id-for-identity-proofing-of-partners-customers-an.html"
     }
   ]

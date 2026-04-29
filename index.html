@@ -4068,8 +4068,11 @@ function getTeamsUserInfo() {
 // ── SELECTED ATTACHMENTS FOR EMAIL ─────────────────────────────────────────
 var __selectedAttachments = [];
 
-window.MAX_BINARY_ATTACHMENTS = 3;
-function toggleAttachment(path, title, category, btn) {
+window.MAX_BINARY_ATTACHMENTS = 6;     // total attachments before email opens
+window.MAX_BINARY_TOTAL_MB = 18;        // raw size budget for binaries (after base64 ~24MB, fits in 25MB cap)
+window.MAX_BINARY_PER_FILE_MB = 10;     // any file over this auto-becomes a link
+
+function toggleAttachment(path, title, category, btn, sizeMB) {
   var idx = __selectedAttachments.findIndex(function(a){ return a.path === path; });
   if(idx >= 0) {
     __selectedAttachments.splice(idx, 1);
@@ -4077,19 +4080,37 @@ function toggleAttachment(path, title, category, btn) {
   } else {
     if(__selectedAttachments.length >= window.MAX_BINARY_ATTACHMENTS){
       if(typeof showInlineMsg === 'function'){
-        showInlineMsg('Max '+window.MAX_BINARY_ATTACHMENTS+' attachments — Outlook caps total message size at ~25 MB. Remove one before adding another, or send the rest as links.', true);
-      } else {
-        alert('Max '+window.MAX_BINARY_ATTACHMENTS+' attachments. Outlook caps total message size at ~25 MB.');
+        showInlineMsg('Max '+window.MAX_BINARY_ATTACHMENTS+' attachments per email. Remove one before adding another.', true);
       }
       return;
     }
-    __selectedAttachments.push({ path: path, title: title, category: category });
+    __selectedAttachments.push({ path: path, title: title, category: category, sizeMB: (typeof sizeMB === 'number' ? sizeMB : 0) });
     if(btn) { btn.classList.add('on'); btn.innerHTML = '<span>✓</span><span style="font-size:10px;font-weight:600;">Added</span>'; btn.style.background='rgba(32,245,147,0.18)'; btn.style.borderColor='rgba(32,245,147,0.5)'; btn.style.color='var(--teal2)'; }
     var dealKeyAtt = (typeof findActiveDealKey === 'function') ? findActiveDealKey() : null;
     if(dealKeyAtt && typeof logDealActivity === 'function') logDealActivity(dealKeyAtt, 'attachment_added', title);
   }
   updateAttachmentBadge();
   trackEvent('toggle_attachment', title);
+}
+
+// Split attachments into binary (small enough) vs. link-only (too big) at send time
+function splitAttachmentsBySize(){
+  var atts = (window.__selectedAttachments || []).slice();
+  // Sort smallest first so small files get the binary slots
+  atts.sort(function(a, b){ return (a.sizeMB || 0) - (b.sizeMB || 0); });
+  var binary = [];
+  var linkOnly = [];
+  var totalMB = 0;
+  atts.forEach(function(a){
+    var size = a.sizeMB || 0;
+    if(size > window.MAX_BINARY_PER_FILE_MB || (totalMB + size) > window.MAX_BINARY_TOTAL_MB){
+      linkOnly.push(a);
+    } else {
+      binary.push(a);
+      totalMB += size;
+    }
+  });
+  return { binary: binary, linkOnly: linkOnly, totalBinaryMB: totalMB };
 }
 
 function updateAttachmentBadge() {
@@ -7865,10 +7886,22 @@ function renderAssetLibrary(offId){
       var attachLabel = isAttached ? '✓ Attached' : '📎 Attach';
       var attachBg    = isAttached ? 'rgba(32,245,147,0.22)' : 'rgba(32,245,147,0.1)';
       var attachBorder= isAttached ? 'rgba(32,245,147,0.55)' : 'rgba(32,245,147,0.3)';
+      // Size pill — orange if too big to attach as binary, neutral otherwise
+      var sizePill = '';
+      if(typeof a.sizeMB === 'number'){
+        var sizeText = a.sizeMB >= 1 ? a.sizeMB.toFixed(1)+' MB' : Math.round(a.sizeMB*1024)+' KB';
+        var isLarge = a.sizeMB > 10;
+        var pillBg = isLarge ? 'rgba(255,138,138,0.12)' : 'rgba(255,255,255,0.04)';
+        var pillBorder = isLarge ? 'rgba(255,138,138,0.4)' : 'rgba(255,255,255,0.08)';
+        var pillColor = isLarge ? '#FF8A8A' : 'var(--t3)';
+        var pillTitle = isLarge ? 'Will be sent as a SharePoint link (too big for binary attachment)' : 'File size';
+        sizePill = '<span title="'+pillTitle+'" style="display:inline-flex;align-items:center;font-family:var(--mono);font-size:10px;color:'+pillColor+';background:'+pillBg+';border:1px solid '+pillBorder+';border-radius:5px;padding:3px 8px;white-space:nowrap;font-weight:600;letter-spacing:0.04em;">'+sizeText+(isLarge?' ↗':'')+'</span>';
+      }
       html += '<div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:10px 12px;transition:all 0.15s;" onmouseover="this.style.borderColor=\'rgba(105,0,255,0.4)\';this.style.background=\'rgba(105,0,255,0.06)\'" onmouseout="this.style.borderColor=\'rgba(255,255,255,0.06)\';this.style.background=\'rgba(255,255,255,0.03)\'">';
       html += '<div style="flex:1;min-width:0;font-size:13px;color:var(--t1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="'+safeName+'">'+escHtml(displayName)+'</div>';
+      html += sizePill;
       html += '<a href="'+safeUrl+'" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;background:rgba(105,0,255,0.12);border:1px solid rgba(105,0,255,0.3);color:var(--purple2);border-radius:7px;padding:6px 12px;text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:0.06em;white-space:nowrap;font-weight:600;">Open ↗</a>';
-      html += '<button onclick="toggleAttachment(\''+jsUrl+'\',\''+safeTitle+'\',\''+category+'\',this);renderAssetLibrary(selOff && selOff.id);" style="display:inline-flex;align-items:center;gap:6px;background:'+attachBg+';border:1px solid '+attachBorder+';color:var(--teal2);border-radius:7px;padding:6px 12px;cursor:pointer;font-family:var(--mono);font-size:11px;letter-spacing:0.06em;white-space:nowrap;font-weight:600;">'+attachLabel+'</button>';
+      html += '<button onclick="toggleAttachment(\''+jsUrl+'\',\''+safeTitle+'\',\''+category+'\',this,'+(a.sizeMB||0)+');renderAssetLibrary(selOff && selOff.id);" style="display:inline-flex;align-items:center;gap:6px;background:'+attachBg+';border:1px solid '+attachBorder+';color:var(--teal2);border-radius:7px;padding:6px 12px;cursor:pointer;font-family:var(--mono);font-size:11px;letter-spacing:0.06em;white-space:nowrap;font-weight:600;">'+attachLabel+'</button>';
       html += '</div>';
     });
     html += '</div></div>';
@@ -8645,9 +8678,15 @@ function sendWithAttachments(btn){
     discoveryNotes: discNotes.slice(0, 1500),
     senderName: senderDisplayName()
   };
-  var assets = __selectedAttachments.map(function(a){
+  // Smart picker: split into binary attachments and link-only based on file sizes
+  var split = splitAttachmentsBySize();
+  var assets = split.binary.map(function(a){
     return { name: decodeURIComponent((a.path||'').split('/').pop().replace(/\+/g,' ')), url: a.path };
   });
+  window.__pendingLinkOnlyAssets = split.linkOnly;
+  if(split.linkOnly.length > 0){
+    showInlineMsg(split.binary.length+' file(s) attached as binary, '+split.linkOnly.length+' as SharePoint links (too large to attach).', false);
+  }
   var origLabel = btn.innerHTML;
   btn.disabled = true;
   btn.style.opacity = '0.7';
@@ -8667,6 +8706,27 @@ function sendWithAttachments(btn){
       }
     }
     var bodyHtml = buildBrandedEmailHtml(finalBody);
+    // Inject link-only assets HTML into the email body before signature
+    var linkOnly = window.__pendingLinkOnlyAssets || [];
+    if(linkOnly.length > 0){
+      var linksHtml = '<table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin:18px 0;"><tr><td>' +
+        '<div style="font-family:Calibri,Arial,sans-serif;font-size:11px;letter-spacing:0.12em;color:#888;margin-bottom:10px;font-weight:600;text-transform:uppercase;">Additional Resources (open in SharePoint)</div>';
+      linkOnly.forEach(function(a){
+        var fn = decodeURIComponent((a.path||'').split('/').pop().replace(/\+/g,' '));
+        var displayTitle = (a.title || fn).replace(/\.[^.]+$/,'').replace(/[-_]/g,' ');
+        displayTitle = displayTitle.charAt(0).toUpperCase() + displayTitle.slice(1);
+        var sizeText = a.sizeMB ? ' &middot; '+a.sizeMB.toFixed(1)+' MB' : '';
+        linksHtml += '<table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-bottom:8px;background:#FAFAFB;border:1px solid #E8E6EB;border-left:3px solid #FFB830;border-radius:6px;"><tr>' +
+          '<td style="padding:12px 14px;font-family:Calibri,Arial,sans-serif;width:32px;font-size:18px;vertical-align:middle;">📎</td>' +
+          '<td style="padding:12px 14px 12px 0;font-family:Calibri,Arial,sans-serif;vertical-align:middle;">' +
+          '<div style="font-size:13px;font-weight:600;color:#0A0118;margin-bottom:2px;"><a href="'+escEmailHtml(a.path)+'" style="color:#6900FF;text-decoration:none;">'+escEmailHtml(displayTitle)+'</a></div>' +
+          '<div style="font-size:11px;color:#888;letter-spacing:0.04em;text-transform:uppercase;">SharePoint'+sizeText+'</div>' +
+          '</td></tr></table>';
+      });
+      linksHtml += '</td></tr></table>';
+      // Insert before the signature section (which starts with the purple bar)
+      bodyHtml = bodyHtml.replace('<table cellpadding="0" cellspacing="0" border="0" style="margin-top:24px;border-top:2px solid #6900FF', linksHtml + '<table cellpadding="0" cellspacing="0" border="0" style="margin-top:24px;border-top:2px solid #6900FF');
+    }
     btn.innerHTML = '⏳ Sending…';
     return fetch(window.LOGIC_APP_SEND_URL, {
       method: 'POST',
