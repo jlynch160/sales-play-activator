@@ -60,9 +60,11 @@ body{background:var(--bg);color:var(--t1);font-family:var(--body);min-height:100
 /* ── HEADER ── */
 .hdr{display:flex;align-items:center;justify-content:space-between;padding:24px 0 20px;border-bottom:1px solid var(--b3);margin-bottom:48px;}
 .logo{font-family:var(--display);font-weight:700;font-size:18px;background:linear-gradient(90deg,var(--purple2),var(--teal));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:0.02em;text-transform:uppercase;}
-.hdr-right{display:flex;align-items:center;gap:8px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;}
+.hdr-right{display:flex;align-items:center;gap:6px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;}
 .hdr-right::-webkit-scrollbar{display:none;}
-.hdr-pill{font-family:var(--mono);font-size:11px;letter-spacing:0.12em;padding:5px 14px;border-radius:20px;border:1px solid var(--b1);color:var(--purple2);background:var(--b2);text-transform:uppercase;white-space:nowrap;flex-shrink:0;}
+.hdr-pill{font-family:var(--mono);font-size:11px;letter-spacing:0.12em;padding:5px 14px;border-radius:20px;border:1px solid var(--b1);color:var(--t3);background:var(--b2);text-transform:uppercase;white-space:nowrap;flex-shrink:0;}
+.hdr-action{white-space:nowrap;flex-shrink:0;display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:6px 12px;cursor:pointer;font-family:var(--mono);font-size:11px;letter-spacing:0.08em;color:var(--t2);text-transform:uppercase;transition:all 0.18s;font-weight:600;}
+.hdr-action:hover{background:rgba(105,0,255,0.14);border-color:rgba(105,0,255,0.4);color:var(--t1);}
 .status-dot{width:7px;height:7px;border-radius:50%;background:var(--green2);box-shadow:0 0 8px var(--green);}
 
 /* ── STEP PROGRESS ── */
@@ -2059,6 +2061,52 @@ body{background:var(--bg);color:var(--t1);font-family:var(--body);min-height:100
   /* Header on every page */
   @page { margin: 0.6in; size: letter; }
 }
+
+/* ── MOBILE RESPONSIVE ───────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .hdr { padding: 10px 14px !important; flex-wrap: wrap; gap: 8px; }
+  .logo span:last-child { font-size: 13px !important; }
+  .hdr-pill { display: none; }
+  .hdr-action { padding: 5px 10px !important; font-size: 10px !important; }
+  .progress { padding: 0 14px !important; }
+  .panels { padding: 12px !important; }
+  .play-card { padding: 14px !important; border-radius: 12px !important; }
+  .tab-bar { display: flex !important; overflow-x: auto !important; scrollbar-width: none !important; grid-template-columns: unset !important; }
+  .tab-bar::-webkit-scrollbar { display: none; }
+  .tab { padding: 10px 14px !important; font-size: 11px !important; white-space: nowrap; }
+  /* Email modal */
+  .email-modal { width: 100vw !important; height: 100vh !important; max-height: 100vh !important; max-width: 100vw !important; border-radius: 0 !important; }
+  .em-tabs { overflow-x: auto; }
+  .em-footer { flex-wrap: wrap; gap: 6px !important; padding: 12px !important; }
+  .em-footer .em-copy-btn { flex: 1 1 calc(50% - 6px) !important; min-width: 130px; }
+  /* Active Plays / Dashboard / Plays Map go full screen on mobile */
+  #deals-modal > div, #dash-modal { width: 100vw !important; max-width: 100vw !important; max-height: 100vh !important; border-radius: 0 !important; }
+  #deals-modal { padding: 0 !important; }
+  /* Hide the hover preview card on mobile — replaced by tap-to-expand details */
+  .ap-preview { display: none !important; }
+  /* Plays Map cards — single column */
+  #plays-map [style*="grid-template-columns"][style*="380px"],
+  #plays-map [style*="grid-template-columns:repeat"] { grid-template-columns: 1fr !important; }
+  /* Dashboard KPI strip stacks */
+  #dash-modal [style*="grid-template-columns:repeat(4,1fr)"],
+  #dash-modal [style*="grid-template-columns:repeat(5,1fr)"] { grid-template-columns: repeat(2, 1fr) !important; }
+  /* Side panel triggers hide on mobile */
+  .ps-trigger { display: none !important; }
+  /* Snapshot sidebar collapses */
+  .panels[class*="layout-2col"] { grid-template-columns: 1fr !important; }
+}
+@media (max-width: 600px) {
+  .hdr { padding: 8px 10px !important; }
+  .hdr-action { padding: 4px 8px !important; font-size: 10px !important; }
+  .logo img { height: 18px !important; }
+  .logo span { font-size: 12px !important; }
+  /* Active Plays card details: stack action selects vertically */
+  #deals-modal select { padding: 4px 8px !important; font-size: 9px !important; }
+  /* Email modal footer fully stacks */
+  .em-footer .em-copy-btn { flex: 1 1 100% !important; }
+  /* Dashboard stats: single column on tiny screens */
+  #dash-modal [style*="grid-template-columns:repeat(2"] { grid-template-columns: 1fr !important; }
+}
 </style>
 </head>
 <body>
@@ -2071,13 +2119,13 @@ body{background:var(--bg);color:var(--t1);font-family:var(--body);min-height:100
     <span style="opacity:0.3;color:var(--t3);">|</span>
     <span style="font-size:14px;letter-spacing:0.04em;font-weight:600;">Solution Plays</span>
   </div>
-  <div class="hdr-right" style="display:flex;align-items:center;gap:8px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;">
+  <div class="hdr-right" style="display:flex;align-items:center;gap:6px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;">
     <div class="status-dot" style="flex-shrink:0;"></div>
     <div class="hdr-pill" style="white-space:nowrap;flex-shrink:0;font-size:10px;padding:4px 10px;">DIGITAL IDENTITY · ZERO TRUST</div>
-    <button onclick="openPlaysMap()" class="hdr-action" style="white-space:nowrap;flex-shrink:0;display:inline-flex;align-items:center;gap:6px;background:rgba(255,184,48,0.08);border:1px solid rgba(255,184,48,0.25);border-radius:8px;padding:6px 12px;cursor:pointer;font-family:var(--mono);font-size:11px;letter-spacing:0.08em;color:var(--amber);text-transform:uppercase;transition:all 0.2s;font-weight:600;" onmouseover="this.style.background='rgba(255,184,48,0.18)'" onmouseout="this.style.background='rgba(255,184,48,0.08)'">🗺 Plays Map</button>
-    <button onclick="openMyDeals()" class="hdr-action" style="white-space:nowrap;flex-shrink:0;display:inline-flex;align-items:center;gap:6px;background:rgba(32,245,147,0.08);border:1px solid rgba(32,245,147,0.25);border-radius:8px;padding:6px 12px;cursor:pointer;font-family:var(--mono);font-size:11px;letter-spacing:0.08em;color:var(--teal2);text-transform:uppercase;transition:all 0.2s;font-weight:600;" onmouseover="this.style.background='rgba(32,245,147,0.18)'" onmouseout="this.style.background='rgba(32,245,147,0.08)'">🎯 Active Plays<span id="deal-count-badge" style="display:none;min-width:16px;padding:0 5px;border-radius:10px;background:var(--teal);color:#0A0118;font-family:var(--mono);font-size:9px;font-weight:800;margin-left:4px;"></span></button>
-    <button onclick="openDashboard()" class="hdr-action" style="white-space:nowrap;flex-shrink:0;display:inline-flex;align-items:center;gap:6px;background:rgba(127,184,255,0.08);border:1px solid rgba(127,184,255,0.25);border-radius:8px;padding:6px 12px;cursor:pointer;font-family:var(--mono);font-size:11px;letter-spacing:0.08em;color:#7FB8FF;text-transform:uppercase;transition:all 0.2s;font-weight:600;" onmouseover="this.style.background='rgba(127,184,255,0.18)'" onmouseout="this.style.background='rgba(127,184,255,0.08)'">📊 Dashboard</button>
-    <button onclick="openAdmin()" class="hdr-action" style="white-space:nowrap;flex-shrink:0;display:inline-flex;align-items:center;gap:6px;background:rgba(157,111,255,0.1);border:1px solid rgba(157,111,255,0.25);border-radius:8px;padding:6px 12px;cursor:pointer;font-family:var(--mono);font-size:11px;letter-spacing:0.08em;color:var(--purple2);text-transform:uppercase;transition:all 0.2s;font-weight:600;" onmouseover="this.style.background='rgba(157,111,255,0.2)'" onmouseout="this.style.background='rgba(157,111,255,0.1)'">⚡ Admin</button>
+    <button onclick="openPlaysMap()" class="hdr-action">🗺 Plays Map</button>
+    <button onclick="openMyDeals()" class="hdr-action">🎯 Active Plays<span id="deal-count-badge" style="display:none;min-width:16px;padding:0 5px;border-radius:10px;background:var(--purple2);color:#0A0118;font-family:var(--mono);font-size:9px;font-weight:800;margin-left:4px;"></span></button>
+    <button onclick="openDashboard()" class="hdr-action">📊 Dashboard</button>
+    <button onclick="openAdmin()" class="hdr-action">⚡ Admin</button>
   </div>
 </header>
 
@@ -3322,13 +3370,32 @@ function quickJumpToPlay(offId){
   var off = (window.OFFERINGS || []).find(function(o){ return o.id === offId; });
   if(!off) return;
   var existing = document.getElementById('plays-map');
-  if(existing) existing.remove();
-  if(typeof selOffs !== 'undefined') selOffs = [off];
-  if(typeof currentPlayIdx !== 'undefined') currentPlayIdx = 0;
-  if(typeof renderPlayAtIndex === 'function') renderPlayAtIndex(0);
-  if(typeof markPlayOpened === 'function') markPlayOpened(offId);
-  document.body.style.overflow = '';
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  if(existing){
+    existing.style.transition = 'opacity 0.28s ease, transform 0.28s ease';
+    existing.style.opacity = '0';
+    existing.style.transform = 'scale(0.985)';
+    setTimeout(function(){ existing.remove(); doRender(); }, 260);
+  } else {
+    doRender();
+  }
+  function doRender(){
+    if(typeof selOffs !== 'undefined') selOffs = [off];
+    if(typeof currentPlayIdx !== 'undefined') currentPlayIdx = 0;
+    if(typeof renderPlayAtIndex === 'function') renderPlayAtIndex(0);
+    if(typeof markPlayOpened === 'function') markPlayOpened(offId);
+    document.body.style.overflow = '';
+    var card = document.querySelector('.play-card');
+    if(card){
+      card.style.opacity = '0';
+      card.style.transform = 'translateY(10px)';
+      setTimeout(function(){
+        card.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+        card.style.opacity = '1';
+        card.style.transform = 'translateY(0)';
+      }, 30);
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
 }
 
 function renderPlaysMapBody(tab) {
@@ -3370,9 +3437,18 @@ function renderPlaysMapBody(tab) {
       var id = card.getAttribute('data-off-id');
       var off = OFFERINGS.find(function(o){ return o.id === id; });
       if(!off) return;
-      // Close the map and pre-select the offering in step 2
+      // Animate the clicked card out, then close map
+      card.style.transition = 'transform 0.25s ease, opacity 0.25s ease';
+      card.style.transform = 'scale(1.04)';
       var overlay = document.getElementById('plays-map');
-      if(overlay) overlay.remove();
+      if(overlay){
+        setTimeout(function(){
+          overlay.style.transition = 'opacity 0.28s ease, transform 0.28s ease';
+          overlay.style.opacity = '0';
+          overlay.style.transform = 'scale(0.985)';
+        }, 80);
+        setTimeout(function(){ overlay.remove(); }, 320);
+      }
       // Set the offering as selected, set up matches array with just this one at 100%
       selOff = off;
       matches = [Object.assign({}, off, { score: 100, pct: 100, kHits: 0, pHits: 0 })];
@@ -3718,7 +3794,18 @@ function openMyDeals() {
           '<div style="margin-top:8px;max-height:220px;overflow-y:auto;padding-right:6px;">'+recent.map(formatActivity).join('')+'</div>' +
           '</details>';
       }
-      html += '<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-left:4px solid '+sm.color+';border-radius:14px;padding:18px 22px;margin-bottom:12px;transition:all 0.2s;" onmouseover="this.style.borderColor=\'rgba(32,245,147,0.3)\';this.style.borderLeftColor=\''+sm.color+'\'" onmouseout="this.style.borderColor=\'rgba(255,255,255,0.08)\';this.style.borderLeftColor=\''+sm.color+'\'">' +
+      var preview = (d.discoveryNotes || '').slice(0, 220);
+      var lastActivity = (d.activities && d.activities[0]) ? formatActivity(d.activities[0]) : '<div style="font-size:11px;color:var(--t3);font-style:italic;">No activity yet</div>';
+      var previewTip =
+        '<div class="ap-preview" style="position:absolute;left:calc(100% + 14px);top:0;width:340px;background:linear-gradient(160deg,#1A0D40,#0A0118);border:1px solid rgba(105,0,255,0.4);border-radius:12px;padding:16px 18px;box-shadow:0 24px 60px rgba(0,0,0,0.6);opacity:0;visibility:hidden;transform:translateX(-8px);transition:all 0.18s ease;z-index:50;pointer-events:none;">' +
+        '<div style="font-family:var(--mono);font-size:9px;letter-spacing:0.14em;color:var(--purple2);text-transform:uppercase;margin-bottom:8px;font-weight:600;">Discovery Notes</div>' +
+        '<div style="font-size:12px;color:var(--t1);line-height:1.55;margin-bottom:12px;max-height:140px;overflow:hidden;">'+(preview ? escHtml(preview)+(d.discoveryNotes && d.discoveryNotes.length > 220 ? '…' : '') : '<em style="color:var(--t3);">No discovery notes</em>')+'</div>' +
+        (d.nextStep ? '<div style="font-family:var(--mono);font-size:9px;letter-spacing:0.14em;color:var(--amber);text-transform:uppercase;margin-bottom:6px;font-weight:600;">Next Step</div><div style="font-size:12px;color:var(--t1);margin-bottom:12px;line-height:1.4;">'+escHtml(d.nextStep)+'</div>' : '') +
+        '<div style="font-family:var(--mono);font-size:9px;letter-spacing:0.14em;color:var(--teal2);text-transform:uppercase;margin-bottom:6px;font-weight:600;">Last Activity</div>' +
+        lastActivity +
+        '</div>';
+      html += '<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-left:4px solid '+sm.color+';border-radius:14px;padding:18px 22px;margin-bottom:12px;transition:all 0.2s;position:relative;" onmouseenter="this.style.borderColor=\'rgba(32,245,147,0.3)\';this.style.borderLeftColor=\''+sm.color+'\';var p=this.querySelector(\'.ap-preview\');if(p){p.style.opacity=\'1\';p.style.visibility=\'visible\';p.style.transform=\'translateX(0)\';}" onmouseleave="this.style.borderColor=\'rgba(255,255,255,0.08)\';this.style.borderLeftColor=\''+sm.color+'\';var p=this.querySelector(\'.ap-preview\');if(p){p.style.opacity=\'0\';p.style.visibility=\'hidden\';p.style.transform=\'translateX(-8px)\';}">' +
+        previewTip +
         '<div style="display:flex;align-items:center;gap:14px;margin-bottom:12px;">' +
           '<span style="font-size:28px;">'+escHtml(d.offeringIcon)+'</span>' +
           '<div style="flex:1;min-width:0;">' +
@@ -8601,6 +8688,50 @@ function buildBrandedEmailHtml(rawBody, prospectName){
   return html;
 }
 
+function showSendProgress(btn, stepIdx, binCount, linkCount){
+  var STEPS = [
+    { label:'📦 Building email…', pct:15 },
+    { label:'✨ Personalizing…',   pct:35 },
+    { label:'🔁 Fetching files…', pct:60 },
+    { label:'📤 Sending via Outlook…', pct:90 }
+  ];
+  var s = STEPS[stepIdx] || STEPS[0];
+  btn.innerHTML = s.label;
+  // Build/update inline progress bar above the footer
+  var box = document.getElementById('em-progress-box');
+  if(!box){
+    var footer = document.querySelector('.em-footer');
+    if(!footer || !footer.parentNode) return;
+    box = document.createElement('div');
+    box.id = 'em-progress-box';
+    box.style.cssText = 'padding:0 24px;margin-bottom:8px;';
+    box.innerHTML =
+      '<div style="display:flex;align-items:center;justify-content:space-between;font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--t3);margin-bottom:6px;">' +
+        '<span id="em-prog-label">Building</span>' +
+        '<span id="em-prog-meta">'+binCount+' binary'+(linkCount?' · '+linkCount+' links':'')+'</span>' +
+      '</div>' +
+      '<div style="height:4px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden;">' +
+        '<div id="em-prog-fill" style="height:100%;width:0%;background:linear-gradient(90deg,#6900FF,#A366FF,#20F593);border-radius:2px;transition:width 0.45s ease;"></div>' +
+      '</div>';
+    footer.parentNode.insertBefore(box, footer);
+  }
+  var label = document.getElementById('em-prog-label');
+  if(label) label.textContent = s.label.replace(/^[^\w]+/,'').replace(/…$/,'');
+  var fill = document.getElementById('em-prog-fill');
+  if(fill) fill.style.width = s.pct + '%';
+}
+function completeSendProgress(success, msg){
+  var fill = document.getElementById('em-prog-fill');
+  var label = document.getElementById('em-prog-label');
+  if(fill) fill.style.width = '100%';
+  if(fill) fill.style.background = success ? 'linear-gradient(90deg,#20F593,#0D9488)' : 'linear-gradient(90deg,#FF5C5C,#B91C1C)';
+  if(label) label.textContent = success ? 'Sent' : 'Failed';
+  setTimeout(function(){
+    var box = document.getElementById('em-progress-box');
+    if(box) box.remove();
+  }, 2500);
+}
+
 function showInlineMsg(msg, isError){
   var box = document.getElementById('em-inline-msg');
   if(!box){
@@ -8687,11 +8818,13 @@ function sendWithAttachments(btn){
   }
   var origLabel = btn.innerHTML;
   btn.disabled = true;
-  btn.style.opacity = '0.7';
-  btn.innerHTML = window.AI_OPENER_URL ? '✨ Personalizing…' : '⏳ Sending…';
+  btn.style.opacity = '0.85';
+  showSendProgress(btn, 0, assets.length, split.linkOnly.length);
 
   var openerPromise = window.AI_OPENER_URL ? fetchAiOpener(openerOpts) : Promise.resolve(null);
+  if(window.AI_OPENER_URL) showSendProgress(btn, 1, assets.length, split.linkOnly.length);
   openerPromise.then(function(aiOpener){
+    showSendProgress(btn, 2, assets.length, split.linkOnly.length);
     var finalBody = rawBody;
     if(aiOpener){
       var lines = finalBody.split(/\n/);
@@ -8767,6 +8900,7 @@ function sendWithAttachments(btn){
   }).then(function(){
     btn.innerHTML = '✓ Sent ('+assets.length+' attached)';
     btn.style.background = 'linear-gradient(135deg,#20F593,#0D9488)';
+    completeSendProgress(true);
     showInlineMsg('Sent to '+to+' with '+assets.length+' attachment'+(assets.length===1?'':'s')+'.', false);
     trackEvent('send_with_attachments', assets.length + ' files to ' + to);
     var dealKey = (typeof findActiveDealKey === 'function') ? findActiveDealKey() : null;
@@ -8785,6 +8919,7 @@ function sendWithAttachments(btn){
     console.error('sendWithAttachments error', err);
     btn.innerHTML = '✕ Failed - retry';
     btn.style.background = 'linear-gradient(135deg,#FF5C5C,#B91C1C)';
+    completeSendProgress(false);
     showInlineMsg('Send failed: '+err.message+'. Check Logic App run history in Azure for details.', true);
     setTimeout(function(){
       btn.innerHTML = origLabel;
