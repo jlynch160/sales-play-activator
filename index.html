@@ -8279,8 +8279,8 @@ function senderBookingUrl(){
 
 // Configure these once you build the helper Logic Apps
 window.AI_OPENER_URL = '';   // Logic App: takes offering+notes, returns { opener: "..." }
-window.AI_SUBJECT_VARIANTS_URL = '';  // Logic App: takes offering+body, returns { variants: ["s1","s2","s3"] }
-window.AI_FOLLOWUP_URL = '';  // Logic App: takes original_subject+original_body+their_reply, returns { followup: "..." }
+window.AI_SUBJECT_VARIANTS_URL = 'https://prod-06.centralus.logic.azure.com:443/workflows/94fe78ba6d9640a1864f2eb7477b265f/triggers/manual/paths/invoke?api-version=2019-05-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=Ft9rQ25PMgjY7I-XwJOL-lKnYYx18vSqg_np2nQU9vw';
+window.AI_FOLLOWUP_URL = 'https://prod-22.centralus.logic.azure.com:443/workflows/1466a2e6adc9431dbfd6e1932dde630e/triggers/manual/paths/invoke?api-version=2019-05-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=djLR6HMlfxEs6EXG_0RXj3jTNtoz9Ei7EDzcWX8AlZ4';
 window.TRACKING_PIXEL_URL = ''; // Logic App that logs pixel hits
 
 function buildCtaButtonHtml(){
