@@ -3285,11 +3285,53 @@ function renderStatCard(value, label, color) {
   '</div>';
 }
 
+function renderQuickAccessBanner(){
+  var pinned = getPinnedPlayIds();
+  var recent = getRecentPlayIds(4).filter(function(id){ return pinned.indexOf(id) < 0; });
+  if(pinned.length === 0 && recent.length === 0) return '';
+  function chipHtml(offId, isPinned){
+    var off = (window.OFFERINGS || []).find(function(o){ return o.id === offId; });
+    if(!off) return '';
+    var icon = off.icon || '🎯';
+    var label = off.short || off.name || offId;
+    var pinIcon = isPinned ? '⭐' : '🕒';
+    var border = isPinned ? 'rgba(255,184,48,0.45)' : 'rgba(105,0,255,0.35)';
+    var bg = isPinned ? 'rgba(255,184,48,0.08)' : 'rgba(105,0,255,0.08)';
+    return '<button onclick="quickJumpToPlay(\''+offId+'\')" style="display:inline-flex;align-items:center;gap:8px;background:'+bg+';border:1px solid '+border+';color:var(--t1);border-radius:10px;padding:8px 14px;font-family:var(--body);font-size:13px;font-weight:500;cursor:pointer;transition:all 0.15s;white-space:nowrap;" onmouseover="this.style.transform=\'translateY(-1px)\'" onmouseout="this.style.transform=\'translateY(0)\'">' +
+      '<span style="font-size:11px;opacity:0.7;">'+pinIcon+'</span>' +
+      '<span style="font-size:15px;">'+icon+'</span>' +
+      '<span>'+escHtml(label)+'</span>' +
+      '</button>';
+  }
+  var chips = [];
+  pinned.forEach(function(id){ chips.push(chipHtml(id, true)); });
+  recent.forEach(function(id){ chips.push(chipHtml(id, false)); });
+  if(chips.length === 0) return '';
+  return '<div style="background:linear-gradient(135deg,rgba(105,0,255,0.06),rgba(255,184,48,0.04));border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:18px 22px;margin-bottom:24px;">' +
+    '<div style="font-family:var(--mono);font-size:11px;letter-spacing:0.14em;color:var(--t3);text-transform:uppercase;margin-bottom:12px;font-weight:600;">⚡ Quick Access &middot; '+(pinned.length ? pinned.length+' pinned' : '')+(pinned.length && recent.length ? ' &middot; ' : '')+(recent.length ? recent.length+' recent' : '')+'</div>' +
+    '<div style="display:flex;flex-wrap:wrap;gap:10px;">'+chips.join('')+'</div>' +
+    '</div>';
+}
+
+function quickJumpToPlay(offId){
+  var off = (window.OFFERINGS || []).find(function(o){ return o.id === offId; });
+  if(!off) return;
+  var existing = document.getElementById('plays-map');
+  if(existing) existing.remove();
+  if(typeof selOffs !== 'undefined') selOffs = [off];
+  if(typeof currentPlayIdx !== 'undefined') currentPlayIdx = 0;
+  if(typeof renderPlayAtIndex === 'function') renderPlayAtIndex(0);
+  if(typeof markPlayOpened === 'function') markPlayOpened(offId);
+  document.body.style.overflow = '';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
 function renderPlaysMapBody(tab) {
   var body = document.getElementById('pm-body');
   if(!body) return;
+  window.__pmCurrentTab = tab;
 
-  var html = '';
+  var html = renderQuickAccessBanner();
 
   if(tab === 'all') {
     // Show all categories stacked
@@ -3386,6 +3428,8 @@ function renderCategorySection(cat, key, standalone) {
     var whyShort = (off.why || '').slice(0, 110);
     if(off.why && off.why.length > 110) whyShort += '...';
 
+    var isPinned = (typeof isPlayPinned === 'function') && isPlayPinned(id);
+    var pinIconHtml = '<button onclick="togglePlayPin(\''+id+'\',event)" title="'+(isPinned?'Unpin from Quick Access':'Pin to Quick Access')+'" style="position:absolute;top:14px;right:14px;width:32px;height:32px;border-radius:8px;background:'+(isPinned?'rgba(255,184,48,0.18)':'rgba(255,255,255,0.04)')+';border:1px solid '+(isPinned?'rgba(255,184,48,0.5)':'rgba(255,255,255,0.08)')+';color:'+(isPinned?'#FFB830':'var(--t3)')+';cursor:pointer;font-size:14px;z-index:5;transition:all 0.15s;display:flex;align-items:center;justify-content:center;" onmouseover="this.style.transform=\'scale(1.1)\'" onmouseout="this.style.transform=\'scale(1)\'">'+(isPinned?'★':'☆')+'</button>';
     cardsHtml += '<div class="pm-card" data-off-id="'+id+'" data-color="'+cat.color+'" style="background:linear-gradient(145deg,rgba(30,18,69,0.65),rgba(10,1,24,0.45));border:1px solid '+cat.color+'30;border-radius:22px;padding:28px 30px;cursor:pointer;transition:all 0.4s cubic-bezier(0.34,1.4,0.64,1);position:relative;overflow:hidden;animation:adm-card-in 0.5s ease both;backdrop-filter:blur(12px);">' +
       // Top gradient accent
       '<div style="position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,'+cat.color+','+cat.color+'60 60%,transparent);border-radius:22px 22px 0 0;opacity:1;"></div>' +
@@ -3393,6 +3437,7 @@ function renderCategorySection(cat, key, standalone) {
       '<div style="position:absolute;top:-80px;right:-80px;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,'+cat.color+'25,transparent 70%);pointer-events:none;transition:opacity 0.3s;"></div>' +
       // Subtle pattern
       '<div style="position:absolute;bottom:-50px;left:-50px;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,'+cat.color+'10,transparent 70%);pointer-events:none;"></div>' +
+      pinIconHtml +
 
       '<div style="position:relative;z-index:1;">' +
         // Header with icon + name
@@ -8243,6 +8288,105 @@ function renderPlayAtIndex(idx){
   selOff = selOffs[idx];
   render();
   updatePlayNav();
+  if(selOff && typeof markPlayOpened === 'function') markPlayOpened(selOff.id);
+}
+
+// ── ONBOARDING TOUR (first-visit only) ────────────────────────────────────
+function maybeShowOnboardingTour(){
+  try {
+    if(localStorage.getItem('spa_onboarding_done')) return;
+  } catch(e){ return; }
+  if(typeof microsoftTeams === 'undefined' && document.referrer === '') {} // no-op guard
+  setTimeout(showOnboardingTour, 800);
+}
+function showOnboardingTour(){
+  if(document.getElementById('mk-onboarding')) return;
+  var steps = [
+    { icon:'📝', title:'Paste discovery notes', body:'Drop in what you know about the prospect — any text. The app scores all 19 offerings against your notes and ranks them by fit.' },
+    { icon:'🎯', title:'Pick the top offering', body:'Click the offering with the highest match. The app generates a complete play with talk track, objection handling, proof points, and content recommendations.' },
+    { icon:'📎', title:'Attach SharePoint assets', body:'In Qualify & Prove → Content Library, click 📎 Attach on the most relevant SharePoint files. Up to 4 binary attachments per email.' },
+    { icon:'✉️', title:'Send the email', body:'Open the email modal, type the recipient, and click Send with Attachments. The email goes out from your mailbox with real binary attachments — no manual work.' },
+    { icon:'⭐', title:'Pin your favorites', body:'Click the ☆ on any offering card to pin it. Pinned + recent plays show in the Quick Access banner at the top of the Plays Map for one-click access.' }
+  ];
+  var idx = 0;
+  function render(){
+    var s = steps[idx];
+    var dots = steps.map(function(_, i){ return '<div style="width:8px;height:8px;border-radius:50%;background:'+(i===idx?'#A366FF':'rgba(255,255,255,0.18)')+';transition:all 0.2s;"></div>'; }).join('');
+    var body = document.getElementById('mk-onb-body');
+    if(!body) return;
+    body.innerHTML =
+      '<div style="font-size:48px;margin-bottom:18px;">'+s.icon+'</div>' +
+      '<div style="font-family:var(--display);font-size:24px;font-weight:800;color:var(--t1);margin-bottom:14px;letter-spacing:-0.01em;">'+s.title+'</div>' +
+      '<div style="font-size:15px;color:var(--t2);line-height:1.65;margin-bottom:24px;">'+s.body+'</div>' +
+      '<div style="display:flex;align-items:center;gap:10px;justify-content:center;margin-bottom:22px;">'+dots+'</div>' +
+      '<div style="display:flex;gap:10px;">' +
+        (idx > 0 ? '<button onclick="window.__onbPrev()" style="flex:1;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);color:var(--t1);border-radius:10px;padding:12px;font-family:var(--body);font-size:14px;cursor:pointer;font-weight:600;">Back</button>' : '') +
+        (idx < steps.length-1
+          ? '<button onclick="window.__onbNext()" style="flex:2;background:linear-gradient(135deg,#6900FF,#A366FF);border:none;color:#fff;border-radius:10px;padding:12px;font-family:var(--body);font-size:14px;cursor:pointer;font-weight:700;">Next →</button>'
+          : '<button onclick="window.__onbFinish()" style="flex:2;background:linear-gradient(135deg,#20F593,#0D9488);border:none;color:#0A0118;border-radius:10px;padding:12px;font-family:var(--body);font-size:14px;cursor:pointer;font-weight:700;">Got it — let\'s go ✓</button>') +
+      '</div>' +
+      '<button onclick="window.__onbFinish()" style="position:absolute;top:14px;right:14px;background:none;border:none;color:var(--t3);cursor:pointer;font-size:18px;width:30px;height:30px;border-radius:50%;" onmouseover="this.style.background=\'rgba(255,255,255,0.06)\'" onmouseout="this.style.background=\'none\'" title="Skip tour">✕</button>';
+  }
+  window.__onbNext = function(){ idx = Math.min(idx + 1, steps.length - 1); render(); };
+  window.__onbPrev = function(){ idx = Math.max(idx - 1, 0); render(); };
+  window.__onbFinish = function(){
+    try { localStorage.setItem('spa_onboarding_done', '1'); } catch(e){}
+    var el = document.getElementById('mk-onboarding');
+    if(el) el.remove();
+  };
+  var overlay = document.createElement('div');
+  overlay.id = 'mk-onboarding';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(10,1,24,0.85);backdrop-filter:blur(8px);z-index:1000000;display:flex;align-items:center;justify-content:center;animation:adm-popup-in 0.3s ease;';
+  overlay.innerHTML =
+    '<div style="background:linear-gradient(160deg,#1E1245,#0A0118);border:1px solid rgba(105,0,255,0.4);border-radius:20px;padding:36px 40px;max-width:480px;width:90%;text-align:center;position:relative;box-shadow:0 30px 80px rgba(0,0,0,0.6),0 0 0 1px rgba(105,0,255,0.2);">' +
+      '<div style="position:absolute;top:0;left:24px;right:24px;height:4px;background:linear-gradient(90deg,#6900FF,#A366FF,#20F593);border-radius:0 0 4px 4px;"></div>' +
+      '<div id="mk-onb-body"></div>' +
+    '</div>';
+  document.body.appendChild(overlay);
+  render();
+}
+window.addEventListener('DOMContentLoaded', function(){ setTimeout(maybeShowOnboardingTour, 1500); });
+
+// ── PLAY ACTIVITY TRACKING (recent + pinned) ──────────────────────────────
+function getPlayActivity(){
+  try { return JSON.parse(localStorage.getItem('spa_play_activity') || '{}'); } catch(e){ return {}; }
+}
+function savePlayActivity(act){
+  try { localStorage.setItem('spa_play_activity', JSON.stringify(act || {})); } catch(e){}
+}
+function markPlayOpened(offId){
+  if(!offId) return;
+  var act = getPlayActivity();
+  act.recent = (act.recent || []).filter(function(r){ return r.id !== offId; });
+  act.recent.unshift({ id: offId, ts: Date.now() });
+  if(act.recent.length > 8) act.recent = act.recent.slice(0, 8);
+  act.counts = act.counts || {};
+  act.counts[offId] = (act.counts[offId] || 0) + 1;
+  savePlayActivity(act);
+}
+function togglePlayPin(offId, ev){
+  if(ev){ ev.stopPropagation(); ev.preventDefault(); }
+  var act = getPlayActivity();
+  act.pinned = act.pinned || [];
+  var idx = act.pinned.indexOf(offId);
+  if(idx >= 0) act.pinned.splice(idx, 1);
+  else { act.pinned.push(offId); if(act.pinned.length > 6) act.pinned = act.pinned.slice(-6); }
+  savePlayActivity(act);
+  if(document.getElementById('plays-map') && typeof renderPlaysMapBody === 'function'){
+    renderPlaysMapBody(window.__pmCurrentTab || 'all');
+  }
+}
+function isPlayPinned(offId){
+  var act = getPlayActivity();
+  return (act.pinned || []).indexOf(offId) >= 0;
+}
+function getRecentPlayIds(limit){
+  var act = getPlayActivity();
+  return (act.recent || []).slice(0, limit || 4).map(function(r){ return r.id; });
+}
+function getPinnedPlayIds(){
+  var act = getPlayActivity();
+  return (act.pinned || []).slice();
 }
 
 function navPlay(dir){
